@@ -1,0 +1,104 @@
+{% block %}
+    {% client %}(.*)(best|top|fastest|most expensive)(.*)(motor|bike|motorcycle)(.*){% endclient %}
+    {% response %}If you're looking for the absolute best, the Ducati Panigale V4 S and the BMW M1000RR are our top-tier flagship superbikes, offering unmatched performance and technology!{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(cheapest|budget|affordable)(.*){% endclient %}
+    {% response %}For budget-friendly options, the Yamaha MT-15 or Honda CBR150R are excellent entry-level choices that offer great value for money.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(buy|buy bike|find bike|price|motorcycle|looking for|consult|models)(.*){% endclient %}
+    {% response %}At MBServices, we offer a wide variety of motorcycles. You can visit the "Motorcycles" section on our menu to see the list of models and prices!{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(test ride|try|ride|book ride)(.*){% endclient %}
+    {% response %}You can book a test ride directly on our website! Please go to the "Book Test Ride" section on the home page or in the motorcycle details to choose a time.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(maintenance|repair|service|broken|fix|oil change)(.*){% endclient %}
+    {% response %}Our service workshop is always ready. You can visit the "Services" section on the menu to book a maintenance appointment.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(installment|payment|vnpay|zalopay|momo|finance|pay)(.*){% endclient %}
+    {% response %}We currently support convenient online payments via VNPay, ZaloPay, and Momo. You can also contact our store directly for more advice on installment plans.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(address|where|store|location|find you|branch)(.*){% endclient %}
+    {% response %}MBServices has multiple branches. You can check the detailed addresses and stock availability in the "Contact" section or on each motorcycle's details page.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(honda|yamaha|kawasaki|ducati|bmw|suzuki|harley|triumph|ktm|royal enfield)(.*){% endclient %}
+    {% response %}MBServices is proud to be an authorized dealer for premium brands including Honda, Yamaha, Kawasaki, Ducati, BMW, Suzuki, Harley-Davidson, Triumph, KTM, and Royal Enfield.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(working hours|open|close|time|hours)(.*){% endclient %}
+    {% response %}MBServices is open from 8:00 AM to 8:00 PM, every day of the week (including Saturdays and Sundays). We look forward to welcoming you!{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(warranty|guarantee|policy)(.*){% endclient %}
+    {% response %}All motorcycles purchased at MBServices come with a genuine manufacturer's warranty (typically 2-3 years or 20,000km - 30,000km depending on the model).{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(return|exchange|refund)(.*){% endclient %}
+    {% response %}Unfortunately, MBServices does not currently have a return or exchange policy once the license plate registration is completed. Please inspect the motorcycle carefully before receiving it.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(discount|promo|sale|coupon|voucher|offer|cheap)(.*){% endclient %}
+    {% response %}We frequently offer great discounts! You can browse the "Motorcycles" page to find models on sale. You can also apply Promo Codes directly at the Checkout page to get additional discounts.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(compare|difference|better)(.*){% endclient %}
+    {% response %}Not sure which bike to choose? You can easily compare up to 4 motorcycles side-by-side! Just click the 'Compare Models' button on any motorcycle's detail page.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(order status|track order|my order|cancel order|history)(.*){% endclient %}
+    {% response %}You can track your orders, view history, or manage cancellations by logging into your account and visiting the 'My Orders' section in your profile.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(delivery|shipping|ship|transport)(.*){% endclient %}
+    {% response %}We offer secure nationwide delivery! Shipping costs are calculated at checkout. Your dream bike will be delivered safely right to your door.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(trade in|used bike|second hand|sell my bike|old bike)(.*){% endclient %}
+    {% response %}Currently, MBServices focuses exclusively on selling brand new premium motorcycles. We do not offer trade-in or used bike purchasing services at this time.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(license|requirement for test ride|need for test ride|document)(.*){% endclient %}
+    {% response %}To test ride, you must have a valid A2 motorcycle license (for bikes >175cc) or A1 license (for bikes <175cc), and bring your original ID card/Passport to the dealership.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(helmet|accessory|accessories|gear|parts|spare parts)(.*){% endclient %}
+    {% response %}We provide genuine spare parts for all our supported brands. For riding gear and accessories like helmets or jackets, please visit our branches directly.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(hi|hello|hey|greetings|good morning|good afternoon)(.*){% endclient %}
+    {% response %}Hello! I am the MBServices virtual assistant. How can I help you today? (You can ask about buying a bike, comparing models, test rides, or discounts!){% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(thanks|thank you|tks|ok|got it|okay|awesome)(.*){% endclient %}
+    {% response %}You're welcome! I'm glad I could help. Ride safe and have a great day!{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*){% endclient %}
+    {% response %}Sorry, I didn't quite catch that. You can ask me about: buying a bike, discounts, comparing models, test rides, maintenance, delivery, or store locations!{% endresponse %}
+{% endblock %}
