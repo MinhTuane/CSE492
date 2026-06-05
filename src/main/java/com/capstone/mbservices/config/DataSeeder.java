@@ -908,8 +908,8 @@ public class DataSeeder implements CommandLineRunner {
                     .build(),
                 ForumPost.builder()
                     .user(customer)
-                    .title("Cần bán CBR150R 2022 ODO 15k km - Chính chủ")
-                    .content("Xe zin nguyên bản, bảo dưỡng định kỳ tại hãng. Đã lên một số đồ chơi cơ bản như chống đổ, kính gió. Giá mong muốn: 60 triệu (có thương lượng). Liên hệ: 09xx.xxx.xxx")
+                    .title("For Sale: CBR150R 2022 ODO 15k km - First Owner")
+                    .content("Fully stock motorcycle, regularly serviced at the authorized dealer. Added a few basic accessories like crash bars and a windshield. Desired price: 60 million VND (negotiable). Contact: 09xx.xxx.xxx")
                     .category("usedbikes")
                     .price(60_000_000.0)
                     .isVerifiedByShop(true)
@@ -921,8 +921,8 @@ public class DataSeeder implements CommandLineRunner {
                     .build(),
                 ForumPost.builder()
                     .user(customer1)
-                    .title("Chia sẻ kinh nghiệm lên pô Akrapovic cho Kawasaki Z900")
-                    .content("Chào anh em, hôm nay mình mới lên cây pô Akrapovic Carbon cho Z900. Cảm nhận đầu tiên là tiếng trầm ấm, mượt ở dải tua thấp và hú hét cực phấn khích khi kéo ga. Mình có map lại ECU để xe không bị hụp.")
+                    .title("Sharing experience upgrading to Akrapovic exhaust for Kawasaki Z900")
+                    .content("Hey everyone, today I just installed an Akrapovic Carbon exhaust on my Z900. First impression is a deep, warm sound that is smooth at low RPMs and screams excitingly when pulling the throttle. I remapped the ECU so there is no power lag.")
                     .category("customization")
                     .isHot(true)
                     .isHidden(false)
@@ -932,8 +932,8 @@ public class DataSeeder implements CommandLineRunner {
                     .build(),
                 ForumPost.builder()
                     .user(customer)
-                    .title("Tìm mua mâm sau Ninja 400 cũ")
-                    .content("Bác nào dư mâm sau Z400/Ninja 400 màu đen không ạ? Xe em lỡ sập ổ gà bị vênh mâm. Bác nào có báo giá em với nhé.")
+                    .title("Looking to buy a used rear wheel rim for Ninja 400")
+                    .content("Does anyone have a spare black rear rim for a Z400/Ninja 400? My bike hit a pothole and bent the rim. Please let me know your price.")
                     .category("parts")
                     .price(2_500_000.0)
                     .isVerifiedByShop(false)

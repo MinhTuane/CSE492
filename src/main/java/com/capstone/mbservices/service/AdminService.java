@@ -38,6 +38,7 @@ public class AdminService {
     private final ServiceOfferingRepository serviceOfferingRepository;
     private final CloudinaryService cloudinaryService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
     private final DiscountCodeRepository discountCodeRepository;
     private final AccessoryRepository accessoryRepository;
     private final BookingService bookingService;
@@ -260,8 +261,8 @@ public class AdminService {
         // Check if motorcycle is in any pending orders
         List<Order> pendingOrders = orderRepository.findByStatus(OrderStatus.PENDING);
         boolean isInPendingOrder = pendingOrders.stream()
-            .anyMatch(order -> order.getMotorcycles().stream()
-                .anyMatch(m -> m.getId().equals(id)));
+            .anyMatch(order -> order.getOrderItems() != null && order.getOrderItems().stream()
+                .anyMatch(item -> item.getItemType() == ItemType.MOTORCYCLE && item.getItemId().equals(id)));
         
         if (isInPendingOrder) {
             throw new BadRequestException("Cannot delete motorcycle that is in pending orders");
@@ -522,16 +523,22 @@ public class AdminService {
             order.setShippedAt(LocalDateTime.now());
         } else if (status == OrderStatus.DELIVERED) {
             order.setDeliveredAt(LocalDateTime.now());
-            for (Motorcycle motorcycle : order.getMotorcycles()) {
-                int current = motorcycle.getStock() != null ? motorcycle.getStock() : 0;
-                int newStock = Math.max(current - 1, 0);
-                motorcycle.setStock(newStock);
-                if (newStock <= 0) {
-                    motorcycle.setStatus(MotorcycleStatus.OUT_OF_STOCK);
-                } else if (motorcycle.getStatus() == MotorcycleStatus.OUT_OF_STOCK) {
-                    motorcycle.setStatus(MotorcycleStatus.AVAILABLE);
+            // For V2 orders (OrderItem-based): stock was already reserved at creation. Do NOT deduct again.
+            // For V1 legacy orders: fallback to motorcycles list stock deduction.
+            if (order.getOrderItems() == null || order.getOrderItems().isEmpty()) {
+                if (order.getMotorcycles() != null) {
+                    for (Motorcycle motorcycle : order.getMotorcycles()) {
+                        int current = motorcycle.getStock() != null ? motorcycle.getStock() : 0;
+                        int newStock = Math.max(current - 1, 0);
+                        motorcycle.setStock(newStock);
+                        if (newStock <= 0) {
+                            motorcycle.setStatus(MotorcycleStatus.OUT_OF_STOCK);
+                        } else if (motorcycle.getStatus() == MotorcycleStatus.OUT_OF_STOCK) {
+                            motorcycle.setStatus(MotorcycleStatus.AVAILABLE);
+                        }
+                        motorcycleRepository.save(motorcycle);
+                    }
                 }
-                motorcycleRepository.save(motorcycle);
             }
         }
         
@@ -1002,6 +1009,7 @@ public class AdminService {
             "SERVICE",
             saved.getId()
         );
+        emailService.sendStaffAssignedServiceEmail(saved, staff);
         return saved;
     }
 
@@ -1068,6 +1076,7 @@ public class AdminService {
             "TEST_RIDE",
             saved.getId()
         );
+        emailService.sendStaffAssignedEmail(saved, staff);
         return saved;
     }
 

@@ -38,8 +38,12 @@ public class PasswordResetService {
             throw new BadRequestException("Password reset is not available for username-based accounts. Please contact support.");
         }
         
-        User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("No account found with this email"));
+        java.util.Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            log.info("Password reset requested for non-existent email: {}", email);
+            return;
+        }
+        User user = userOpt.get();
         
         // Check if user has local credentials
         if (!Boolean.TRUE.equals(user.getHasLocalCredentials())) {

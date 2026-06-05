@@ -41,9 +41,15 @@ public class User {
     @Builder.Default
     private Boolean hasLocalCredentials = false;
     
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String firstname;
+
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String lastname;
+
     private String phone;
+
+    @Column(columnDefinition = "NVARCHAR(1000)")
     private String address;
     
     @Enumerated(EnumType.STRING)
@@ -83,16 +89,4 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Review> reviews;
-
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
 }

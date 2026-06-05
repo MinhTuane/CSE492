@@ -14,7 +14,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/motorcycles")  // NO /api prefix! context-path adds it
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class MotorcycleController {
     private final MotorcycleService motorcycleService;
     

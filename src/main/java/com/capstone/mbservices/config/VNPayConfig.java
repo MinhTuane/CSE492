@@ -32,6 +32,9 @@ public class VNPayConfig {
     @Value("${vnpay.return-url:http://localhost:3001/checkout/payment-result}")
     private String vnp_ReturnUrl;
 
+    @Value("${vnpay.notify-url:}")
+    private String vnp_NotifyUrl;
+
     public String vnp_Version = "2.1.0";
     public String vnp_Command = "pay";
 

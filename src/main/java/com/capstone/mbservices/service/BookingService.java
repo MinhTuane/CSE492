@@ -1,8 +1,10 @@
 package com.capstone.mbservices.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.servlet.http.HttpServletRequest;
 import com.capstone.mbservices.entity.*;
 import com.capstone.mbservices.entity.Notification;
 import com.capstone.mbservices.dto.request.*;
@@ -27,6 +29,10 @@ public class BookingService {
     private final ServiceOfferingRepository serviceOfferingRepository;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final VNPayService vnPayService;
+
+    @Value("${app.frontend.url:http://localhost:3001}")
+    private String frontendUrl;
     
     @Transactional
     public TestRide scheduleTestRide(TestRideRequest request) {
@@ -268,7 +274,60 @@ public class BookingService {
         TestRide testRide = testRideRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Test ride not found"));
         testRide.setStatus(TestRideStatus.CANCELLED);
+        if (testRide.getDepositStatus() == com.capstone.mbservices.enums.DepositStatus.PAID) {
+            testRide.setDepositStatus(com.capstone.mbservices.enums.DepositStatus.REFUNDED);
+            notificationService.sendToUser(
+                testRide.getUser(),
+                "Test Ride Deposit Refund",
+                String.format("Appointment cancelled. Deposit of %,.0f VND will be refunded within 3-5 business days.",
+                    testRide.getDepositAmount()),
+                "TEST_RIDE", testRide.getId()
+            );
+        }
         testRideRepository.save(testRide);
+    }
+
+    public com.capstone.mbservices.dto.response.VNPayResponse createTestRideDepositPayment(
+            String testRideId, HttpServletRequest request) {
+        TestRide testRide = testRideRepository.findById(testRideId)
+            .orElseThrow(() -> new ResourceNotFoundException("Test ride not found"));
+        if (testRide.getDepositStatus() == com.capstone.mbservices.enums.DepositStatus.PAID) {
+            throw new com.capstone.mbservices.exception.BadRequestException("Deposit already paid for this booking");
+        }
+        double amount = testRide.getDepositAmount() != null ? testRide.getDepositAmount() : 200_000.0;
+        String orderInfo = "Dat coc lich lai thu xe " + testRide.getMotorcycle().getModel();
+        String depositReturnUrl = frontendUrl + "/my-bookings?depositResult=pending&testRideId=" + testRideId;
+        return vnPayService.createPayment(amount, orderInfo, testRideId, request, depositReturnUrl);
+    }
+
+    @Transactional
+    public TestRide processTestRideDeposit(String testRideId, String transactionId) {
+        TestRide testRide = testRideRepository.findById(testRideId)
+            .orElseThrow(() -> new ResourceNotFoundException("Test ride not found"));
+        if (testRide.getDepositStatus() == com.capstone.mbservices.enums.DepositStatus.PAID) {
+            return testRide;
+        }
+        testRide.setDepositStatus(com.capstone.mbservices.enums.DepositStatus.PAID);
+        testRide.setDepositPaidAt(java.time.LocalDateTime.now());
+        testRide.setDepositTransactionId(transactionId);
+        if (testRide.getStatus() == TestRideStatus.PENDING) {
+            testRide.setStatus(TestRideStatus.CONFIRMED);
+            testRide.setConfirmedAt(java.time.LocalDateTime.now());
+        }
+        TestRide saved = testRideRepository.save(testRide);
+        notificationService.sendToAdmin(
+            "Deposit Received",
+            "User " + saved.getUser().getFirstname() + " paid deposit for test ride booking",
+            "TEST_RIDE", saved.getId()
+        );
+        notificationService.sendToUser(
+            saved.getUser(),
+            "Deposit Successful",
+            String.format("Test ride booking has been confirmed. Deposit of %,.0f VND has been received.",
+                saved.getDepositAmount()),
+            "TEST_RIDE", saved.getId()
+        );
+        return saved;
     }
 
     private String appendNote(String existing, String addition) {
@@ -278,6 +337,82 @@ public class BookingService {
     
     public List<ServiceOffering> getServiceCatalog() {
         return serviceOfferingRepository.findByActiveTrue();
+    }
+
+    /**
+     * Returns available booking slots for a given date at a store.
+     *
+     * @param storeId         target store
+     * @param date            the date to check (yyyy-MM-dd)
+     * @param type            "TEST_RIDE" or "SERVICE"
+     * @param durationMinutes slot length in minutes (default 30)
+     * @return list of slot maps with keys: start, end, available
+     */
+    public List<Map<String, Object>> getAvailableSlots(String storeId, LocalDateTime date, String type, int durationMinutes) {
+        // Working hours: 08:00 – 17:00 (last slot must end by 17:00)
+        LocalDateTime workStart = date.toLocalDate().atTime(8, 0);
+        LocalDateTime workEnd   = date.toLocalDate().atTime(17, 0);
+
+        // Collect all busy intervals at this store on this day
+        List<LocalDateTime[]> busyIntervals = new java.util.ArrayList<>();
+
+        if ("SERVICE".equalsIgnoreCase(type)) {
+            List<MaintenanceService> services = maintenanceServiceRepository
+                .findByStoreIdAndScheduleDateBetween(storeId, workStart, workEnd);
+            for (MaintenanceService ms : services) {
+                if (ms.getStatus() == ServiceStatus.CANCELLED || ms.getStatus() == ServiceStatus.EXPIRED) continue;
+                if (ms.getScheduleDate() == null) continue;
+                LocalDateTime sStart = ms.getScheduleDate();
+                LocalDateTime sEnd   = sStart.plusMinutes(durationMinutes);
+                busyIntervals.add(new LocalDateTime[]{sStart, sEnd});
+            }
+        } else {
+            // Default: TEST_RIDE
+            List<TestRide> rides = testRideRepository.findByStoreIdAndScheduleDateTimeBetween(storeId, workStart, workEnd);
+            // Also check scheduleDate field
+            List<TestRide> rides2 = testRideRepository.findByStoreIdAndScheduleDateBetween(storeId, workStart, workEnd);
+            java.util.Set<String> seen = new java.util.HashSet<>();
+            for (TestRide r : rides) {
+                if (r.getStatus() == TestRideStatus.CANCELLED || r.getStatus() == TestRideStatus.EXPIRED
+                        || r.getStatus() == TestRideStatus.NO_SHOW || r.getStatus() == TestRideStatus.COMPLETED) continue;
+                seen.add(r.getId());
+                LocalDateTime rStart = r.getScheduleDateTime() != null ? r.getScheduleDateTime() : r.getScheduleDate();
+                if (rStart == null) continue;
+                LocalDateTime rEnd = rStart.plusMinutes(r.getDuration() != null ? r.getDuration() : durationMinutes);
+                busyIntervals.add(new LocalDateTime[]{rStart, rEnd});
+            }
+            for (TestRide r : rides2) {
+                if (seen.contains(r.getId())) continue;
+                if (r.getStatus() == TestRideStatus.CANCELLED || r.getStatus() == TestRideStatus.EXPIRED
+                        || r.getStatus() == TestRideStatus.NO_SHOW || r.getStatus() == TestRideStatus.COMPLETED) continue;
+                LocalDateTime rStart = r.getScheduleDate();
+                if (rStart == null) continue;
+                LocalDateTime rEnd = rStart.plusMinutes(r.getDuration() != null ? r.getDuration() : durationMinutes);
+                busyIntervals.add(new LocalDateTime[]{rStart, rEnd});
+            }
+        }
+
+        List<Map<String, Object>> slots = new java.util.ArrayList<>();
+        LocalDateTime cursor = workStart;
+        while (!cursor.plusMinutes(durationMinutes).isAfter(workEnd)) {
+            LocalDateTime slotEnd = cursor.plusMinutes(durationMinutes);
+            boolean available = true;
+            for (LocalDateTime[] busy : busyIntervals) {
+                // Overlap: slot starts before busy ends AND slot ends after busy starts
+                if (cursor.isBefore(busy[1]) && slotEnd.isAfter(busy[0])) {
+                    available = false;
+                    break;
+                }
+            }
+            Map<String, Object> slot = new java.util.LinkedHashMap<>();
+            slot.put("start", cursor.toLocalTime().toString());
+            slot.put("end", slotEnd.toLocalTime().toString());
+            slot.put("startDateTime", cursor.toString());
+            slot.put("available", available);
+            slots.add(slot);
+            cursor = cursor.plusMinutes(durationMinutes);
+        }
+        return slots;
     }
 
     @Transactional

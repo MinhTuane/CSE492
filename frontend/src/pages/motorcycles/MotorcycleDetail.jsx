@@ -36,7 +36,6 @@ const MotorcycleDetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('performance');
   const [showFinancingModal, setShowFinancingModal] = useState(false);
-  const [recommendedAccessories, setRecommendedAccessories] = useState([]);
   
   // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -74,37 +73,15 @@ const MotorcycleDetail = () => {
     }
   }, [id]);
 
-  const loadRecommendedAccessories = useCallback(async () => {
-    try {
-      const accessoriesData = await accessoryService.searchPaged('', 0, 3);
-      if (accessoriesData && accessoriesData.content) {
-        setRecommendedAccessories(accessoriesData.content);
-      }
-    } catch (err) {
-      console.error('Failed to load recommended accessories', err);
-    }
-  }, []);
-
   useEffect(() => {
     loadMotorcycle();
     loadReviews();
     loadStoreInventory();
-    loadRecommendedAccessories();
-  }, [loadMotorcycle, loadReviews, loadStoreInventory, loadRecommendedAccessories]);
+  }, [loadMotorcycle, loadReviews, loadStoreInventory]);
 
   const handleAddToCart = () => {
     addItem(motorcycle);
     toast.success('Added to cart!');
-  };
-
-  const handleAddAccessoryToCart = (accessory) => {
-    const cartItem = {
-      ...accessory,
-      itemType: 'accessory',
-      images: [accessory.imageUrl]
-    };
-    addItem(cartItem);
-    toast.success(`${accessory.name} added to cart!`);
   };
 
   const handleBuyNow = () => {
@@ -113,8 +90,7 @@ const MotorcycleDetail = () => {
       navigate('/login');
       return;
     }
-    addItem(motorcycle);
-    navigate('/checkout');
+    navigate('/checkout', { state: { buyNowItem: motorcycle } });
   };
 
   const handleDeposit = () => {
@@ -123,8 +99,7 @@ const MotorcycleDetail = () => {
       navigate('/login');
       return;
     }
-    addItem(motorcycle);
-    navigate('/checkout', { state: { deposit: true } });
+    navigate('/checkout', { state: { buyNowItem: motorcycle, deposit: true } });
   };
 
   const handleBookTestRide = () => {
@@ -544,40 +519,6 @@ const MotorcycleDetail = () => {
                     {storeInventory.filter(inv => inv.stock > 0).length === 0 && (
                       <p className="text-sm text-gray-500 italic">Currently out of stock at all branches.</p>
                     )}
-                  </div>
-                </div>
-              )}
-
-              {/* Frequently Bought Together */}
-              {recommendedAccessories.length > 0 && (
-                <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                    Frequently Bought Together
-                  </h3>
-                  <div className="space-y-4">
-                    {recommendedAccessories.map((accessory) => (
-                      <div key={accessory.id} className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                        <img 
-                          src={accessory.imageUrl} 
-                          alt={accessory.name} 
-                          className="w-16 h-16 object-cover rounded-lg bg-white"
-                          onError={(e) => { e.target.src = 'https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=150'; }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-sm text-gray-900 truncate">{accessory.name}</h4>
-                          <p className="text-xs text-gray-500">{accessory.brand}</p>
-                          <p className="text-sm font-bold text-red-600 mt-1">{formatCurrency(accessory.price)}</p>
-                        </div>
-                        <button
-                          onClick={() => handleAddAccessoryToCart(accessory)}
-                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-600 hover:text-white flex items-center justify-center transition-colors flex-shrink-0 text-xl font-light pb-1"
-                          title="Add Accessory to Cart"
-                        >
-                          +
-                        </button>
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}

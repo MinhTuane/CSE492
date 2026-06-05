@@ -55,10 +55,6 @@ public class Order {
     private Double shippingFee;
     private Double discountAmount;
     private String discountCode;
-
-    /**
-     * Full thousands of loyalty points reserved for this order; deducted when payment settles.
-     */
     private Integer loyaltyPointsRedeemed;
 
     @Column(columnDefinition = "bit default 0")
@@ -83,7 +79,10 @@ public class Order {
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
     
+    @Column(columnDefinition = "NVARCHAR(1000)")
     private String shippingAddress;
+
+    @Column(columnDefinition = "NVARCHAR(2000)")
     private String notes;
     
     @ManyToOne
@@ -97,31 +96,4 @@ public class Order {
     private LocalDateTime shippedAt;
     private LocalDateTime deliveredAt;
     
-    public java.util.List<Motorcycle> getMotorcycles() {
-        return motorcycles;
-    }
-    public java.util.List<Accessory> getAccessories() {
-        return accessories;
-    }
-    public com.capstone.mbservices.enums.OrderStatus getStatus() {
-        return status;
-    }
-    public void setStatus(com.capstone.mbservices.enums.OrderStatus status) {
-        this.status = status;
-    }
-    public String getNotes() {
-        return notes;
-    }
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-    public void setPaidAt(LocalDateTime paidAt) {
-        this.paidAt = paidAt;
-    }
-    public void setShippedAt(LocalDateTime shippedAt) {
-        this.shippedAt = shippedAt;
-    }
-    public void setDeliveredAt(LocalDateTime deliveredAt) {
-        this.deliveredAt = deliveredAt;
-    }
 }

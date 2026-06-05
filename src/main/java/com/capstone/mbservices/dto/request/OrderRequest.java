@@ -18,13 +18,6 @@ public class OrderRequest {
     @NotEmpty(message = "Order must contain at least one item")
     private List<OrderItemRequest> items;
     
-    // Deprecated: Keep for backward compatibility, will be removed
-    @Deprecated
-    private List<String> motorcycleIds;
-    
-    @Deprecated
-    private List<String> accessoryIds;
-    
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
     
@@ -43,8 +36,6 @@ public class OrderRequest {
     
     public String getUserId() { return userId; }
     public List<OrderItemRequest> getItems() { return items; }
-    public List<String> getMotorcycleIds() { return motorcycleIds; }
-    public List<String> getAccessoryIds() { return accessoryIds; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }
     public String getShippingAddress() { return shippingAddress; }
     public String getNotes() { return notes; }

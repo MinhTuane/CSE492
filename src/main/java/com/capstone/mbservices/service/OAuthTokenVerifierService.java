@@ -49,9 +49,10 @@ public class OAuthTokenVerifierService {
 
             return new GoogleUserInfo(
                 jwt.getClaimAsString("email"),
-                jwt.getClaimAsString("given_name"),
-                jwt.getClaimAsString("family_name"),
-                jwt.getClaimAsString("sub")
+                decodeUtf8(jwt.getClaimAsString("given_name")),
+                decodeUtf8(jwt.getClaimAsString("family_name")),
+                jwt.getClaimAsString("sub"),
+                decodeUtf8(jwt.getClaimAsString("name"))
             );
 
         } catch (Exception e) {
@@ -78,7 +79,7 @@ public class OAuthTokenVerifierService {
                 throw new BadRequestException("Invalid Facebook token or app ID mismatch");
             }
 
-            String profileUrl = String.format("https://graph.facebook.com/me?fields=id,email,first_name,last_name&access_token=%s", accessToken);
+            String profileUrl = String.format("https://graph.facebook.com/me?fields=id,email,first_name,last_name,name&access_token=%s", accessToken);
             Map<String, Object> profileResponse = restTemplate.getForObject(profileUrl, Map.class);
             
             if (profileResponse == null || !profileResponse.containsKey("id")) {
@@ -92,9 +93,10 @@ public class OAuthTokenVerifierService {
 
             return new FacebookUserInfo(
                 email,
-                (String) profileResponse.get("first_name"),
-                (String) profileResponse.get("last_name"),
-                (String) profileResponse.get("id")
+                decodeUtf8((String) profileResponse.get("first_name")),
+                decodeUtf8((String) profileResponse.get("last_name")),
+                (String) profileResponse.get("id"),
+                decodeUtf8((String) profileResponse.get("name"))
             );
 
         } catch (BadRequestException e) {
@@ -105,6 +107,33 @@ public class OAuthTokenVerifierService {
         }
     }
 
-    public record GoogleUserInfo(String email, String firstName, String lastName, String googleId) {}
-    public record FacebookUserInfo(String email, String firstName, String lastName, String facebookId) {}
+    private String decodeUtf8(String value) {
+        if (value == null || value.isEmpty()) return value;
+        
+        boolean hasNonAsciiIso = false;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c > 255) {
+                // Already has UTF-8 characters (above ISO-8859-1 range), do not touch!
+                return value;
+            }
+            if (c > 127) {
+                hasNonAsciiIso = true;
+            }
+        }
+        
+        if (!hasNonAsciiIso) {
+            // Only pure ASCII (0-127), no conversion needed
+            return value;
+        }
+        
+        try {
+            return new String(value.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return value;
+        }
+    }
+
+    public record GoogleUserInfo(String email, String firstName, String lastName, String googleId, String fullName) {}
+    public record FacebookUserInfo(String email, String firstName, String lastName, String facebookId, String fullName) {}
 }

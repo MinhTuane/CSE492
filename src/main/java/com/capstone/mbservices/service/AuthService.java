@@ -168,13 +168,15 @@ public class AuthService {
     public AuthResponse loginWithGoogle(String idToken) {
         GoogleUserInfo googleUser = oauthVerifier.verifyGoogleToken(idToken);
         
+        String[] initialNames = parseNames(googleUser.firstName(), googleUser.lastName(), googleUser.fullName());
+        
         User user = userRepository.findByEmail(googleUser.email())
             .orElseGet(() -> {
                 User newUser = User.builder()
                     .email(googleUser.email())
                     .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                    .firstname(googleUser.firstName() != null ? googleUser.firstName() : "User")
-                    .lastname(googleUser.lastName() != null ? googleUser.lastName() : "")
+                    .firstname(initialNames[0])
+                    .lastname(initialNames[1])
                     .authProvider("GOOGLE")
                     .hasLocalCredentials(false)
                     .role(UserRole.CUSTOMER)
@@ -182,6 +184,14 @@ public class AuthService {
                     .build();
                 return userRepository.save(newUser);
             });
+        
+        // Auto-repair old corrupted name profiles or missing names
+        if (user.getFirstname() == null || user.getFirstname().contains("?") || user.getLastname() == null || user.getLastname().contains("?")) {
+            String[] repairedNames = parseNames(googleUser.firstName(), googleUser.lastName(), googleUser.fullName());
+            user.setFirstname(repairedNames[0]);
+            user.setLastname(repairedNames[1]);
+            user = userRepository.save(user);
+        }
         
         if (user.getAuthProvider() == null || user.getAuthProvider().isBlank() || user.getHasLocalCredentials() == null) {
             if (user.getAuthProvider() == null || user.getAuthProvider().isBlank()) {
@@ -216,13 +226,15 @@ public class AuthService {
     public AuthResponse loginWithFacebook(String accessToken) {
         FacebookUserInfo fbUser = oauthVerifier.verifyFacebookToken(accessToken);
         
+        String[] initialNames = parseNames(fbUser.firstName(), fbUser.lastName(), fbUser.fullName());
+        
         User user = userRepository.findByEmail(fbUser.email())
             .orElseGet(() -> {
                 User newUser = User.builder()
                     .email(fbUser.email())
                     .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                    .firstname(fbUser.firstName() != null ? fbUser.firstName() : "User")
-                    .lastname(fbUser.lastName() != null ? fbUser.lastName() : "")
+                    .firstname(initialNames[0])
+                    .lastname(initialNames[1])
                     .authProvider("FACEBOOK")
                     .hasLocalCredentials(false)
                     .role(UserRole.CUSTOMER)
@@ -230,6 +242,14 @@ public class AuthService {
                     .build();
                 return userRepository.save(newUser);
             });
+        
+        // Auto-repair old corrupted name profiles or missing names
+        if (user.getFirstname() == null || user.getFirstname().contains("?") || user.getLastname() == null || user.getLastname().contains("?")) {
+            String[] repairedNames = parseNames(fbUser.firstName(), fbUser.lastName(), fbUser.fullName());
+            user.setFirstname(repairedNames[0]);
+            user.setLastname(repairedNames[1]);
+            user = userRepository.save(user);
+        }
         
         if (user.getAuthProvider() == null || user.getAuthProvider().isBlank() || user.getHasLocalCredentials() == null) {
             if (user.getAuthProvider() == null || user.getAuthProvider().isBlank()) {
@@ -259,5 +279,38 @@ public class AuthService {
             .address(user.getAddress())
             .role(user.getRole().name())
             .build();
+    }
+
+    private String[] parseNames(String firstName, String lastName, String fullName) {
+        String resFirstName = firstName;
+        String resLastName = lastName;
+        
+        // If either first name or last name contains '?' or is null/empty, we try to reconstruct using fullName
+        boolean needsReconstruction = (resFirstName == null || resFirstName.trim().isEmpty() || resFirstName.contains("?")) ||
+                                     (resLastName == null || resLastName.contains("?"));
+                                     
+        if (needsReconstruction && fullName != null && !fullName.trim().isEmpty() && !fullName.contains("?")) {
+            String cleanName = fullName.trim();
+            int lastSpaceIdx = cleanName.lastIndexOf(' ');
+            if (lastSpaceIdx > 0) {
+                // Vietnamese order: "Phạm Minh Tuấn"
+                // First name (Tên) is "Tuấn", Last name (Họ & Tên đệm) is "Phạm Minh"
+                resFirstName = cleanName.substring(lastSpaceIdx + 1);
+                resLastName = cleanName.substring(0, lastSpaceIdx);
+            } else {
+                resFirstName = cleanName;
+                resLastName = "";
+            }
+        }
+        
+        // Fallback checks
+        if (resFirstName == null || resFirstName.trim().isEmpty()) {
+            resFirstName = "User";
+        }
+        if (resLastName == null) {
+            resLastName = "";
+        }
+        
+        return new String[]{resFirstName, resLastName};
     }
 }

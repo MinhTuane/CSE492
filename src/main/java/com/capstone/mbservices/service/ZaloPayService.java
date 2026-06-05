@@ -35,6 +35,7 @@ public class ZaloPayService {
             String item = "[{\"itemid\":\"" + orderId + "\",\"itemname\":\"" + orderInfo + "\",\"itemprice\":" + amount.longValue() + ",\"itemquantity\":1}]";
             String redirect = zaloPayConfig.getRedirectUrl();
             if (redirect == null || redirect.isBlank()) {
+                log.warn("zalopay.redirect-url is not configured! Falling back to localhost (dev only).");
                 redirect = "http://localhost:3001/checkout/payment-result";
             }
             String embed_data = "{\"redirecturl\":\"" + redirect.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}";
@@ -63,12 +64,15 @@ public class ZaloPayService {
                     .bodyToMono(Map.class)
                     .block();
 
-            if (result != null && (int) result.get("return_code") == 1) {
+            Object returnCodeObj = result != null ? result.get("return_code") : null;
+            int returnCode = returnCodeObj instanceof Number ? ((Number) returnCodeObj).intValue() : -1;
+
+            if (result != null && returnCode == 1) {
                 return VNPayResponse.builder()
                         .paymentUrl((String) result.get("order_url"))
                         .build();
             } else {
-                log.error("ZaloPay creation failed: {}", result);
+                log.error("ZaloPay creation failed: {}", result != null ? result : "null response");
                 return VNPayResponse.builder().build();
             }
 

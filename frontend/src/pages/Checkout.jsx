@@ -1,20 +1,41 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CreditCard, Truck, Check, Lock, Smartphone, Tag, Store, Star, Plus } from 'lucide-react';
-import useCartStore from '../store/cartStore';
+import { CreditCard, Truck, Check, Lock, Smartphone, Tag, Store, Star, Plus, Trash2 } from 'lucide-react';
+import useCartStore, { VIETNAM_PROVINCES } from '../store/cartStore';
 import useAuthStore from '../store/authStore';
 import { orderService } from '../services/order.service';
 import { storeService } from '../services/store.service';
 import { accessoryService } from '../services/accessory.service';
 import api from '../services/api';
-import { formatCurrency } from '../utils/helpers';
+import { formatCurrency, getImageUrl } from '../utils/helpers';
 import toast from 'react-hot-toast';
+
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { items, clearCart, getTotalAmount, addItem } = useCartStore();
   const { user } = useAuthStore();
+
+  const buyNowItem = location.state?.buyNowItem;
+
+  // Robust parsing of direct Buy Now item or checkout entire cart items
+  const checkoutItems = buyNowItem ? [{
+    id: buyNowItem.id,
+    brand: buyNowItem.brand,
+    model: buyNowItem.model,
+    name: buyNowItem.name,
+    originalPrice: buyNowItem.price,
+    price: buyNowItem.discountPercentage > 0 
+      ? buyNowItem.price * (1 - buyNowItem.discountPercentage / 100) 
+      : buyNowItem.price,
+    discountPercentage: buyNowItem.discountPercentage || 0,
+    category: buyNowItem.category,
+    itemType: buyNowItem.itemType || 'motorcycle',
+    imageUrl: buyNowItem.imageUrl || buyNowItem.images?.[0],
+    quantity: 1,
+    stock: buyNowItem.stock || 0
+  }] : items;
   
   const isPlaceholderEmail = (email) => typeof email === 'string' && email.endsWith('@mbservices.local');
   const isProfileComplete = (u) => {
@@ -35,15 +56,21 @@ const Checkout = () => {
     fullName: `${user?.firstname || ''} ${user?.lastname || ''}`.trim(),
     phone: user?.phone || '',
     address: user?.address || '',
-    city: '',
-    zipCode: '',
+    province: '',
+    district: '',
     notes: '',
-    storeId: ''
+    storeId: '',
+    shippingMethod: 'pickup', // 'pickup' or 'delivery'
+    registrationAssisted: false,
+    idCardNumber: '',
+    regProvince: '',
+    regDistrict: ''
   });
 
   const [stores, setStores] = useState([]);
   const [recommendedAccessories, setRecommendedAccessories] = useState([]);
   const [loadingAccessories, setLoadingAccessories] = useState(false);
+  const [selectedAccessories, setSelectedAccessories] = useState([]);
 
   useEffect(() => {
     if (user && !isProfileComplete(user)) {
@@ -72,12 +99,13 @@ const Checkout = () => {
         setLoadingAccessories(true);
         const accessoriesData = await accessoryService.searchPaged('', 0, 4);
         if (accessoriesData && accessoriesData.content) {
-          // Filter out accessories already in cart
-          const cartAccessoryIds = items
+          // Filter out accessories already in checkoutItems OR selectedAccessories
+          const selectedAccessoryIds = selectedAccessories.map(acc => acc.id);
+          const cartAccessoryIds = checkoutItems
             .filter(item => item.itemType === 'accessory')
             .map(item => item.id);
           const filtered = accessoriesData.content.filter(
-            acc => !cartAccessoryIds.includes(acc.id)
+            acc => !cartAccessoryIds.includes(acc.id) && !selectedAccessoryIds.includes(acc.id)
           );
           setRecommendedAccessories(filtered);
         }
@@ -88,10 +116,10 @@ const Checkout = () => {
       }
     };
     
-    if (items.length > 0) {
+    if (checkoutItems.length > 0) {
       loadRecommendedAccessories();
     }
-  }, [items]);
+  }, [items, buyNowItem?.id, selectedAccessories.length]);
 
   const [paymentData, setPaymentData] = useState({
     paymentMethod: 'MOMO',
@@ -105,9 +133,13 @@ const Checkout = () => {
 
   const [isDeposit, setIsDeposit] = useState(location.state?.deposit || false);
 
-  const subtotal = getTotalAmount();
+  const accessoriesTotal = selectedAccessories.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0);
+  const baseSubtotal = buyNowItem 
+    ? checkoutItems.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0)
+    : getTotalAmount();
+  const subtotal = baseSubtotal + accessoriesTotal;
   const tax = subtotal * 0.1;
-  const shipping = 100000;
+  const shipping = shippingData.shippingMethod === 'delivery' ? 250000 : 0;
 
   let calculatedDiscountAmount = 0;
   if (appliedDiscount) {
@@ -161,18 +193,33 @@ const Checkout = () => {
   };
 
   const handleAddAccessoryToOrder = (accessory) => {
-    const cartItem = {
-      ...accessory,
-      itemType: 'accessory',
-      images: [accessory.imageUrl],
-      quantity: 1,
-      stock: accessory.stock || 0
-    };
-    addItem(cartItem);
-    toast.success(`${accessory.name} added to order!`);
-    
-    // Remove from recommendations
-    setRecommendedAccessories(prev => prev.filter(acc => acc.id !== accessory.id));
+    const alreadyAdded = selectedAccessories.find(a => a.id === accessory.id);
+    if (alreadyAdded) {
+      toast(`${accessory.name} already added`, { icon: 'ℹ️' });
+      return;
+    }
+    setSelectedAccessories(prev => [...prev, { ...accessory, quantity: 1 }]);
+    setRecommendedAccessories(prev => prev.filter(a => a.id !== accessory.id));
+    toast.success(`${accessory.name} added to order`);
+  };
+
+  const handleUpdateAccessoryQuantity = (accessoryId, newQuantity) => {
+    if (newQuantity <= 0) {
+      handleRemoveAccessory(accessoryId);
+      return;
+    }
+    setSelectedAccessories(prev => prev.map(a => 
+      a.id === accessoryId ? { ...a, quantity: newQuantity } : a
+    ));
+  };
+
+  const handleRemoveAccessory = (accessoryId) => {
+    const removed = selectedAccessories.find(a => a.id === accessoryId);
+    setSelectedAccessories(prev => prev.filter(a => a.id !== accessoryId));
+    if (removed) {
+      setRecommendedAccessories(prev => [...prev, removed]);
+      toast.success(`${removed.name} removed from order`);
+    }
   };
 
   const handleShippingSubmit = (e) => {
@@ -189,18 +236,34 @@ const Checkout = () => {
     setLoading(true);
     try {
       // Build items array with quantities (new format)
-      const orderItems = items.map(item => ({
-        itemType: item.itemType === 'accessory' ? 'ACCESSORY' : 'MOTORCYCLE',
-        itemId: item.id,
-        quantity: item.quantity || 1
-      }));
+      const orderItems = checkoutItems.map(item => {
+        const isAccessory = item.itemType?.toLowerCase() === 'accessory' || (!!item.name && !item.model);
+        return {
+          itemType: isAccessory ? 'ACCESSORY' : 'MOTORCYCLE',
+          itemId: item.id,
+          quantity: item.quantity || 1
+        };
+      });
+
+      // Add selected accessories to order items
+      selectedAccessories.forEach(acc => {
+        orderItems.push({
+          itemType: 'ACCESSORY',
+          itemId: acc.id,
+          quantity: acc.quantity || 1
+        });
+      });
 
       const orderData = {
         userId: user.id,
-        items: orderItems, // New format with quantities
+        items: orderItems,
         paymentMethod: paymentData.paymentMethod,
-        shippingAddress: `${shippingData.address}, ${shippingData.city}, ${shippingData.zipCode}`,
-        notes: shippingData.notes,
+        shippingAddress: shippingData.shippingMethod === 'delivery'
+          ? `${shippingData.address}, ${shippingData.district}, ${shippingData.province}`
+          : 'Store Pickup',
+        notes: shippingData.notes + (shippingData.registrationAssisted 
+          ? `\n[License Plate Service] Citizen ID: ${shippingData.idCardNumber}, Province: ${shippingData.regProvince}, District: ${shippingData.regDistrict}` 
+          : '\n[Self-Registration for License Plate]'),
         discountCode: appliedDiscount ? appliedDiscount.code : null,
         useLoyaltyPoints: useLoyaltyPoints,
         storeId: shippingData.storeId,
@@ -212,7 +275,7 @@ const Checkout = () => {
       if (paymentData.paymentMethod === 'VNPAY') {
         const vnpayResponse = await orderService.createVNPayUrl(order.id);
         if (vnpayResponse && vnpayResponse.paymentUrl) {
-          clearCart();
+          if (!buyNowItem) clearCart();
           window.location.href = vnpayResponse.paymentUrl;
           return;
         } else {
@@ -221,7 +284,7 @@ const Checkout = () => {
       } else if (paymentData.paymentMethod === 'ZALOPAY') {
         const zalopayResponse = await orderService.createZaloPayUrl(order.id);
         if (zalopayResponse && zalopayResponse.paymentUrl) {
-          clearCart();
+          if (!buyNowItem) clearCart();
           window.location.href = zalopayResponse.paymentUrl;
           return;
         } else {
@@ -230,7 +293,7 @@ const Checkout = () => {
       } else if (paymentData.paymentMethod === 'MOMO') {
         const momoResponse = await orderService.createMomoUrl(order.id);
         if (momoResponse && momoResponse.paymentUrl) {
-          clearCart();
+          if (!buyNowItem) clearCart();
           window.location.href = momoResponse.paymentUrl;
           return;
         } else {
@@ -238,17 +301,17 @@ const Checkout = () => {
         }
       }
 
-      clearCart();
+      if (!buyNowItem) clearCart();
       toast.success('Order placed successfully!');
       navigate(`/my-orders`);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to place order');
+      toast.error(error.response?.data?.message || error.message || 'Failed to place order');
     } finally {
       setLoading(false);
     }
   };
 
-  if (items.length === 0) {
+  if (checkoutItems.length === 0) {
     navigate('/cart');
     return null;
   }
@@ -279,14 +342,14 @@ const Checkout = () => {
       value: 'BANK_TRANSFER', 
       label: 'Bank Transfer', 
       icon: '🏦',
-      description: 'Chuyển khoản — đơn ở trạng thái chờ cho đến khi được xác nhận thanh toán',
+      description: 'Bank transfer - your order will be pending until payment is confirmed',
       logo: '🏦'
     },
     { 
       value: 'COD', 
       label: 'Cash on Delivery (COD)', 
       icon: '💵',
-      description: 'Thanh toán khi nhận hàng',
+      description: 'Pay with cash upon delivery',
       logo: '💵'
     }
   ];
@@ -340,6 +403,40 @@ const Checkout = () => {
                 </div>
 
                 <form onSubmit={handleShippingSubmit} className="space-y-6">
+                  {/* Delivery Method Selection */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Vehicle Pickup/Delivery Method *
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div
+                        onClick={() => setShippingData({ ...shippingData, shippingMethod: 'pickup' })}
+                        className={`cursor-pointer p-4 rounded-xl border flex flex-col items-center justify-center text-center transition-all ${
+                          shippingData.shippingMethod === 'pickup'
+                            ? 'border-red-600 bg-red-50/40 text-red-700 font-bold'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <Store className="w-6 h-6 mb-2" />
+                        <span className="text-sm">Store Pickup</span>
+                        <span className="text-xs text-gray-500 mt-1 font-normal">Free pickup at branch</span>
+                      </div>
+
+                      <div
+                        onClick={() => setShippingData({ ...shippingData, shippingMethod: 'delivery' })}
+                        className={`cursor-pointer p-4 rounded-xl border flex flex-col items-center justify-center text-center transition-all ${
+                          shippingData.shippingMethod === 'delivery'
+                            ? 'border-red-600 bg-red-50/40 text-red-700 font-bold'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <Truck className="w-6 h-6 mb-2" />
+                        <span className="text-sm">Home Delivery</span>
+                        <span className="text-xs text-gray-500 mt-1 font-normal">Shipping: {formatCurrency(250000)}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full Name *
@@ -368,49 +465,60 @@ const Checkout = () => {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={shippingData.address}
-                      onChange={(e) => setShippingData({ ...shippingData, address: e.target.value })}
-                      className="input"
-                      placeholder="Street address"
-                    />
-                  </div>
+                  {shippingData.shippingMethod === 'delivery' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Address *
+                        </label>
+                        <input
+                          type="text"
+                          required={shippingData.shippingMethod === 'delivery'}
+                          value={shippingData.address}
+                          onChange={(e) => setShippingData({ ...shippingData, address: e.target.value })}
+                          className="input"
+                          placeholder="Street address"
+                        />
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        City *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={shippingData.city}
-                        onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
-                        className="input"
-                        placeholder="Ho Chi Minh City"
-                      />
-                    </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Province/City *
+                          </label>
+                          <select
+                            required={shippingData.shippingMethod === 'delivery'}
+                            value={shippingData.province}
+                            onChange={(e) => setShippingData({ ...shippingData, province: e.target.value, district: '' })}
+                            className="input bg-white"
+                          >
+                            <option value="">Select Province...</option>
+                            {VIETNAM_PROVINCES.map(prov => (
+                              <option key={prov.name} value={prov.name}>{prov.name}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Zip Code *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={shippingData.zipCode}
-                        onChange={(e) => setShippingData({ ...shippingData, zipCode: e.target.value })}
-                        className="input"
-                        placeholder="700000"
-                      />
-                    </div>
-                  </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            District *
+                          </label>
+                          <select
+                            required={shippingData.shippingMethod === 'delivery'}
+                            value={shippingData.district}
+                            onChange={(e) => setShippingData({ ...shippingData, district: e.target.value })}
+                            className="input bg-white"
+                            disabled={!shippingData.province}
+                          >
+                            <option value="">Select District...</option>
+                            {shippingData.province && VIETNAM_PROVINCES.find(p => p.name === shippingData.province)?.districts.map(dist => (
+                              <option key={dist} value={dist}>{dist}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -430,6 +538,80 @@ const Checkout = () => {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Registration & License Plate Service Option */}
+                  <div className="border-t border-gray-150 pt-6">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="registrationAssisted"
+                        checked={shippingData.registrationAssisted}
+                        onChange={(e) => setShippingData({ ...shippingData, registrationAssisted: e.target.checked })}
+                        className="mt-1 h-5 w-5 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="registrationAssisted" className="block text-sm font-semibold text-gray-800">
+                          Dealer-Assisted Registration & License Plate Service (Optional)
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          MBServices showroom will handle all tax filings and registration paper submissions on your behalf.
+                        </p>
+                      </div>
+                    </div>
+
+                    {shippingData.registrationAssisted && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 grid md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">
+                            Owner's Citizen ID (CCCD) *
+                          </label>
+                          <input
+                            type="text"
+                            required={shippingData.registrationAssisted}
+                            value={shippingData.idCardNumber}
+                            onChange={(e) => setShippingData({ ...shippingData, idCardNumber: e.target.value })}
+                            className="input bg-white"
+                            placeholder="Enter Citizen ID number"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">
+                            Registration Province *
+                          </label>
+                          <select
+                            required={shippingData.registrationAssisted}
+                            value={shippingData.regProvince}
+                            onChange={(e) => setShippingData({ ...shippingData, regProvince: e.target.value, regDistrict: '' })}
+                            className="input bg-white"
+                          >
+                            <option value="">Select Province...</option>
+                            {VIETNAM_PROVINCES.map(prov => (
+                              <option key={prov.name} value={prov.name}>{prov.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">
+                            Registration District *
+                          </label>
+                          <select
+                            required={shippingData.registrationAssisted}
+                            value={shippingData.regDistrict}
+                            onChange={(e) => setShippingData({ ...shippingData, regDistrict: e.target.value })}
+                            className="input bg-white"
+                            disabled={!shippingData.regProvince}
+                          >
+                            <option value="">Select District...</option>
+                            {shippingData.regProvince && VIETNAM_PROVINCES.find(p => p.name === shippingData.regProvince)?.districts.map(dist => (
+                              <option key={dist} value={dist}>{dist}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -571,7 +753,9 @@ const Checkout = () => {
                     <p className="text-gray-600">{shippingData.fullName}</p>
                     <p className="text-gray-600">{shippingData.phone}</p>
                     <p className="text-gray-600">
-                      {shippingData.address}, {shippingData.city}, {shippingData.zipCode}
+                      {shippingData.shippingMethod === 'delivery'
+                        ? `${shippingData.address}, ${shippingData.district}, ${shippingData.province}`
+                        : 'Showroom Pickup'}
                     </p>
                     <button
                       onClick={() => setStep(1)}
@@ -606,12 +790,13 @@ const Checkout = () => {
                   <div>
                     <h3 className="font-bold mb-4">Order Items</h3>
                     <div className="space-y-4">
-                      {items.map((item) => (
+                      {checkoutItems.map((item) => (
                         <div key={item.id} className="flex gap-4">
                           <img
-                            src={item.images?.[0] || 'https://via.placeholder.com/100'}
+                            src={getImageUrl(item.imageUrl || item.images?.[0])}
                             alt={item.model || item.name}
                             className="w-20 h-20 object-cover rounded-lg"
+                            onError={(e) => e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f3f4f6"/><text x="50" y="50" font-family="sans-serif" font-size="10" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle">No Image</text></svg>'}
                           />
                           <div className="flex-1">
                             <h4 className="font-semibold">
@@ -628,6 +813,38 @@ const Checkout = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Selected Accessories */}
+                  {selectedAccessories.length > 0 && (
+                    <div className="mt-6 pt-6 border-t">
+                      <h3 className="font-bold mb-4">Added Accessories</h3>
+                      <div className="space-y-3">
+                        {selectedAccessories.map((acc) => (
+                          <div key={acc.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <div className="flex gap-3 flex-1">
+                              <img
+                                src={getImageUrl(acc.imageUrl)}
+                                alt={acc.name}
+                                className="w-16 h-16 object-cover rounded"
+                                onError={(e) => e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f3f4f6"/><text x="50" y="50" font-family="sans-serif" font-size="10" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle">No Image</text></svg>'}
+                              />
+                              <div className="flex-1">
+                                <p className="font-semibold text-sm">{acc.name}</p>
+                                <p className="text-xs text-gray-600">Qty: {acc.quantity || 1}</p>
+                                <p className="text-sm font-bold text-red-600">{formatCurrency(acc.price * (acc.quantity || 1))}</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveAccessory(acc.id)}
+                              className="text-red-600 hover:text-red-800 p-2"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -708,6 +925,55 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Added Accessories List */}
+              {selectedAccessories.length > 0 && (
+                <div className="mb-6 pb-6 border-b">
+                  <span className="font-semibold text-gray-900 block mb-3 text-sm">Added Accessories</span>
+                  <div className="space-y-3">
+                    {selectedAccessories.map((acc) => (
+                      <div key={acc.id} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <img 
+                            src={getImageUrl(acc.imageUrl)} 
+                            alt={acc.name} 
+                            className="w-10 h-10 object-cover rounded bg-white flex-shrink-0 border"
+                            onError={(e) => e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f3f4f6"/><text x="50" y="50" font-family="sans-serif" font-size="10" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle">No Image</text></svg>'}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-xs text-gray-900 truncate" title={acc.name}>{acc.name}</p>
+                            <p className="text-xs text-red-600 font-bold">{formatCurrency(acc.price * (acc.quantity || 1))}</p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateAccessoryQuantity(acc.id, (acc.quantity || 1) - 1)}
+                                className="w-4 h-4 rounded bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-700 transition-colors"
+                              >
+                                -
+                              </button>
+                              <span className="text-xs font-semibold w-5 text-center text-gray-800">{acc.quantity || 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateAccessoryQuantity(acc.id, (acc.quantity || 1) + 1)}
+                                className="w-4 h-4 rounded bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-700 transition-colors"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveAccessory(acc.id)}
+                          className="text-gray-400 hover:text-red-600 p-1.5 transition-colors flex-shrink-0"
+                          title="Remove Accessory"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Discount Code Section */}
               <div className="mb-6 pb-6 border-b">

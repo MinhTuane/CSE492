@@ -60,9 +60,9 @@ api.interceptors.response.use(
       );
     };
     
-    // Handle authentication errors
-    if ((status === 401 || status === 403) && !isPublicUrl(url, method)) {
-      console.warn('Authentication failed, clearing tokens and redirecting to login');
+    // Handle authentication errors (401 Unauthorized)
+    if (status === 401 && !isPublicUrl(url, method)) {
+      console.warn('Session expired or unauthorized, clearing tokens and redirecting to login');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
@@ -75,6 +75,9 @@ api.interceptors.response.use(
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
+    } else if (status === 403 && !isPublicUrl(url, method)) {
+      console.warn('Access forbidden: user does not have required permissions');
+      // Do not clear tokens or redirect to login. Simply reject so components can show "Access Denied".
     }
     return Promise.reject(error);
   }

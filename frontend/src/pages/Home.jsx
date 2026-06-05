@@ -1,135 +1,418 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { ChevronRight, Star, Bike, Award, Users, Shield } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { ChevronRight, ChevronLeft, Award, Shield, Users, Bike, ArrowRight, Play } from 'lucide-react';
 import { motorcycleService } from '../services/motorcycle.service';
 import { formatCurrency, cleanMotorcycleData, getImageUrl } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import StoreLocator from '../components/common/StoreLocator';
 
+// Fallback hero images (Unsplash — high-res motorcycle photos)
+const HERO_FALLBACKS = [
+  'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1920&q=80',
+  'https://images.unsplash.com/photo-1558980394-4c7c9299fe96?w=1920&q=80',
+  'https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=1920&q=80',
+  'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=1920&q=80',
+];
+
+// Brand data for the scrolling strip
+const BRANDS = [
+  { name: 'HONDA', display: 'Honda' },
+  { name: 'YAMAHA', display: 'Yamaha' },
+  { name: 'KAWASAKI', display: 'Kawasaki' },
+  { name: 'DUCATI', display: 'Ducati' },
+  { name: 'BMW', display: 'BMW' },
+  { name: 'SUZUKI', display: 'Suzuki' },
+  { name: 'HARLEY-DAVIDSON', display: 'Harley-Davidson' },
+];
+
 // Image error handler
 const handleImageError = (e) => {
-  e.target.src = 'https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=800';
+  e.target.src = HERO_FALLBACKS[0];
   e.target.onerror = null;
 };
 
-const Home = () => {
-  const [featuredMotorcycles, setFeaturedMotorcycles] = useState([]);
-  const [loading, setLoading] = useState(true);
+// ─── Scroll Reveal Hook ───────────────────────────────────────────
+function useReveal() {
+  const ref = useRef(null);
 
   useEffect(() => {
-    loadFeaturedMotorcycles();
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add('revealed');
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
-  const loadFeaturedMotorcycles = async () => {
+  return ref;
+}
+
+// ─── Parallax Hook ─────────────────────────────────────────────────
+function useParallax(speed = 0.3) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        if (ref.current) {
+          const rect = ref.current.getBoundingClientRect();
+          const offset = (window.innerHeight - rect.top) * speed;
+          ref.current.style.transform = `translateY(${offset}px)`;
+        }
+        ticking = false;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [speed]);
+
+  return ref;
+}
+
+// ─── Counter Animation Component ──────────────────────────────────
+const AnimatedCounter = ({ end, suffix = '', duration = 2000 }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const startTime = performance.now();
+
+          const animate = (now) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(eased * end));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [end, duration]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+};
+
+
+// ═══════════════════════════════════════════════════════════════════
+// HOME COMPONENT
+// ═══════════════════════════════════════════════════════════════════
+const Home = () => {
+  const [featuredMotorcycles, setFeaturedMotorcycles] = useState([]);
+  const [heroMotorcycles, setHeroMotorcycles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [slideKey, setSlideKey] = useState(0); // forces Ken Burns restart
+  const slideInterval = useRef(null);
+
+  // ─── Load Data ───────────────────────────────────────────────────
+  useEffect(() => {
+    loadMotorcycles();
+  }, []);
+
+  const loadMotorcycles = async () => {
     try {
-      // Use the paged API instead of the old getAvailable
-      const data = await motorcycleService.searchPaged({ status: 'AVAILABLE' }, 0, 6, 'createAt,desc');
-      
-      // Use the helper function to clean data
+      const data = await motorcycleService.searchPaged({ status: 'AVAILABLE' }, 0, 8, 'createAt,desc');
       const cleanData = cleanMotorcycleData(data.content || []);
-      
       setFeaturedMotorcycles(cleanData);
+      // Pick first 4 for hero slideshow
+      setHeroMotorcycles(cleanData.slice(0, 4));
     } catch (error) {
       console.error('Failed to load motorcycles:', error);
       toast.error('Failed to load motorcycles');
-      setFeaturedMotorcycles([]);  
+      setFeaturedMotorcycles([]);
+      setHeroMotorcycles([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // ─── Hero Slideshow Auto-rotate ──────────────────────────────────
+  const totalSlides = heroMotorcycles.length || HERO_FALLBACKS.length;
+
+  const goToSlide = useCallback((index) => {
+    setCurrentSlide(index);
+    setSlideKey(prev => prev + 1);
+  }, []);
+
+  const nextSlide = useCallback(() => {
+    goToSlide((currentSlide + 1) % totalSlides);
+  }, [currentSlide, totalSlides, goToSlide]);
+
+  const prevSlide = useCallback(() => {
+    goToSlide((currentSlide - 1 + totalSlides) % totalSlides);
+  }, [currentSlide, totalSlides, goToSlide]);
+
+  useEffect(() => {
+    slideInterval.current = setInterval(nextSlide, 6000);
+    return () => clearInterval(slideInterval.current);
+  }, [nextSlide]);
+
+  // Pause on hover
+  const pauseSlideshow = () => clearInterval(slideInterval.current);
+  const resumeSlideshow = () => {
+    slideInterval.current = setInterval(nextSlide, 6000);
+  };
+
+  // ─── Reveal refs ─────────────────────────────────────────────────
+  const revealBrands = useReveal();
+  const revealCollection = useReveal();
+  const revealCollectionGrid = useReveal();
+  const revealStats = useReveal();
+  const revealStoreTitle = useReveal();
+  const revealCTA = useReveal();
+  const parallaxImg = useParallax(0.15);
+
+  // ─── Features data ──────────────────────────────────────────────
   const features = [
-    {
-      icon: Award,
-      title: 'Premium Quality',
-      description: 'Only the finest motorcycles from top brands',
-    },
-    {
-      icon: Shield,
-      title: 'Warranty Protection',
-      description: 'Comprehensive warranty on all purchases',
-    },
-    {
-      icon: Users,
-      title: 'Expert Support',
-      description: '24/7 customer service and technical support',
-    },
-    {
-      icon: Bike,
-      title: 'Test Rides',
-      description: 'Try before you buy with our test ride program',
-    },
+    { icon: Award, title: 'Premium Quality', desc: 'Only the finest motorcycles from world-renowned brands' },
+    { icon: Shield, title: '3-Year Warranty', desc: 'Comprehensive warranty & roadside assistance' },
+    { icon: Users, title: 'Expert Support', desc: '24/7 customer service and technical support' },
+    { icon: Bike, title: 'Free Test Ride', desc: 'Try before you buy with our test ride program' },
   ];
 
+  // ─── Stats data ─────────────────────────────────────────────────
+  const stats = [
+    { value: 500, suffix: '+', label: 'Motorcycles Sold' },
+    { value: 7, suffix: '', label: 'Premium Brands' },
+    { value: 4, suffix: '', label: 'Service Centers' },
+    { value: 98, suffix: '%', label: 'Customer Satisfaction' },
+  ];
+
+  // ═══════════════════════════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-red-900 to-gray-900 text-white">
-        <div className="container-custom py-24 md:py-32 relative z-10">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="animate-slide-in-up">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                Ride Into
-                <span className="block text-red-500">Your Dreams</span>
+    <div className="min-h-screen bg-white">
+
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 1: FULLSCREEN HERO SLIDESHOW
+          ══════════════════════════════════════════════════════════════ */}
+      <section
+        className="relative w-full h-screen overflow-hidden bg-black"
+        onMouseEnter={pauseSlideshow}
+        onMouseLeave={resumeSlideshow}
+      >
+        {/* Slides */}
+        {(heroMotorcycles.length > 0 ? heroMotorcycles : HERO_FALLBACKS.map((url, i) => ({
+          id: `fallback-${i}`,
+          brand: ['KAWASAKI', 'DUCATI', 'BMW', 'YAMAHA'][i] || 'PREMIUM',
+          model: ['Ninja ZX-10R', 'Panigale V4', 'R1300 GS', 'YZF-R1'][i] || 'Motorcycle',
+          description: 'Experience the thrill of riding a premium motorcycle',
+          images: [url],
+          price: 0,
+        }))).map((moto, index) => {
+          const imgUrl = moto.images?.[0] ? getImageUrl(moto.images[0]) : HERO_FALLBACKS[index % HERO_FALLBACKS.length];
+          return (
+            <div
+              key={`${moto.id}-${index === currentSlide ? slideKey : 'idle'}`}
+              className={`absolute inset-0 transition-opacity duration-[1200ms] ease-in-out ${
+                index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              }`}
+            >
+              {/* Background Image with Ken Burns */}
+              <img
+                src={imgUrl}
+                alt={`${moto.brand} ${moto.model}`}
+                onError={handleImageError}
+                className={`absolute inset-0 w-full h-full object-cover ${
+                  index === currentSlide ? 'hero-slide-img' : ''
+                }`}
+                style={{ animationDuration: '10s' }}
+              />
+
+              {/* Dark overlay */}
+              <div className="hero-overlay absolute inset-0 z-10" />
+              <div className="hero-text-overlay absolute inset-0 z-10" />
+            </div>
+          );
+        })}
+
+        {/* Hero Content */}
+        <div className="relative z-20 h-full flex items-end pb-24 md:pb-32">
+          <div className="container-custom w-full">
+            <div className="max-w-2xl">
+              {/* Brand label */}
+              <div
+                className="inline-block mb-4 transition-all duration-700"
+                key={`brand-${currentSlide}`}
+              >
+                <span className="text-red-500 font-semibold tracking-[0.3em] uppercase text-sm md:text-base animate-fade-in">
+                  {heroMotorcycles[currentSlide]?.brand || 'PREMIUM MOTORCYCLES'}
+                </span>
+              </div>
+
+              {/* Model name */}
+              <h1
+                className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-4 leading-[1.1] animate-slide-in-up"
+                key={`title-${currentSlide}`}
+              >
+                {heroMotorcycles[currentSlide]?.model || 'Ride Into Your Dreams'}
               </h1>
-              <p className="text-xl text-gray-300 mb-8">
-                Discover premium motorcycles from world-renowned brands. 
-                Experience the thrill, embrace the freedom.
+
+              {/* Description */}
+              <p
+                className="text-lg md:text-xl text-gray-300 mb-8 max-w-lg animate-slide-in-up delay-100"
+                key={`desc-${currentSlide}`}
+              >
+                {heroMotorcycles[currentSlide]?.description?.substring(0, 100) ||
+                  'Discover premium motorcycles from world-renowned brands. Experience the thrill, embrace the freedom.'}
               </p>
-              <div className="flex flex-wrap gap-4 mt-8">
-                <Link to="/motorcycles" className="btn btn-primary text-lg px-8 py-3 shadow-lg hover:-translate-y-1 transition-all">
-                  Browse Collection
-                  <ChevronRight className="inline ml-2 w-5 h-5" />
-                </Link>
-                <Link to="/my-bookings?open=testride" className="btn bg-white text-gray-900 hover:bg-gray-100 text-lg px-8 py-3 shadow-lg hover:-translate-y-1 transition-all">
+
+              {/* Price + CTA */}
+              <div className="flex flex-wrap items-center gap-4 animate-slide-in-up delay-200" key={`cta-${currentSlide}`}>
+                {heroMotorcycles[currentSlide]?.id ? (
+                  <Link
+                    to={`/motorcycles/${heroMotorcycles[currentSlide].id}`}
+                    className="group inline-flex items-center gap-2 bg-white text-gray-900 font-semibold px-8 py-3.5 rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    Explore
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                ) : (
+                  <Link
+                    to="/motorcycles"
+                    className="group inline-flex items-center gap-2 bg-white text-gray-900 font-semibold px-8 py-3.5 rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    Browse Collection
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                )}
+                <Link
+                  to="/my-bookings?open=testride"
+                  className="group inline-flex items-center gap-2 border-2 border-white/40 text-white font-semibold px-8 py-3.5 rounded-full hover:bg-white/10 hover:border-white transition-all duration-300"
+                >
+                  <Play className="w-4 h-4" />
                   Book Test Ride
                 </Link>
+
+                {heroMotorcycles[currentSlide]?.price > 0 && (
+                  <span className="text-2xl md:text-3xl font-bold text-white ml-2">
+                    {formatCurrency(heroMotorcycles[currentSlide].price)}
+                  </span>
+                )}
               </div>
-            </div>
-            <div className="hidden md:block animate-float">
-              <img
-                src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800"
-                alt="Motorcycle"
-                className="rounded-2xl shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500"
-              />
             </div>
           </div>
         </div>
-        
-        {/* Wave SVG */}
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-0">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M0 0L60 10C120 20 240 40 360 45C480 50 600 40 720 35C840 30 960 30 1080 35C1200 40 1320 50 1380 55L1440 60V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V0Z"
-              fill="white"
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 opacity-0 hover:opacity-100 group-hover:opacity-100"
+          style={{ opacity: 0.4 }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = 0.4}
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300"
+          style={{ opacity: 0.4 }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = 0.4}
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3">
+          {Array.from({ length: totalSlides }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goToSlide(i)}
+              className={`transition-all duration-500 rounded-full ${
+                i === currentSlide
+                  ? 'w-10 h-2.5 bg-red-500'
+                  : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
+              }`}
+              aria-label={`Go to slide ${i + 1}`}
             />
-          </svg>
+          ))}
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-white">
+
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 2: BRAND SCROLL STRIP
+          ══════════════════════════════════════════════════════════════ */}
+      <section ref={revealBrands} className="reveal py-10 md:py-14 bg-gray-950 overflow-hidden border-b border-gray-800">
+        <div className="flex whitespace-nowrap">
+          <div className="brand-scroll-track flex items-center gap-16 md:gap-24 px-12">
+            {/* Duplicate for seamless infinite scroll */}
+            {[...BRANDS, ...BRANDS].map((brand, i) => (
+              <span
+                key={`${brand.name}-${i}`}
+                className="text-2xl md:text-3xl font-bold text-gray-600 hover:text-white tracking-wider uppercase transition-colors duration-300 cursor-default select-none"
+              >
+                {brand.display}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 3: FEATURES (WHY CHOOSE US)
+          ══════════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28 bg-white">
         <div className="container-custom">
-          <div className="text-center mb-16 animate-slide-in-up">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Us</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-              We deliver more than just motorcycles. We deliver an experience.
+          <div ref={revealCollection} className="reveal text-center mb-16">
+            <span className="text-red-600 font-semibold tracking-[0.2em] uppercase text-sm mb-3 block">
+              Why Choose Us
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+              More Than Just Motorcycles
+            </h2>
+            <p className="text-gray-500 text-lg max-w-2xl mx-auto">
+              We deliver an experience — from your first test ride to years of ownership
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+          <div ref={revealCollectionGrid} className="reveal-stagger grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <div
                   key={index}
-                  className={`group text-center p-6 rounded-xl hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl border border-gray-100 delay-${index * 100}`}
+                  className="group text-center p-8 rounded-2xl hover:-translate-y-2 transition-all duration-500 hover:shadow-2xl border border-gray-100 hover:border-red-100 bg-white"
                 >
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-red-600 transition-colors duration-300">
-                    <Icon className="w-8 h-8 text-red-600 group-hover:text-white transition-colors duration-300" />
+                  <div className="w-16 h-16 bg-gradient-to-br from-red-50 to-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:from-red-600 group-hover:to-red-700 transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-red-200">
+                    <Icon className="w-7 h-7 text-red-600 group-hover:text-white transition-colors duration-300" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <h3 className="text-xl font-bold mb-3 text-gray-900">{feature.title}</h3>
+                  <p className="text-gray-500 leading-relaxed">{feature.desc}</p>
                 </div>
               );
             })}
@@ -137,114 +420,167 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Motorcycles Section */}
-      <section className="py-16 bg-gray-50">
+
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 4: THE COLLECTION — FEATURED MOTORCYCLES
+          ══════════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28 bg-gray-950 text-white">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Featured Motorcycles
-            </h2>
-            <p className="text-gray-600 text-lg">
-              Handpicked selection of our premium motorcycles
-            </p>
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 gap-4">
+            <div ref={useReveal()} className="reveal">
+              <span className="text-red-500 font-semibold tracking-[0.2em] uppercase text-sm mb-3 block">
+                Featured
+              </span>
+              <h2 className="text-3xl md:text-5xl font-bold">
+                The Collection
+              </h2>
+            </div>
+            <Link
+              to="/motorcycles"
+              className="group inline-flex items-center gap-2 text-gray-400 hover:text-white font-medium transition-colors"
+            >
+              View All
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
 
+          {/* Motorcycle Grid */}
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="card p-6 animate-pulse">
-                  <div className="bg-gray-300 h-48 rounded-lg mb-4"></div>
-                  <div className="bg-gray-300 h-6 rounded mb-2"></div>
-                  <div className="bg-gray-300 h-4 rounded w-2/3"></div>
-                </div>
+                <div key={i} className="bg-gray-900 rounded-2xl h-80 animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredMotorcycles.map((motorcycle) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredMotorcycles.slice(0, 6).map((moto, index) => (
                 <Link
-                  key={motorcycle.id}
-                  to={`/motorcycles/${motorcycle.id}`}
-                  className="card overflow-hidden group"
+                  key={moto.id}
+                  to={`/motorcycles/${moto.id}`}
+                  className="collection-card rounded-2xl group"
+                  style={{ transitionDelay: `${index * 80}ms` }}
                 >
-                  <div className="relative h-56 overflow-hidden bg-gray-100">
+                  <div className="relative h-80 md:h-96 rounded-2xl overflow-hidden bg-gray-900">
                     <img
-                      src={getImageUrl(motorcycle.images?.[0])}
-                      alt={`${motorcycle.brand} ${motorcycle.model}`}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      src={getImageUrl(moto.images?.[0])}
+                      alt={`${moto.brand} ${moto.model}`}
                       onError={handleImageError}
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
-                    {motorcycle.status === 'AVAILABLE' && (
-                      <span className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                        Available
+                    
+                    {/* Overlay */}
+                    <div className="card-overlay absolute inset-0 z-10" />
+
+                    {/* Discount badge */}
+                    {moto.discountPercentage > 0 && (
+                      <span className="absolute top-4 right-4 z-20 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                        -{moto.discountPercentage}%
                       </span>
                     )}
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-red-600 uppercase">
-                        {motorcycle.brand}
+
+                    {/* Info */}
+                    <div className="card-info absolute bottom-0 left-0 right-0 z-20 p-6">
+                      <span className="text-red-400 font-semibold text-sm tracking-widest uppercase mb-1 block">
+                        {moto.brand}
                       </span>
-                      {motorcycle.averageRating > 0 && (
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-semibold">
-                            {motorcycle.averageRating.toFixed(1)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-red-600 transition-colors">
-                      {motorcycle.model}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {motorcycle.description}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      {motorcycle.discountPercentage > 0 ? (
-                        <div className="flex flex-col">
-                          <span className="text-2xl font-bold text-red-600">
-                            {formatCurrency(motorcycle.price * (1 - motorcycle.discountPercentage / 100))}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-400 line-through">
-                              {formatCurrency(motorcycle.price)}
+                      <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
+                        {moto.model}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        {moto.discountPercentage > 0 ? (
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl font-bold text-white">
+                              {formatCurrency(moto.price * (1 - moto.discountPercentage / 100))}
                             </span>
-                            <span className="text-xs font-bold text-white bg-red-500 px-2 py-0.5 rounded">
-                              -{motorcycle.discountPercentage}%
+                            <span className="text-sm text-gray-400 line-through">
+                              {formatCurrency(moto.price)}
                             </span>
                           </div>
-                        </div>
-                      ) : (
-                        <span className="text-2xl font-bold text-gray-900">
-                          {formatCurrency(motorcycle.price)}
+                        ) : (
+                          <span className="text-xl font-bold text-white">
+                            {formatCurrency(moto.price)}
+                          </span>
+                        )}
+                        <span className="text-sm text-gray-400 group-hover:text-red-400 transition-colors flex items-center gap-1">
+                          Details
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </span>
-                      )}
-                      <span className="text-sm text-red-600 font-semibold group-hover:underline">
-                        View Details →
-                      </span>
+                      </div>
                     </div>
                   </div>
                 </Link>
               ))}
             </div>
           )}
+        </div>
+      </section>
 
-          <div className="text-center mt-12">
-            <Link to="/motorcycles" className="btn btn-primary text-lg px-8 py-3">
-              View All Motorcycles
-              <ChevronRight className="inline ml-2 w-5 h-5" />
-            </Link>
+
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 5: CINEMATIC STATS / PARALLAX
+          ══════════════════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden bg-gray-100">
+        <div className="grid md:grid-cols-2 min-h-[600px]">
+          {/* Left: Image with parallax */}
+          <div className="relative overflow-hidden h-[400px] md:h-auto">
+            <div ref={parallaxImg} className="absolute inset-[-20%]">
+              <img
+                src="https://images.unsplash.com/photo-1571646750610-58e4a2e37071?w=1200&q=80"
+                alt="Motorcycle showroom"
+                className="w-full h-full object-cover"
+                onError={handleImageError}
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-gray-100 hidden md:block" />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-100 to-transparent md:hidden" />
+          </div>
+
+          {/* Right: Stats & text */}
+          <div ref={revealStats} className="reveal flex items-center px-8 md:px-16 py-16 md:py-24">
+            <div>
+              <span className="text-red-600 font-semibold tracking-[0.2em] uppercase text-sm mb-3 block">
+                Our Legacy
+              </span>
+              <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                Trusted by Riders
+                <span className="block text-red-600">Across Vietnam</span>
+              </h2>
+              <p className="text-gray-500 text-lg mb-12 max-w-md leading-relaxed">
+                From Saigon to Hanoi, MBServices has been the destination for motorcycle enthusiasts who demand the best.
+              </p>
+
+              {/* Stats grid */}
+              <div className="grid grid-cols-2 gap-8">
+                {stats.map((stat, i) => (
+                  <div key={i} className="group">
+                    <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">
+                      <AnimatedCounter end={stat.value} suffix={stat.suffix} duration={2000} />
+                    </div>
+                    <div className="text-sm text-gray-500 font-medium uppercase tracking-wider">
+                      {stat.label}
+                    </div>
+                    <div className="w-8 h-0.5 bg-red-600 mt-3 group-hover:w-16 transition-all duration-500" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Store Locator Section */}
-      <section className="py-16 bg-white">
+
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 6: STORE LOCATOR
+          ══════════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28 bg-white">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Find Our Branches</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <div ref={revealStoreTitle} className="reveal text-center mb-12">
+            <span className="text-red-600 font-semibold tracking-[0.2em] uppercase text-sm mb-3 block">
+              Find Us
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">Our Branches</h2>
+            <p className="text-gray-500 text-lg max-w-2xl mx-auto">
               Locate the nearest MBServices branch to view our motorcycles in person, book a test ride, or get your bike serviced.
             </p>
           </div>
@@ -252,25 +588,37 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-red-600 to-red-800 text-white">
+
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 7: CTA
+          ══════════════════════════════════════════════════════════════ */}
+      <section ref={revealCTA} className="reveal animated-gradient py-24 md:py-32 text-white">
         <div className="container-custom text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Start Your Journey?
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
+            Ready to Start
+            <span className="block">Your Journey?</span>
           </h2>
-          <p className="text-xl mb-8 text-red-100 max-w-2xl mx-auto">
-            Join thousands of satisfied riders who chose MotoBikes for their dream motorcycle.
+          <p className="text-xl mb-10 text-red-100/80 max-w-2xl mx-auto">
+            Join thousands of satisfied riders who chose MBServices for their dream motorcycle.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/register" className="btn bg-white text-red-600 hover:bg-gray-100 text-lg px-8 py-3">
+            <Link
+              to="/register"
+              className="group inline-flex items-center gap-2 bg-white text-red-700 font-bold px-10 py-4 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg text-lg"
+            >
               Get Started
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link to="/contact" className="btn btn-outline border-white text-white hover:bg-white hover:text-red-600 text-lg px-8 py-3">
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-2 border-2 border-white/40 text-white font-semibold px-10 py-4 rounded-full hover:bg-white/10 hover:border-white transition-all duration-300 text-lg"
+            >
               Contact Us
             </Link>
           </div>
         </div>
       </section>
+
     </div>
   );
 };

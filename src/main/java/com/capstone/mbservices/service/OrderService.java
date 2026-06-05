@@ -10,12 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.capstone.mbservices.entity.*;
 import com.capstone.mbservices.dto.request.OrderRequest;
-import com.capstone.mbservices.enums.OrderStatus;
-import com.capstone.mbservices.enums.MotorcycleStatus;
+import com.capstone.mbservices.dto.request.OrderItemRequest;
+import com.capstone.mbservices.enums.*;
 import com.capstone.mbservices.exception.BadRequestException;
 import com.capstone.mbservices.exception.ResourceNotFoundException;
 import com.capstone.mbservices.repository.*;
-import com.capstone.mbservices.enums.MembershipTier;
 import com.capstone.mbservices.utils.MoneyUtil;
 
 import java.time.LocalDateTime;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
     private final MotorcycleRepository motorcycleRepository;
     private final AccessoryRepository accessoryRepository;
@@ -40,88 +40,41 @@ public class OrderService {
     private final com.capstone.mbservices.service.ZaloPayService zaloPayService;
     private final NotificationService notificationService;
     private final DiscountCodeService discountCodeService;
+    private final EInvoiceService eInvoiceService;
+    private final WarrantyService warrantyService;
+    private final RegistrationDetailsRepository registrationDetailsRepository;
 
     private static final String PLACEHOLDER_EMAIL_DOMAIN = "@mbservices.local";
 
     @Transactional
     public Order createOrder(OrderRequest request) {
+        // Validate user profile
         User user = userRepository.findById(request.getUserId())
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        boolean hasUsername = user.getUsername() != null && !user.getUsername().isBlank();
-        boolean hasName = user.getFirstname() != null && !user.getFirstname().isBlank() && user.getLastname() != null && !user.getLastname().isBlank();
-        boolean hasPhone = user.getPhone() != null && user.getPhone().matches("^[0-9]{10,11}$");
-        boolean hasAddress = user.getAddress() != null && !user.getAddress().isBlank();
-        boolean hasEmail = user.getEmail() != null && !user.getEmail().isBlank() && !user.getEmail().endsWith(PLACEHOLDER_EMAIL_DOMAIN);
-        boolean hasCredentials = "LOCAL".equalsIgnoreCase(user.getAuthProvider()) || Boolean.TRUE.equals(user.getHasLocalCredentials());
+        validateUserProfile(user);
 
-        if (!hasUsername || !hasName || !hasPhone || !hasAddress || !hasEmail || !hasCredentials) {
-            throw new BadRequestException("Please complete your profile (username, name, phone, address, email) and set a password before placing an order");
+        // Validate items and check stock
+        List<OrderItem> orderItems = new ArrayList<>();
+        double totalAmount = 0.0;
+
+        for (OrderItemRequest itemReq : request.getItems()) {
+            OrderItem orderItem = createOrderItem(itemReq);
+            orderItems.add(orderItem);
+            totalAmount += orderItem.getTotalPrice();
         }
 
-        List<Motorcycle> motorcycles = new ArrayList<>();
-        if (request.getMotorcycleIds() != null && !request.getMotorcycleIds().isEmpty()) {
-            motorcycles = motorcycleRepository.findAllById(request.getMotorcycleIds());
-            var uniqueIds = new HashSet<>(request.getMotorcycleIds());
-            if (uniqueIds.size() != motorcycles.size()) {
-                throw new ResourceNotFoundException("One or more motorcycles were not found");
-            }
-            Map<String, Long> neededPerId = request.getMotorcycleIds().stream()
-                .collect(Collectors.groupingBy(id -> id, Collectors.counting()));
-            for (Motorcycle m : motorcycles) {
-                long need = neededPerId.getOrDefault(m.getId(), 0L);
-                int st = m.getStock() != null ? m.getStock() : 0;
-                if (st < need) {
-                    throw new BadRequestException("Insufficient stock for motorcycle: "
-                        + (m.getModel() != null ? m.getModel() : m.getId()));
-                }
-            }
+        if (orderItems.isEmpty()) {
+            throw new BadRequestException("Order must contain at least one item");
         }
 
-        List<Accessory> accessories = new ArrayList<>();
-        if (request.getAccessoryIds() != null && !request.getAccessoryIds().isEmpty()) {
-            accessories = accessoryRepository.findAllById(request.getAccessoryIds());
-            var uniqueAcc = new HashSet<>(request.getAccessoryIds());
-            if (uniqueAcc.size() != accessories.size()) {
-                throw new ResourceNotFoundException("One or more accessories were not found");
-            }
-            Map<String, Long> neededAcc = request.getAccessoryIds().stream()
-                .collect(Collectors.groupingBy(id -> id, Collectors.counting()));
-            for (Accessory a : accessories) {
-                long need = neededAcc.getOrDefault(a.getId(), 0L);
-                int st = a.getStock() != null ? a.getStock() : 0;
-                if (st < need) {
-                    throw new BadRequestException("Insufficient stock for accessory: "
-                        + (a.getName() != null ? a.getName() : a.getId()));
-                }
-            }
-        }
-
-        if (motorcycles.isEmpty() && accessories.isEmpty()) {
-            throw new ResourceNotFoundException("No items found for order");
-        }
-
-        double totalMotorcycleAmount = motorcycles.stream()
-            .mapToDouble(m -> {
-                if (m.getDiscountPercentage() != null && m.getDiscountPercentage() > 0) {
-                    return m.getPrice() * (1 - m.getDiscountPercentage() / 100);
-                }
-                return m.getPrice();
-            })
-            .sum();
-
-        double totalAccessoryAmount = accessories.stream()
-            .mapToDouble(a -> a.getPrice() != null ? a.getPrice() : 0.0)
-            .sum();
-
-        double totalAmount = totalMotorcycleAmount + totalAccessoryAmount;
-
+        // Calculate fees and discounts
         double taxAmount = MoneyUtil.roundVndDouble(totalAmount * 0.1);
         double shippingFee = MoneyUtil.roundVndDouble(100000.0);
-
         double discountAmount = 0.0;
         String discountCodeUsed = null;
 
+        // Apply discount code
         if (request.getDiscountCode() != null && !request.getDiscountCode().trim().isEmpty()) {
             try {
                 DiscountCode code = discountCodeService.validateDiscountCode(request.getDiscountCode());
@@ -132,8 +85,6 @@ public class OrderService {
                 discountCodeUsed = code.getCode();
             } catch (BadRequestException e) {
                 throw e;
-            } catch (Exception e) {
-                throw new BadRequestException("Failed to apply discount code: " + e.getMessage());
             }
         }
 
@@ -142,25 +93,14 @@ public class OrderService {
 
         double finalAmount = (totalAmount + taxAmount + shippingFee) - discountAmount;
 
+        // Apply membership tier discount
         if (user.getMembershipTier() != null) {
-            double tierDiscount = 0.0;
-            switch (user.getMembershipTier()) {
-                case SILVER:
-                    tierDiscount = finalAmount * 0.02;
-                    break;
-                case GOLD:
-                    tierDiscount = finalAmount * 0.05;
-                    break;
-                case PLATINUM:
-                    tierDiscount = finalAmount * 0.10;
-                    break;
-                default:
-                    break;
-            }
+            double tierDiscount = calculateTierDiscount(user.getMembershipTier(), finalAmount);
             finalAmount -= tierDiscount;
             discountAmount += tierDiscount;
         }
 
+        // Apply loyalty points
         Integer loyaltyPointsRedeemed = null;
         if (Boolean.TRUE.equals(request.getUseLoyaltyPoints())) {
             if (user.getLoyaltyPoints() != null && user.getLoyaltyPoints() >= 1000) {
@@ -177,15 +117,16 @@ public class OrderService {
         finalAmount = MoneyUtil.roundVndDouble(finalAmount);
         discountAmount = MoneyUtil.roundVndDouble(discountAmount);
 
+        // Calculate deposit if needed
         Boolean isDeposit = request.getIsDeposit() != null ? request.getIsDeposit() : false;
         double depositAmount = isDeposit ? MoneyUtil.roundVndDouble(finalAmount * 0.1) : finalAmount;
         double remainingAmount = isDeposit ? MoneyUtil.roundVndDouble(finalAmount - depositAmount) : 0.0;
 
+        // Create order
         Order order = Order.builder()
             .orderNumber("ORD-" + System.currentTimeMillis())
             .user(user)
-            .motorcycles(motorcycles)
-            .accessories(accessories)
+            .orderItems(new ArrayList<>()) // Will be set after save
             .totalAmount(finalAmount)
             .taxAmount(taxAmount)
             .shippingFee(shippingFee)
@@ -205,6 +146,14 @@ public class OrderService {
             .build();
 
         Order savedOrder = orderRepository.save(order);
+
+        // Save order items
+        for (OrderItem item : orderItems) {
+            item.setOrder(savedOrder);
+        }
+        orderItemRepository.saveAll(orderItems);
+        savedOrder.setOrderItems(orderItems);
+
         emailService.sendOrderConfirmationEmail(savedOrder);
 
         notificationService.sendToAdmin(
@@ -215,6 +164,122 @@ public class OrderService {
         );
 
         return savedOrder;
+    }
+
+    private OrderItem createOrderItem(OrderItemRequest itemReq) {
+        if (itemReq.getItemType() == ItemType.MOTORCYCLE) {
+            return createMotorcycleOrderItem(itemReq);
+        } else if (itemReq.getItemType() == ItemType.ACCESSORY) {
+            return createAccessoryOrderItem(itemReq);
+        } else {
+            throw new BadRequestException("Invalid item type: " + itemReq.getItemType());
+        }
+    }
+
+    private OrderItem createMotorcycleOrderItem(OrderItemRequest itemReq) {
+        Motorcycle motorcycle = motorcycleRepository.findByIdForUpdate(itemReq.getItemId())
+            .orElseThrow(() -> new ResourceNotFoundException("Motorcycle not found: " + itemReq.getItemId()));
+
+        int availableStock = motorcycle.getStock() != null ? motorcycle.getStock() : 0;
+        if (availableStock < itemReq.getQuantity()) {
+            throw new BadRequestException("Insufficient stock for motorcycle: " + motorcycle.getModel() + 
+                ". Available: " + availableStock + ", Requested: " + itemReq.getQuantity());
+        }
+
+        int newStock = availableStock - itemReq.getQuantity();
+        motorcycle.setStock(newStock);
+        if (newStock <= 0) {
+            motorcycle.setStatus(MotorcycleStatus.OUT_OF_STOCK);
+        }
+        motorcycleRepository.save(motorcycle);
+
+        double originalPrice = motorcycle.getPrice();
+        double unitPrice = originalPrice;
+        Double discountPercentage = motorcycle.getDiscountPercentage();
+
+        if (discountPercentage != null && discountPercentage > 0) {
+            unitPrice = originalPrice * (1 - discountPercentage / 100);
+        }
+
+        double totalPrice = unitPrice * itemReq.getQuantity();
+
+        return OrderItem.builder()
+            .itemType(ItemType.MOTORCYCLE)
+            .itemId(motorcycle.getId())
+            .quantity(itemReq.getQuantity())
+            .unitPrice(unitPrice)
+            .totalPrice(totalPrice)
+            .originalUnitPrice(originalPrice)
+            .discountPercentage(discountPercentage)
+            .itemName(motorcycle.getModel())
+            .itemBrand(motorcycle.getBrand())
+            .itemModel(motorcycle.getModel())
+            .itemCategory(motorcycle.getCategory())
+            .itemImageUrl(motorcycle.getImages() != null && !motorcycle.getImages().isEmpty() ? 
+                motorcycle.getImages().get(0) : null)
+            .build();
+    }
+
+    private OrderItem createAccessoryOrderItem(OrderItemRequest itemReq) {
+        Accessory accessory = accessoryRepository.findByIdForUpdate(itemReq.getItemId())
+            .orElseThrow(() -> new ResourceNotFoundException("Accessory not found: " + itemReq.getItemId()));
+
+        int availableStock = accessory.getStock() != null ? accessory.getStock() : 0;
+        if (availableStock < itemReq.getQuantity()) {
+            throw new BadRequestException("Insufficient stock for accessory: " + accessory.getName() + 
+                ". Available: " + availableStock + ", Requested: " + itemReq.getQuantity());
+        }
+
+        accessory.setStock(availableStock - itemReq.getQuantity());
+        accessoryRepository.save(accessory);
+
+        double unitPrice = accessory.getPrice() != null ? accessory.getPrice() : 0.0;
+        double totalPrice = unitPrice * itemReq.getQuantity();
+
+        return OrderItem.builder()
+            .itemType(ItemType.ACCESSORY)
+            .itemId(accessory.getId())
+            .quantity(itemReq.getQuantity())
+            .unitPrice(unitPrice)
+            .totalPrice(totalPrice)
+            .originalUnitPrice(unitPrice)
+            .itemName(accessory.getName())
+            .itemBrand(accessory.getBrand())
+            .itemCategory(accessory.getCategory())
+            .itemImageUrl(accessory.getImageUrl())
+            .build();
+    }
+
+    private void validateUserProfile(User user) {
+        boolean isSocial = "GOOGLE".equalsIgnoreCase(user.getAuthProvider()) || 
+                           "FACEBOOK".equalsIgnoreCase(user.getAuthProvider());
+        boolean hasUsername = isSocial || (user.getUsername() != null && !user.getUsername().isBlank());
+        boolean hasName = user.getFirstname() != null && !user.getFirstname().isBlank() && 
+                          user.getLastname() != null && !user.getLastname().isBlank();
+        boolean hasPhone = user.getPhone() != null && user.getPhone().matches("^[0-9]{10,11}$");
+        boolean hasAddress = user.getAddress() != null && !user.getAddress().isBlank();
+        boolean hasEmail = user.getEmail() != null && !user.getEmail().isBlank() && 
+                           !user.getEmail().endsWith(PLACEHOLDER_EMAIL_DOMAIN);
+        boolean hasCredentials = isSocial || 
+                                 "LOCAL".equalsIgnoreCase(user.getAuthProvider()) || 
+                                 Boolean.TRUE.equals(user.getHasLocalCredentials());
+
+        if (!hasUsername || !hasName || !hasPhone || !hasAddress || !hasEmail || !hasCredentials) {
+            throw new BadRequestException("Please complete your profile (username, name, phone, address, email) and set a password before placing an order");
+        }
+    }
+
+    private double calculateTierDiscount(MembershipTier tier, double amount) {
+        switch (tier) {
+            case SILVER:
+                return amount * 0.02;
+            case GOLD:
+                return amount * 0.05;
+            case PLATINUM:
+                return amount * 0.10;
+            default:
+                return 0.0;
+        }
     }
 
     public Order getOrderById(String id) {
@@ -331,34 +396,8 @@ public class OrderService {
             return;
         }
 
-        // Deduct stock for each item with proper quantities
-        for (com.capstone.mbservices.entity.OrderItem item : order.getOrderItems()) {
-            if (item.getItemType() == com.capstone.mbservices.enums.ItemType.MOTORCYCLE) {
-                Motorcycle motorcycle = motorcycleRepository.findById(item.getItemId()).orElse(null);
-                if (motorcycle == null) continue;
-                
-                int currentStock = motorcycle.getStock() != null ? motorcycle.getStock() : 0;
-                int newStock = Math.max(currentStock - item.getQuantity(), 0);
-                motorcycle.setStock(newStock);
-                
-                if (newStock <= 0) {
-                    motorcycle.setStatus(MotorcycleStatus.OUT_OF_STOCK);
-                } else if (motorcycle.getStatus() == MotorcycleStatus.OUT_OF_STOCK) {
-                    motorcycle.setStatus(MotorcycleStatus.AVAILABLE);
-                }
-                
-                motorcycleRepository.save(motorcycle);
-            } else if (item.getItemType() == com.capstone.mbservices.enums.ItemType.ACCESSORY) {
-                Accessory accessory = accessoryRepository.findById(item.getItemId()).orElse(null);
-                if (accessory == null) continue;
-                
-                int currentStock = accessory.getStock() != null ? accessory.getStock() : 0;
-                int newStock = Math.max(currentStock - item.getQuantity(), 0);
-                accessory.setStock(newStock);
-                
-                accessoryRepository.save(accessory);
-            }
-        }
+        // NOTE: Stock was already reserved at order creation (PENDING).
+        // Do NOT deduct stock again here to avoid double-deduction.
 
         // Add loyalty points
         User user = order.getUser();
@@ -463,8 +502,60 @@ public class OrderService {
         order.setStatus(OrderStatus.PAID);
         order.setPaidAt(LocalDateTime.now());
         order = orderRepository.save(order);
+        
+        // Step 1: Parse and store Dealer-Assisted Registration Details
+        processRegistrationDetails(order);
+
+        // Step 2: Generate VAT Electronic Invoice Mock Log
+        eInvoiceService.generateInvoice(order);
+
+        // Step 3: Activate E-Warranty Card for purchased motorcycles
+        warrantyService.activateWarrantyForOrder(order);
+
         webhookService.sendOrderUpdate(order);
         return order;
+    }
+
+    private void processRegistrationDetails(Order order) {
+        if (order == null || order.getNotes() == null) return;
+        
+        String notes = order.getNotes();
+        if (notes.contains("[License Plate Service]")) {
+            try {
+                // Example notes text: "[License Plate Service] Citizen ID: 001202003456, Province: Hà Nội, District: Cầu Giấy"
+                String idCard = extractValue(notes, "Citizen ID:");
+                String province = extractValue(notes, "Province:");
+                String district = extractValue(notes, "District:");
+
+                var details = com.capstone.mbservices.entity.RegistrationDetails.builder()
+                        .order(order)
+                        .idCardNumber(idCard)
+                        .province(province)
+                        .district(district)
+                        .dealerAssisted(true)
+                        .status("PENDING")
+                        .build();
+
+                registrationDetailsRepository.save(details);
+                log.info("📝 [REGISTRATION] Extracted and saved registration details for order: {}", order.getOrderNumber());
+            } catch (Exception e) {
+                log.error("Failed to parse registration details from notes", e);
+            }
+        }
+    }
+
+    private String extractValue(String text, String key) {
+        int index = text.indexOf(key);
+        if (index == -1) return "";
+        int start = index + key.length();
+        int end = text.indexOf(",", start);
+        if (end == -1) {
+            end = text.indexOf("\n", start);
+        }
+        if (end == -1) {
+            end = text.length();
+        }
+        return text.substring(start, end).trim();
     }
 
     public Page<Order> getOrders(int page, int size, String status, String search) {

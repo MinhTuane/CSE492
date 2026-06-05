@@ -18,7 +18,7 @@ public class Accessory {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "NVARCHAR(255)", nullable = false)
     private String name;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
@@ -28,8 +28,10 @@ public class Accessory {
     
     private Integer stock;
 
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String category; // e.g. "Exhaust", "Crash Pad", "Helmet", "Mirror"
     
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String brand;
 
     private String imageUrl;

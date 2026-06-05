@@ -53,4 +53,13 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT o FROM Order o WHERE o.id = :id")
     Optional<Order> findByIdForUpdate(@Param("id") String id);
+
+    /**
+     * Find PENDING orders created before the given cutoff (used by auto-cancel scheduler).
+     */
+    @Query("SELECT o FROM Order o WHERE o.status = com.capstone.mbservices.enums.OrderStatus.PENDING AND o.createAt < :cutoff")
+    List<Order> findExpiredPendingOrders(@Param("cutoff") LocalDateTime cutoff);
+
+    @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.status = com.capstone.mbservices.enums.OrderStatus.PAID")
+    Double calculateTotalRevenue();
 }

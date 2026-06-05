@@ -11,7 +11,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/comparison")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class ComparisonController {
     
     private final ComparisonService comparisonService;

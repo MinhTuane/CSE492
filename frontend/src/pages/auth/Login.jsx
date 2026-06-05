@@ -73,7 +73,7 @@ const Login = () => {
     try {
       const idToken = credentialResponse?.credential;
       if (!idToken) {
-        toast.error('Google login failed: missing token. Kiểm tra VITE_GOOGLE_CLIENT_ID và Authorized JavaScript origins (ví dụ http://localhost:3001 cho Vite dev).');
+        toast.error('Google login failed: missing token. Check VITE_GOOGLE_CLIENT_ID and Authorized JavaScript origins (e.g. http://localhost:3001 for Vite dev).');
         return;
       }
       await loginWithGoogle(idToken);

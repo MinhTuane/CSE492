@@ -15,10 +15,10 @@ public class Store {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "NVARCHAR(255)", nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "NVARCHAR(500)", nullable = false)
     private String address;
 
     private String phone;
@@ -33,28 +33,4 @@ public class Store {
     private Boolean licensed = false;
     private LocalDate contractStart;
     private LocalDate contractEnd;
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    public void setLicensed(Boolean licensed) {
-        this.licensed = licensed;
-    }
-
-    public void setContractStart(LocalDate contractStart) {
-        this.contractStart = contractStart;
-    }
-
-    public void setContractEnd(LocalDate contractEnd) {
-        this.contractEnd = contractEnd;
-    }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
 }

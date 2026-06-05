@@ -8,18 +8,25 @@ import com.capstone.mbservices.entity.MaintenanceService;
 import com.capstone.mbservices.entity.Store;
 import com.capstone.mbservices.dto.request.TestRideRequest;
 import com.capstone.mbservices.dto.request.ServiceScheduleRequest;
+import com.capstone.mbservices.dto.response.VNPayResponse;
 import com.capstone.mbservices.service.BookingService;
+import com.capstone.mbservices.service.VNPayService;
+import com.capstone.mbservices.config.VNPayConfig;
 import org.springframework.security.access.prepost.PreAuthorize;
 import java.time.LocalDateTime;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/bookings")  // NO /api prefix!
 @RequiredArgsConstructor
 public class BookingController {
     private final BookingService bookingService;
+    private final VNPayService vnPayService;
     @PostMapping("/test-rides")
     @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
     public ResponseEntity<TestRide> scheduleTestRide(@Valid @RequestBody TestRideRequest request) {
@@ -102,5 +109,88 @@ public class BookingController {
     public ResponseEntity<java.util.List<com.capstone.mbservices.entity.ServiceOffering>> getServiceCatalog(
             @RequestParam(required = false) String storeId) {
         return ResponseEntity.ok(bookingService.getActiveServiceOfferings(storeId));
+    }
+
+    @GetMapping("/available-slots")
+    public ResponseEntity<List<Map<String, Object>>> getAvailableSlots(
+            @RequestParam String storeId,
+            @RequestParam String date,
+            @RequestParam(defaultValue = "TEST_RIDE") String type,
+            @RequestParam(defaultValue = "30") int durationMinutes) {
+        LocalDateTime dateTime = LocalDateTime.parse(date + "T00:00:00");
+        return ResponseEntity.ok(bookingService.getAvailableSlots(storeId, dateTime, type, durationMinutes));
+    }
+
+    // ==================== DEPOSIT PAYMENT ====================
+
+    @PostMapping("/test-rides/{id}/deposit")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<VNPayResponse> createTestRideDeposit(
+            @PathVariable String id,
+            HttpServletRequest request) {
+        return ResponseEntity.ok(bookingService.createTestRideDepositPayment(id, request));
+    }
+
+    @GetMapping("/deposit/vnpay/verify")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<TestRide> verifyDepositCallback(@RequestParam Map<String, String> params) {
+        String secureHash = params.get("vnp_SecureHash");
+        if (secureHash == null || secureHash.isBlank()) return ResponseEntity.badRequest().build();
+
+        String txnRef = params.get("vnp_TxnRef");
+        if (txnRef == null || txnRef.isBlank()) return ResponseEntity.badRequest().build();
+        String testRideId = txnRef.contains("_") ? txnRef.split("_")[0] : txnRef;
+
+        Map<String, String> filtered = params.entrySet().stream()
+            .filter(e -> e.getKey() != null && !"vnp_SecureHash".equals(e.getKey()) && !"vnp_SecureHashType".equals(e.getKey()))
+            .filter(e -> e.getValue() != null && !e.getValue().isBlank())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+
+        String hashData = filtered.entrySet().stream()
+            .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.US_ASCII))
+            .collect(Collectors.joining("&"));
+
+        String expectedHash = VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
+        if (!expectedHash.equalsIgnoreCase(secureHash)) return ResponseEntity.status(400).build();
+        if (!"00".equals(params.get("vnp_ResponseCode"))) return ResponseEntity.status(400).build();
+
+        String txn = params.getOrDefault("vnp_TransactionNo", txnRef);
+        return ResponseEntity.ok(bookingService.processTestRideDeposit(testRideId, "VNPAY-" + txn));
+    }
+
+    @GetMapping("/deposit/vnpay-ipn")
+    public ResponseEntity<Map<String, String>> depositIpn(@RequestParam Map<String, String> params) {
+        try {
+            String secureHash = params.get("vnp_SecureHash");
+            if (secureHash == null || secureHash.isBlank())
+                return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Invalid Signature"));
+
+            Map<String, String> filtered = params.entrySet().stream()
+                .filter(e -> e.getKey() != null && !"vnp_SecureHash".equals(e.getKey()) && !"vnp_SecureHashType".equals(e.getKey()))
+                .filter(e -> e.getValue() != null && !e.getValue().isBlank())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+
+            String hashData = filtered.entrySet().stream()
+                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.US_ASCII))
+                .collect(Collectors.joining("&"));
+
+            String expectedHash = VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
+            if (!expectedHash.equalsIgnoreCase(secureHash))
+                return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Invalid Signature"));
+
+            String txnRef = params.get("vnp_TxnRef");
+            if (txnRef == null || txnRef.isBlank())
+                return ResponseEntity.ok(Map.of("RspCode", "01", "Message", "Order Not Found"));
+            String testRideId = txnRef.contains("_") ? txnRef.split("_")[0] : txnRef;
+
+            if (!"00".equals(params.get("vnp_ResponseCode")))
+                return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
+
+            String txn = params.getOrDefault("vnp_TransactionNo", txnRef);
+            bookingService.processTestRideDeposit(testRideId, "VNPAY-" + txn);
+            return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("RspCode", "99", "Message", "Unknown Error"));
+        }
     }
 }

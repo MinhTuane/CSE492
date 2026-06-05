@@ -34,6 +34,9 @@ const MyBookings = () => {
   const baseServiceOptions = useMemo(() => [], []);
   const [serviceOptions, setServiceOptions] = useState(baseServiceOptions);
   const [planDetails, setPlanDetails] = useState({});
+  const [selectedDate, setSelectedDate] = useState('');
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   const [userBikes, setUserBikes] = useState([]);
   const [showAddBikeForm, setShowAddBikeForm] = useState(false);
@@ -125,6 +128,15 @@ const MyBookings = () => {
       setBookingType(open);
       window.history.replaceState({}, '', location.pathname);
     }
+    const depositResult = params.get('depositResult');
+    if (depositResult) {
+      if (depositResult === 'pending') {
+        toast.success('Deposit payment is being processed. The status will update shortly.');
+      } else if (depositResult === 'success') {
+        toast.success('Deposit payment successful! Your booking has been confirmed.');
+      }
+      window.history.replaceState({}, '', location.pathname);
+    }
   }, [location.search, location.pathname]);
 
   useEffect(() => {
@@ -177,7 +189,20 @@ const MyBookings = () => {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [showBookingForm]);
 
-  
+  useEffect(() => {
+    if (!formData.storeId || !selectedDate) { setAvailableSlots([]); return; }
+    let cancelled = false;
+    setLoadingSlots(true);
+    bookingService.getAvailableSlots(
+      formData.storeId,
+      selectedDate,
+      bookingType === 'testride' ? 'TEST_RIDE' : 'SERVICE',
+      Number(formData.duration) || 30
+    ).then(data => { if (!cancelled) setAvailableSlots(data || []); })
+     .catch(() => { if (!cancelled) setAvailableSlots([]); })
+     .finally(() => { if (!cancelled) setLoadingSlots(false); });
+    return () => { cancelled = true; };
+  }, [formData.storeId, selectedDate, bookingType, formData.duration]);
 
   const handleAddBike = async (e) => {
     e.preventDefault();
@@ -275,6 +300,8 @@ const MyBookings = () => {
         serviceType: '',
         description: ''
       });
+      setSelectedDate('');
+      setAvailableSlots([]);
       loadBookings();
     } catch (error) {
       const msg = error?.response?.data?.message || error?.message || 'Failed to schedule booking';
@@ -425,6 +452,44 @@ const MyBookings = () => {
                       {ride.notes && (
                         <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                           <p className="text-sm text-gray-600">{ride.notes}</p>
+                        </div>
+                      )}
+                      {ride.depositAmount > 0 && (
+                        <div className={`mt-3 flex items-center justify-between px-3 py-2 rounded-lg text-sm ${
+                          ride.depositStatus === 'PAID' ? 'bg-green-50 border border-green-200'
+                          : ride.depositStatus === 'REFUNDED' ? 'bg-blue-50 border border-blue-200'
+                          : ride.depositStatus === 'FORFEITED' ? 'bg-red-50 border border-red-200'
+                          : 'bg-yellow-50 border border-yellow-200'
+                        }`}>
+                          <span className="text-gray-600">
+                            Deposit: <strong>{formatCurrency(ride.depositAmount)}</strong>
+                          </span>
+                          <span className={`font-semibold ${
+                            ride.depositStatus === 'PAID' ? 'text-green-700'
+                            : ride.depositStatus === 'REFUNDED' ? 'text-blue-700'
+                            : ride.depositStatus === 'FORFEITED' ? 'text-red-700'
+                            : 'text-yellow-700'
+                          }`}>
+                            {ride.depositStatus === 'PAID' ? '✅ Paid'
+                              : ride.depositStatus === 'REFUNDED' ? '🔄 Refunding'
+                              : ride.depositStatus === 'FORFEITED' ? '❌ Forfeited'
+                              : '⏳ Unpaid'}
+                          </span>
+                          {ride.depositStatus === 'PENDING' && (ride.status === 'PENDING' || ride.status === 'SCHEDULED') && (
+                            <button
+                              className="btn btn-primary text-xs px-3 py-1"
+                              onClick={async () => {
+                                try {
+                                  const res = await bookingService.createTestRideDeposit(ride.id);
+                                  if (res?.paymentUrl) window.location.href = res.paymentUrl;
+                                } catch (error) {
+                                  toast.error(error?.response?.data?.message || 'Failed to create payment link');
+                                }
+                              }}
+                            >
+                              Pay Deposit
+                            </button>
+                          )}
                         </div>
                       )}
                       {(ride.status === 'PENDING' || ride.status === 'CONFIRMED' || ride.status === 'SCHEDULED') && (
@@ -583,13 +648,13 @@ const MyBookings = () => {
               <div className="px-6 py-4 space-y-4">
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setBookingType('testride')}
+                    onClick={() => { setBookingType('testride'); setSelectedDate(''); setAvailableSlots([]); setFormData(prev => ({...prev, scheduleDate: ''})); }}
                     className={`px-4 py-2 rounded-lg border ${bookingType === 'testride' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300'}`}
                   >
                     Test Ride
                   </button>
                   <button
-                    onClick={() => setBookingType('service')}
+                    onClick={() => { setBookingType('service'); setSelectedDate(''); setAvailableSlots([]); setFormData(prev => ({...prev, scheduleDate: ''})); }}
                     className={`px-4 py-2 rounded-lg border ${bookingType === 'service' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300'}`}
                   >
                     Service
@@ -611,12 +676,16 @@ const MyBookings = () => {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Date & Time</label>
+                  <label className="text-sm font-medium">Select Date</label>
                   <input
-                    type="datetime-local"
+                    type="date"
                     className="input"
-                    value={formData.scheduleDate}
-                    onChange={(e) => setFormData({ ...formData, scheduleDate: e.target.value })}
+                    value={selectedDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value);
+                      setFormData({ ...formData, scheduleDate: '' });
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -637,6 +706,40 @@ const MyBookings = () => {
                     <div className="text-xs text-gray-500">{autoNearestNote}</div>
                   )}
                 </div>
+                {formData.storeId && selectedDate && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      Available Time Slots
+                      {loadingSlots && <span className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin inline-block" />}
+                    </label>
+                    {!loadingSlots && availableSlots.length === 0 ? (
+                      <p className="text-sm text-gray-400 text-center py-4 bg-gray-50 rounded-lg">No time slots available for this date</p>
+                    ) : (
+                      <div className="grid grid-cols-4 gap-2">
+                        {availableSlots.map((slot) => (
+                          <button
+                            key={slot.start}
+                            type="button"
+                            disabled={!slot.available}
+                            onClick={() => setFormData({ ...formData, scheduleDate: slot.startDateTime })}
+                            className={`py-2 px-1 rounded-lg text-xs font-semibold text-center transition-all ${
+                              formData.scheduleDate === slot.startDateTime
+                                ? 'bg-red-600 text-white ring-2 ring-red-300'
+                                : slot.available
+                                ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
+                                : 'bg-gray-100 text-gray-400 cursor-not-allowed line-through'
+                            }`}
+                          >
+                            {slot.start}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {formData.scheduleDate && (
+                      <p className="text-xs text-green-600 font-semibold">✓ Selected: {formData.scheduleDate.replace('T', ' ').slice(0, 16)}</p>
+                    )}
+                  </div>
+                )}
                 {bookingType === 'testride' && (
                   <>
                     <div className="space-y-2">

@@ -127,10 +127,10 @@ const Services = () => {
   ];
 
   const [stats, setStats] = useState({
-    scheduled: 0,
-    technicianCount: 0,
-    satisfactionRate: 0,
-    motorcyclesServiced: 0
+    scheduled: 2002,
+    technicianCount: 199,
+    satisfactionRate: 100,
+    motorcyclesServiced: services.length
   });
   const [recentServices, setRecentServices] = useState([]);
   const navigate = useNavigate();

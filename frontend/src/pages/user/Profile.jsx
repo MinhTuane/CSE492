@@ -711,7 +711,7 @@ const Profile = () => {
               </div>
               <div className="flex items-center gap-2 text-gray-700 mb-4">
                 <Calendar className="w-5 h-5" />
-                <span>Member since: {new Date(profile?.createAt).toLocaleDateString('vi-VN')}</span>
+                <span>Member since: {new Date(profile?.createAt).toLocaleDateString('en-US')}</span>
               </div>
               <input
                 type="password"

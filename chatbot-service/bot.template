@@ -99,6 +99,41 @@
 {% endblock %}
 
 {% block %}
+    {% client %}(.*)(xin chào|hello|hi|chào|hey)(.*){% endclient %}
+    {% response %}Hello! I am the MBServices virtual assistant. How can I help you today? You can ask me about buying a bike, comparing models, test rides, maintenance, or promotions!{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(mua|giá|tìm|xe|mẫu|tư vấn)(.*){% endclient %}
+    {% response %}At MBServices, we provide a wide variety of premium high-performance motorcycles. You can visit the "Motorcycles" section on our menu to see the full list of models and prices!{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(lái thử|chạy thử|đăng ký lái)(.*){% endclient %}
+    {% response %}You can book a test ride directly on our website! Please go to the "Book Test Ride" section on the home page or in the motorcycle details to choose a convenient time.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(bảo dưỡng|bảo hành|sửa|dịch vụ)(.*){% endclient %}
+    {% response %}Our service workshop is always ready to assist you. Please visit the "Services" section on our menu to book a maintenance appointment!{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(khuyến mãi|giảm giá|voucher|mã giảm|ưu đãi)(.*){% endclient %}
+    {% response %}We frequently run great promotions! You can check the "Motorcycles" page to find models on sale, or apply a Promo Code directly on the Checkout page.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(nhân viên|hỗ trợ|gặp cskh|người thật)(.*){% endclient %}
+    {% response %}If you'd like to connect directly with our customer support staff, please click the "Connect to CSKH Staff" button in the chat or call our Hotline at 1900 1234!{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)(cảm ơn|thank|tốt|ok|oke)(.*){% endclient %}
+    {% response %}You are very welcome! I'm glad I could help. Have a wonderful day and ride safely!{% endresponse %}
+{% endblock %}
+
+{% block %}
     {% client %}(.*){% endclient %}
     {% response %}Sorry, I didn't quite catch that. You can ask me about: buying a bike, discounts, comparing models, test rides, maintenance, delivery, or store locations!{% endresponse %}
 {% endblock %}

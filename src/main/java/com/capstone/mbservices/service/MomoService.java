@@ -74,10 +74,13 @@ public class MomoService {
                         .orderId(orderId)
                         .build();
             } else {
-                log.error("Momo creation failed: {}", result);
+                log.error("Momo creation failed, response: {}", result);
                 return VNPayResponse.builder().build();
             }
 
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+            log.error("Momo API returned error status: {}, response body: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+            return VNPayResponse.builder().build();
         } catch (Exception e) {
             log.error("Error creating Momo payment", e);
             return VNPayResponse.builder().build();

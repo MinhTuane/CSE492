@@ -38,9 +38,10 @@ public class Review {
     private Integer rating;
     
     
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String title;
-    
-    @Column(length = 2000)
+
+    @Column(columnDefinition = "NVARCHAR(2000)")
     private String content;
     
     @ElementCollection
@@ -56,12 +57,4 @@ public class Review {
     
     @Builder.Default
     private Integer helpfulCount = 0;
-
-    public void setIsApproved(Boolean isApproved) {
-        this.isApproved = isApproved;
-    }
-
-    public void setIsFlagged(Boolean isFlagged) {
-        this.isFlagged = isFlagged;
-    }
 }

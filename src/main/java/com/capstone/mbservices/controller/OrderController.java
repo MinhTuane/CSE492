@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OrderController {
     private final OrderService orderService;
-    private final com.capstone.mbservices.service.OrderServiceV2 orderServiceV2;
     private final VNPayService vnPayService;
     private final com.capstone.mbservices.service.ZaloPayService zaloPayService;
     private final com.capstone.mbservices.service.MomoService momoService;
@@ -34,11 +33,6 @@ public class OrderController {
     @PostMapping
     @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'SERVICE_ADVISOR')")
     public ResponseEntity<Order> create(@Valid @RequestBody OrderRequest request) {
-        // Use new OrderServiceV2 if items are provided (with quantities)
-        if (request.getItems() != null && !request.getItems().isEmpty()) {
-            return ResponseEntity.ok(orderServiceV2.createOrderWithItems(request));
-        }
-        // Fallback to old service for backward compatibility
         return ResponseEntity.ok(orderService.createOrder(request));
     }
     
@@ -159,6 +153,81 @@ public class OrderController {
 
         String txn = params.getOrDefault("vnp_TransactionNo", String.valueOf(System.currentTimeMillis()));
         return ResponseEntity.ok(orderService.processPayment(orderId, "VNPAY-" + txn));
+    }
+
+    /**
+     * VNPay IPN (Instant Payment Notification) - server-to-server callback.
+     * VNPay calls this URL directly; no user auth. Must return {"RspCode":"00","Message":"Confirm Success"}.
+     * Spec: https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.md#ipn-url
+     */
+    @GetMapping("/vnpay-ipn")
+    public ResponseEntity<Map<String, String>> vnpayIpn(@RequestParam Map<String, String> params) {
+        try {
+            String secureHash = params.get("vnp_SecureHash");
+            if (secureHash == null || secureHash.isBlank()) {
+                log.warn("[VNPAY-IPN] Missing vnp_SecureHash");
+                return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Invalid Signature"));
+            }
+
+            Map<String, String> filtered = params.entrySet().stream()
+                    .filter(e -> e.getKey() != null)
+                    .filter(e -> !"vnp_SecureHash".equals(e.getKey()))
+                    .filter(e -> !"vnp_SecureHashType".equals(e.getKey()))
+                    .filter(e -> e.getValue() != null && !e.getValue().isBlank())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+
+            String hashData = filtered.entrySet().stream()
+                    .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.US_ASCII))
+                    .collect(Collectors.joining("&"));
+
+            String expectedHash = com.capstone.mbservices.config.VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
+            if (!expectedHash.equalsIgnoreCase(secureHash)) {
+                log.warn("[VNPAY-IPN] Signature mismatch. params={}", params);
+                return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Invalid Signature"));
+            }
+
+            String txnRef = params.get("vnp_TxnRef");
+            if (txnRef == null || txnRef.isBlank()) {
+                return ResponseEntity.ok(Map.of("RspCode", "01", "Message", "Order Not Found"));
+            }
+            String orderId = txnRef.contains("_") ? txnRef.split("_")[0] : txnRef;
+
+            Order order;
+            try {
+                order = orderService.getOrderById(orderId);
+            } catch (Exception e) {
+                log.error("[VNPAY-IPN] Order not found: {}", orderId);
+                return ResponseEntity.ok(Map.of("RspCode", "01", "Message", "Order Not Found"));
+            }
+
+            if (order.getStatus() == OrderStatus.PAID) {
+                log.info("[VNPAY-IPN] Order {} already PAID, ignoring duplicate.", orderId);
+                return ResponseEntity.ok(Map.of("RspCode", "02", "Message", "Order Already Confirmed"));
+            }
+
+            String responseCode = params.get("vnp_ResponseCode");
+            if (!"00".equals(responseCode)) {
+                log.info("[VNPAY-IPN] Payment not successful for order={}, responseCode={}", orderId, responseCode);
+                return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
+            }
+
+            String vnpAmount = params.get("vnp_Amount");
+            double amountToPay = Boolean.TRUE.equals(order.getIsDeposit()) ? order.getDepositAmount() : order.getTotalAmount();
+            int expectedAmount = (int) (amountToPay * 100);
+            if (vnpAmount == null || !String.valueOf(expectedAmount).equals(vnpAmount)) {
+                log.error("[VNPAY-IPN] Amount mismatch for order={}: expected={} got={}", orderId, expectedAmount, vnpAmount);
+                return ResponseEntity.ok(Map.of("RspCode", "04", "Message", "Invalid Amount"));
+            }
+
+            String txn = params.getOrDefault("vnp_TransactionNo", txnRef);
+            orderService.processPayment(orderId, "VNPAY-" + txn);
+            log.info("[VNPAY-IPN] Payment processed for order={} txn={}", orderId, txn);
+            return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
+
+        } catch (Exception e) {
+            log.error("[VNPAY-IPN] Unexpected error: {}", e.getMessage(), e);
+            return ResponseEntity.ok(Map.of("RspCode", "99", "Message", "Unknown Error"));
+        }
     }
 
     @GetMapping("/zalopay/verify")

@@ -22,13 +22,14 @@ public class Motorcycle {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     
-    @Column(nullable = false)
+    @Column(columnDefinition = "NVARCHAR(255)", nullable = false)
     private String brand;
     
-    @Column(nullable = false)
+    @Column(columnDefinition = "NVARCHAR(255)", nullable = false)
     private String model;
     
     private Integer year;
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String category;
     
     @Column(nullable = false)
@@ -41,7 +42,7 @@ public class Motorcycle {
     @Builder.Default
     private MotorcycleStatus status = MotorcycleStatus.AVAILABLE;
     
-    @Column(length = 2000)
+    @Column(columnDefinition = "NVARCHAR(2000)")
     private String description;
     
     private String engineType;
@@ -62,6 +63,7 @@ public class Motorcycle {
     @org.hibernate.annotations.BatchSize(size = 50)
     private List<String> features;
     
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String color;
     
     @CreationTimestamp
@@ -88,36 +90,5 @@ public class Motorcycle {
             .mapToInt(Review::getRating)
             .average()
             .orElse(0.0);
-    }
-    
-    public String getId() {
-        return id;
-    }
-    public Integer getStock() {
-        return stock;
-    }
-    public void setStock(Integer stock) {
-        this.stock = stock;
-    }
-    public com.capstone.mbservices.enums.MotorcycleStatus getStatus() {
-        return status;
-    }
-    public void setStatus(com.capstone.mbservices.enums.MotorcycleStatus status) {
-        this.status = status;
-    }
-    public void setTopSpeed(Double topSpeed) {
-        this.topSpeed = topSpeed;
-    }
-    public void setFuelCapacity(Double fuelCapacity) {
-        this.fuelCapacity = fuelCapacity;
-    }
-    public void setImages(java.util.List<String> images) {
-        this.images = images;
-    }
-    public void setFeatures(java.util.List<String> features) {
-        this.features = features;
-    }
-    public void setColor(String color) {
-        this.color = color;
     }
 }

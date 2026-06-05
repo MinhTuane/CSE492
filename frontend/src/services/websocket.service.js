@@ -3,21 +3,26 @@ import SockJS from 'sockjs-client';
 import useAuthStore from '../store/authStore';
 
 let stompClient = null;
+const activeSubscriptions = new Map();
 
 export const connectWebSocket = (onMessageReceived) => {
   const token = localStorage.getItem('token');
   if (!token) return;
 
-  const socket = new SockJS('http://localhost:8091/ws');
+  // In dev (Vite proxy), the origin is localhost:3001 which proxies to backend.
+  // In production (Nginx), the origin is the same domain that proxies /api to backend.
+  const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const socketUrl = isDev
+    ? `http://localhost:8091/api/ws`
+    : `${window.location.origin}/api/ws`;
+  const socket = new SockJS(socketUrl);
   
   stompClient = new Client({
     webSocketFactory: () => socket,
     connectHeaders: {
       Authorization: `Bearer ${token}`
     },
-    debug: function (str) {
-      // console.log(str);
-    },
+    debug: () => {},  // suppress STOMP debug logs in production
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
@@ -28,15 +33,24 @@ export const connectWebSocket = (onMessageReceived) => {
     
     if (user?.role === 'ADMIN') {
       stompClient.subscribe('/topic/admin/notifications', (message) => {
-        onMessageReceived(JSON.parse(message.body));
+        if (onMessageReceived) onMessageReceived(JSON.parse(message.body));
       });
     }
 
     if (user?.id) {
       stompClient.subscribe(`/topic/user/${user.id}/notifications`, (message) => {
-        onMessageReceived(JSON.parse(message.body));
+        if (onMessageReceived) onMessageReceived(JSON.parse(message.body));
       });
     }
+
+    // Resubscribe or subscribe to any registered dynamic topics
+    activeSubscriptions.forEach((val, topic) => {
+      const callback = typeof val === 'function' ? val : val.callback;
+      const sub = stompClient.subscribe(topic, (message) => {
+        callback(JSON.parse(message.body));
+      });
+      activeSubscriptions.set(topic, { sub, callback });
+    });
   };
 
   stompClient.onStompError = function (frame) {
@@ -47,8 +61,36 @@ export const connectWebSocket = (onMessageReceived) => {
   stompClient.activate();
 };
 
+export const subscribeTopic = (topic, callback) => {
+  if (stompClient && stompClient.connected) {
+    const sub = stompClient.subscribe(topic, (message) => {
+      callback(JSON.parse(message.body));
+    });
+    activeSubscriptions.set(topic, { sub, callback });
+    return sub;
+  } else {
+    activeSubscriptions.set(topic, callback);
+    return {
+      unsubscribe: () => {
+        activeSubscriptions.delete(topic);
+      }
+    };
+  }
+};
+
+export const unsubscribeTopic = (topic) => {
+  const entry = activeSubscriptions.get(topic);
+  if (entry) {
+    if (entry.sub) {
+      entry.sub.unsubscribe();
+    }
+    activeSubscriptions.delete(topic);
+  }
+};
+
 export const disconnectWebSocket = () => {
   if (stompClient !== null) {
     stompClient.deactivate();
   }
+  activeSubscriptions.clear();
 };

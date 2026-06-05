@@ -1,9 +1,10 @@
 // Format currency
 export const formatCurrency = (value) => {
   if (value === null || value === undefined) return '';
-  return new Intl.NumberFormat('vi-VN', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'VND'
+    currency: 'VND',
+    minimumFractionDigits: 0
   }).format(value);
 };
 
@@ -45,7 +46,7 @@ export const cleanMotorcycleData = (motorcycles) => {
 // Format date
 export const formatDate = (date) => {
   if (!date) return '';
-  return new Date(date).toLocaleDateString('vi-VN', {
+  return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -55,7 +56,7 @@ export const formatDate = (date) => {
 // Format datetime
 export const formatDateTime = (date) => {
   if (!date) return '';
-  return new Date(date).toLocaleString('vi-VN', {
+  return new Date(date).toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -140,14 +141,15 @@ export const cn = (...classes) => {
 
 export const getImageUrl = (imagePath) => {
   if (!imagePath) {
-    return 'https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=800';
+    return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f3f4f6"/><text x="50" y="50" font-family="sans-serif" font-size="10" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle">No Image</text></svg>';
   }
   const lower = imagePath.toLowerCase();
   if (lower.startsWith('http://') || lower.startsWith('https://')) return imagePath;
   if (lower.startsWith('//')) return `https:${imagePath}`;
   if (lower.startsWith('data:') || lower.startsWith('blob:')) return imagePath;
   if (imagePath.startsWith('/images/')) return `/api${imagePath}`;
-  return imagePath;
+  if (imagePath.startsWith('images/')) return `/api/${imagePath}`;
+  return `/api/${imagePath}`;
 };
 
 // Generate and download .ics file

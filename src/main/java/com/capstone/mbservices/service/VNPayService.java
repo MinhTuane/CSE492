@@ -21,7 +21,18 @@ public class VNPayService {
         return vnPayConfig.getSecretKey();
     }
 
+    public VNPayResponse createPayment(double amount, String orderInfo, String orderId,
+                                       HttpServletRequest request, String returnUrl) {
+        return buildPayment(amount, orderInfo, orderId, request,
+                returnUrl != null ? returnUrl : vnPayConfig.getVnp_ReturnUrl());
+    }
+
     public VNPayResponse createPayment(double amount, String orderInfo, String orderId, HttpServletRequest request) {
+        return buildPayment(amount, orderInfo, orderId, request, vnPayConfig.getVnp_ReturnUrl());
+    }
+
+    private VNPayResponse buildPayment(double amount, String orderInfo, String orderId,
+                                       HttpServletRequest request, String returnUrl) {
         String vnp_Version = vnPayConfig.getVnp_Version();
         String vnp_Command = vnPayConfig.getVnp_Command();
         String vnp_OrderInfo = orderInfo;
@@ -44,8 +55,12 @@ public class VNPayService {
         vnp_Params.put("vnp_OrderInfo", vnp_OrderInfo);
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", vnPayConfig.getVnp_ReturnUrl());
+        vnp_Params.put("vnp_ReturnUrl", returnUrl);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+        String notifyUrl = vnPayConfig.getVnp_NotifyUrl();
+        if (notifyUrl != null && !notifyUrl.isBlank()) {
+            vnp_Params.put("vnp_NotifyUrl", notifyUrl);
+        }
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");

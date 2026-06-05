@@ -443,6 +443,9 @@ const AdminBookings = () => {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Staff
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Cost
                   </th>
                   
@@ -480,6 +483,50 @@ const AdminBookings = () => {
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {service.assignedStaff ? (
+                        <div className="text-sm">
+                          <div className="font-medium">
+                            {service.assignedStaff.user?.firstname} {service.assignedStaff.user?.lastname}
+                          </div>
+                          <div className="text-xs text-gray-500">{service.assignedStaff.user?.phone || '—'}</div>
+                        </div>
+                      ) : (
+                        ['COMPLETED', 'CANCELLED', 'NO_SHOW', 'EXPIRED'].includes(service.status) ? (
+                          <div className="text-xs text-gray-500">—</div>
+                        ) : (
+                          <div className="text-sm">
+                            <select
+                              className="input text-xs"
+                              onFocus={() => !staffOptions[service.id] && service.store?.id && loadAvailableStaff({ ...service, scheduleDateTime: service.scheduleDate, duration: 60 })}
+                              onChange={async (e) => {
+                                const staffId = e.target.value;
+                                if (!staffId) return;
+                                try {
+                                  await adminService.assignStaffToService(service.id, staffId);
+                                  toast.success('Staff assigned');
+                                  loadBookings();
+                                } catch (error) {
+                                  const msg = error?.response?.data?.message || error?.message || 'Failed to assign staff';
+                                  toast.error(msg);
+                                }
+                              }}
+                            >
+                              <option value="">Assign staff...</option>
+                              {loadingStaff[service.id] ? (
+                                <option>Loading...</option>
+                              ) : (
+                                (staffOptions[service.id] || []).map((s) => (
+                                  <option key={s.id} value={s.id}>
+                                    {s.user?.firstname} {s.user?.lastname} {s.user?.phone ? `(${s.user.phone})` : ''}
+                                  </option>
+                                ))
+                              )}
+                            </select>
+                          </div>
+                        )
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {service.cost ? formatCurrency(service.cost) : 'N/A'}

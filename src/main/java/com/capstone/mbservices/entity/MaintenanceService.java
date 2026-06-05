@@ -29,16 +29,18 @@ public class MaintenanceService {
     private Motorcycle motorcycle;
     
     private String serviceType;
+    @Column(columnDefinition = "NVARCHAR(2000)")
     private String description;
     private LocalDateTime scheduleDate;
     
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private ServiceStatus status = ServiceStatus.SCHEDULED;
     
     private Double cost;
     private String bundleId;
     
-    @Column(length = 1000)
+    @Column(columnDefinition = "NVARCHAR(1000)")
     private String notes;
     
     @ManyToOne
@@ -110,51 +112,5 @@ public class MaintenanceService {
     
     public LocalDateTime getCreateAt() {
         return createAt;
-    }
-
-    public static class Builder {
-        private User user;
-        private Motorcycle motorcycle;
-        private Store store;
-        private String serviceType;
-        private String description;
-        private LocalDateTime scheduleDate;
-        private String notes;
-        private com.capstone.mbservices.enums.ServiceStatus status;
-        private Double cost;
-        private String bundleId;
-        private LocalDateTime createAt;
-
-        public Builder user(User user) { this.user = user; return this; }
-        public Builder motorcycle(Motorcycle motorcycle) { this.motorcycle = motorcycle; return this; }
-        public Builder store(Store store) { this.store = store; return this; }
-        public Builder serviceType(String serviceType) { this.serviceType = serviceType; return this; }
-        public Builder description(String description) { this.description = description; return this; }
-        public Builder scheduleDate(LocalDateTime scheduleDate) { this.scheduleDate = scheduleDate; return this; }
-        public Builder notes(String notes) { this.notes = notes; return this; }
-        public Builder status(com.capstone.mbservices.enums.ServiceStatus status) { this.status = status; return this; }
-        public Builder cost(Double cost) { this.cost = cost; return this; }
-        public Builder bundleId(String bundleId) { this.bundleId = bundleId; return this; }
-        public Builder createAt(LocalDateTime createAt) { this.createAt = createAt; return this; }
-
-        public MaintenanceService build() {
-            MaintenanceService ms = new MaintenanceService();
-            ms.user = this.user;
-            ms.motorcycle = this.motorcycle;
-            ms.store = this.store;
-            ms.serviceType = this.serviceType;
-            ms.description = this.description;
-            ms.scheduleDate = this.scheduleDate;
-            ms.notes = this.notes;
-            ms.status = this.status != null ? this.status : com.capstone.mbservices.enums.ServiceStatus.SCHEDULED;
-            ms.cost = this.cost;
-            ms.bundleId = this.bundleId;
-            ms.createAt = this.createAt;
-            return ms;
-        }
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 }

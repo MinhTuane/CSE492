@@ -25,4 +25,6 @@ public interface MaintenanceServiceRepository extends JpaRepository<MaintenanceS
     Page<MaintenanceService> findByStatus(ServiceStatus status, Pageable pageable);
 
     List<MaintenanceService> findByStatusAndScheduleDateBefore(ServiceStatus status, LocalDateTime before);
+
+    List<MaintenanceService> findByStoreIdAndScheduleDateBetween(String storeId, LocalDateTime start, LocalDateTime end);
 }

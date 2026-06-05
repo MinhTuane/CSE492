@@ -58,4 +58,16 @@ export const bookingService = {
     const response = await api.get(`/bookings/services/catalog${params}`);
     return response.data;
   },
+
+  createTestRideDeposit: async (testRideId) => {
+    const response = await api.post(`/bookings/test-rides/${testRideId}/deposit`);
+    return response.data;
+  },
+
+  getAvailableSlots: async (storeId, date, type = 'TEST_RIDE', durationMinutes = 30) => {
+    const response = await api.get('/bookings/available-slots', {
+      params: { storeId, date, type, durationMinutes },
+    });
+    return response.data;
+  },
 };
