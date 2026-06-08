@@ -38,16 +38,12 @@ public class OrderItem {
     private Double totalPrice; // unitPrice × quantity
     
     // Denormalized fields for easier querying (optional but recommended)
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String itemName;
 
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String itemBrand;
 
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String itemModel; // For motorcycles
 
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String itemCategory;
     private String itemImageUrl;
     

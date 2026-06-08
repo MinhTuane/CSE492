@@ -18,13 +18,13 @@ public class ServiceOffering {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(columnDefinition = "NVARCHAR(200)", nullable = false)
+    @Column(length = 200, nullable = false)
     private String name;
 
-    @Column(columnDefinition = "NVARCHAR(300)")
+    @Column(length = 300)
     private String subtitle;
 
-    @Column(columnDefinition = "NVARCHAR(2000)")
+    @Column(length = 2000)
     private String description;
 
     @Column(nullable = false)

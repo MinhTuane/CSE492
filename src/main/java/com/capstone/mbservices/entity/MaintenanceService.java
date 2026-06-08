@@ -29,7 +29,7 @@ public class MaintenanceService {
     private Motorcycle motorcycle;
     
     private String serviceType;
-    @Column(columnDefinition = "NVARCHAR(2000)")
+    @Column(length = 2000)
     private String description;
     private LocalDateTime scheduleDate;
     
@@ -40,7 +40,7 @@ public class MaintenanceService {
     private Double cost;
     private String bundleId;
     
-    @Column(columnDefinition = "NVARCHAR(1000)")
+    @Column(length = 1000)
     private String notes;
     
     @ManyToOne

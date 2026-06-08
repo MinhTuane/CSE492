@@ -15,10 +15,10 @@ public class Store {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(columnDefinition = "NVARCHAR(255)", nullable = false)
+    @Column(nullable = false)
     private String name;
 
-    @Column(columnDefinition = "NVARCHAR(500)", nullable = false)
+    @Column(length = 500, nullable = false)
     private String address;
 
     private String phone;

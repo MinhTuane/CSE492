@@ -21,13 +21,12 @@ public class ChatMessage {
 
     private String senderId;
 
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String senderName;
 
     @Column(nullable = false)
     private String senderRole; // "CUSTOMER", "STAFF", "BOT", "SYSTEM"
 
-    @Column(columnDefinition = "NVARCHAR(2000)", nullable = false)
+    @Column(length = 2000, nullable = false)
     private String content;
 
     @CreationTimestamp

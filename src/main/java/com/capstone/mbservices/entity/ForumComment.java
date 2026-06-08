@@ -26,7 +26,7 @@ public class ForumComment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(columnDefinition = "NVARCHAR(2000)", nullable = false)
+    @Column(length = 2000, nullable = false)
     private String content;
 
     @CreationTimestamp

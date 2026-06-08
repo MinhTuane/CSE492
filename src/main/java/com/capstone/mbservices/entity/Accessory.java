@@ -18,25 +18,23 @@ public class Accessory {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(columnDefinition = "NVARCHAR(255)", nullable = false)
+    @Column(nullable = false)
     private String name;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private Double price;
     
     private Integer stock;
 
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String category; // e.g. "Exhaust", "Crash Pad", "Helmet", "Mirror"
     
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String brand;
 
     private String imageUrl;
 
-    @Column(columnDefinition = "bit default 1")
+    @Column(nullable = false)
     @Builder.Default
     private Boolean isActive = true;
 

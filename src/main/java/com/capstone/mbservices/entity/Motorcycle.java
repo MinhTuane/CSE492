@@ -22,14 +22,13 @@ public class Motorcycle {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     
-    @Column(columnDefinition = "NVARCHAR(255)", nullable = false)
+    @Column(nullable = false)
     private String brand;
     
-    @Column(columnDefinition = "NVARCHAR(255)", nullable = false)
+    @Column(nullable = false)
     private String model;
     
     private Integer year;
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String category;
     
     @Column(nullable = false)
@@ -42,7 +41,7 @@ public class Motorcycle {
     @Builder.Default
     private MotorcycleStatus status = MotorcycleStatus.AVAILABLE;
     
-    @Column(columnDefinition = "NVARCHAR(2000)")
+    @Column(length = 2000)
     private String description;
     
     private String engineType;
@@ -63,7 +62,6 @@ public class Motorcycle {
     @org.hibernate.annotations.BatchSize(size = 50)
     private List<String> features;
     
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String color;
     
     @CreationTimestamp

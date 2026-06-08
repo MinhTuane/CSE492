@@ -37,19 +37,17 @@ public class User {
     @Builder.Default
     private String authProvider = "LOCAL";
 
-    @Column(columnDefinition = "bit default 0")
+    @Column(nullable = false)
     @Builder.Default
     private Boolean hasLocalCredentials = false;
     
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String firstname;
 
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String lastname;
 
     private String phone;
 
-    @Column(columnDefinition = "NVARCHAR(1000)")
+    @Column(length = 1000)
     private String address;
     
     @Enumerated(EnumType.STRING)
@@ -60,7 +58,6 @@ public class User {
     @Builder.Default
     private Boolean isActive = true;
     
-    @Column(columnDefinition = "int default 0")
     @Builder.Default
     private Integer loyaltyPoints = 0;
     

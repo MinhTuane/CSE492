@@ -26,7 +26,7 @@ public class Notification {
 
     private String title;
     
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(columnDefinition = "TEXT")
     private String message;
 
     private String type; // e.g., "ORDER", "TEST_RIDE", "SYSTEM"

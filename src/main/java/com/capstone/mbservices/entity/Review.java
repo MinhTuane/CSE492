@@ -38,10 +38,9 @@ public class Review {
     private Integer rating;
     
     
-    @Column(columnDefinition = "NVARCHAR(255)")
     private String title;
 
-    @Column(columnDefinition = "NVARCHAR(2000)")
+    @Column(length = 2000)
     private String content;
     
     @ElementCollection

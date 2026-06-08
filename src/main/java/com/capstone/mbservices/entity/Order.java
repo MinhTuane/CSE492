@@ -57,13 +57,13 @@ public class Order {
     private String discountCode;
     private Integer loyaltyPointsRedeemed;
 
-    @Column(columnDefinition = "bit default 0")
+    @Column(nullable = false)
     @Builder.Default
     private Boolean paymentSettlementDone = false;
 
     private Boolean useLoyaltyPoints;
     
-    @Column(columnDefinition = "bit default 0")
+    @Column(nullable = false)
     @Builder.Default
     private Boolean isDeposit = false;
     
@@ -79,10 +79,10 @@ public class Order {
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
     
-    @Column(columnDefinition = "NVARCHAR(1000)")
+    @Column(length = 1000)
     private String shippingAddress;
 
-    @Column(columnDefinition = "NVARCHAR(2000)")
+    @Column(length = 2000)
     private String notes;
     
     @ManyToOne
