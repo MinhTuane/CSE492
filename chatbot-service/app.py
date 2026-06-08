@@ -143,7 +143,8 @@ def chat():
         
         # 1. Check if Gemini is configured (Preferred)
         gemini_key = os.getenv("GEMINI_API_KEY")
-        if GEMINI_SUPPORTED and gemini_key and not gemini_key.startswith("YOUR_"):
+        is_dummy_gemini = not gemini_key or gemini_key.startswith("YOUR_") or "your" in gemini_key.lower()
+        if GEMINI_SUPPORTED and gemini_key and not is_dummy_gemini:
             try:
                 # Use Google Gemini Pro 2.5 / 1.5 Flash (ultra-fast, highly intelligent, and free-tier friendly)
                 genai.configure(api_key=gemini_key)
@@ -168,7 +169,8 @@ def chat():
 
         # 2. Check if OpenAI is configured
         openai_key = os.getenv("OPENAI_API_KEY")
-        if OPENAI_SUPPORTED and openai_key and not openai_key.startswith("YOUR_"):
+        is_dummy_openai = not openai_key or openai_key.startswith("YOUR_") or openai_key.startswith("sk-abcd") or "your" in openai_key.lower()
+        if OPENAI_SUPPORTED and openai_key and not is_dummy_openai:
             try:
                 # Use OpenAI ChatGPT
                 client = OpenAI(api_key=openai_key)
