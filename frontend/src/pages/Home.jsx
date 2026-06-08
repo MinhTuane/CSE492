@@ -6,12 +6,12 @@ import { formatCurrency, cleanMotorcycleData, getImageUrl } from '../utils/helpe
 import toast from 'react-hot-toast';
 import StoreLocator from '../components/common/StoreLocator';
 
-// Fallback hero images (Unsplash — high-res motorcycle photos)
+// Fallback hero images (Cloudinary — high-res motorcycle photos)
 const HERO_FALLBACKS = [
-  'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1920&q=80',
-  'https://images.unsplash.com/photo-1558980394-4c7c9299fe96?w=1920&q=80',
-  'https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=1920&q=80',
-  'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=1920&q=80',
+  'https://res.cloudinary.com/djlotprtu/image/upload/v1780919628/mbservices/static/hero-slide-1.jpg',
+  'https://res.cloudinary.com/djlotprtu/image/upload/v1780919629/mbservices/static/hero-slide-2.jpg',
+  'https://res.cloudinary.com/djlotprtu/image/upload/v1780919630/mbservices/static/hero-slide-3.jpg',
+  'https://res.cloudinary.com/djlotprtu/image/upload/v1780919631/mbservices/static/hero-slide-4.jpg',
 ];
 
 // Brand data for the scrolling strip
@@ -526,7 +526,7 @@ const Home = () => {
           <div className="relative overflow-hidden h-[400px] md:h-auto">
             <div ref={parallaxImg} className="absolute inset-[-20%]">
               <img
-                src="https://images.unsplash.com/photo-1571646750610-58e4a2e37071?w=1200&q=80"
+                src="https://res.cloudinary.com/djlotprtu/image/upload/v1780919755/mbservices/static/parallax-showroom.jpg"
                 alt="Motorcycle showroom"
                 className="w-full h-full object-cover"
                 onError={handleImageError}

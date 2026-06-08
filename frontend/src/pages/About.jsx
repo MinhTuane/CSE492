@@ -45,7 +45,7 @@ const About = () => {
       <div className="relative bg-gray-900 text-white py-24 md:py-32 overflow-hidden mb-16">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.pexels.com/photos/1413412/pexels-photo-1413412.jpeg?auto=compress&cs=tinysrgb&w=1600"
+            src="https://res.cloudinary.com/djlotprtu/image/upload/v1780919632/mbservices/static/about-hero.jpg"
             alt="Motorcycle on Road"
             className="w-full h-full object-cover opacity-30 object-center"
           />
@@ -94,7 +94,7 @@ const About = () => {
           </div>
           <div className="relative">
             <img
-              src="https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=800"
+              src="https://res.cloudinary.com/djlotprtu/image/upload/v1780919633/mbservices/static/about-story.jpg"
               alt="Premium Superbike"
               className="w-full h-[400px] object-cover rounded-2xl shadow-2xl border border-gray-100"
             />
