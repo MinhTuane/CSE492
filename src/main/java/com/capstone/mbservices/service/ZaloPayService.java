@@ -29,7 +29,9 @@ public class ZaloPayService {
             // UUID with dashes (36) + "yyMMdd_" (7) = 43 chars → exceeds limit.
             // Stripping dashes: 32 + 7 = 39 chars ✅. Dashes are re-inserted on verify.
             String orderIdNoDash = orderId.replace("-", "");
-            String app_trans_id = new SimpleDateFormat("yyMMdd").format(new Date()) + "_" + orderIdNoDash;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd");
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT+7"));
+            String app_trans_id = sdf.format(new Date()) + "_" + orderIdNoDash;
             String app_user = "MBServices";
             long app_time = System.currentTimeMillis();
             String item = "[{\"itemid\":\"" + orderId + "\",\"itemname\":\"" + orderInfo + "\",\"itemprice\":" + amount.longValue() + ",\"itemquantity\":1}]";

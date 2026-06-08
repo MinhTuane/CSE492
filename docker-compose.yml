@@ -84,7 +84,7 @@ services:
         VITE_FACEBOOK_APP_ID: ${VITE_FACEBOOK_APP_ID}
     container_name: motobikes-frontend
     ports:
-      - "80:80"
+      - "3001:80"
     depends_on:
       - backend
     restart: unless-stopped
