@@ -51,7 +51,7 @@ public interface MotorcycleRepository extends JpaRepository<Motorcycle, String> 
             "(:maxPrice IS NULL OR m.price <= :maxPrice) AND " +
             "(:year IS NULL OR m.year = :year) AND " +
             "(:status IS NULL OR m.status = :status) AND " +
-            "(:keyword IS NULL OR LOWER(m.brand) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(m.model) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            "(CAST(:keyword AS string) IS NULL OR LOWER(m.brand) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')) OR LOWER(m.model) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')) OR LOWER(m.description) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))")
     Page<Motorcycle> searchMotorcyclesPaged(
             @Param("brand") String brand,
             @Param("category") String category,
