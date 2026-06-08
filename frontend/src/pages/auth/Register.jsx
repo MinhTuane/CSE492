@@ -388,7 +388,7 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-center">
+            <div className="mt-6 flex justify-center py-4">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={() => toast.error('Google login failed')}
@@ -397,6 +397,7 @@ const Register = () => {
                 size="large"
                 text="signup_with"
                 shape="rectangular"
+                width="360"
               />
             </div>
             {import.meta.env.DEV && (

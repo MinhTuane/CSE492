@@ -12,7 +12,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-root} -d mbservices"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-root} -d mbservices" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -54,7 +54,7 @@ services:
       - MOMO_RETURN_URL=${MOMO_RETURN_URL:-http://localhost:3001/checkout/payment-result}
       - MOMO_NOTIFY_URL=${MOMO_NOTIFY_URL:-http://localhost:8091/api/orders/momo-ipn}
       - APP_FRONTEND_URL=${APP_FRONTEND_URL:-http://localhost:3001}
-      - APP_CORS_ALLOWED_ORIGIN_PATTERNS=${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*}
+      - APP_CORS_ALLOWED_ORIGIN_PATTERNS=${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*,https://mbservices.io.vn}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
       db:
@@ -84,7 +84,7 @@ services:
         VITE_FACEBOOK_APP_ID: ${VITE_FACEBOOK_APP_ID}
     container_name: motobikes-frontend
     ports:
-      - "3001:80"
+      - "80:80"
     depends_on:
       - backend
     restart: unless-stopped

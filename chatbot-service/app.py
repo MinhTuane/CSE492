@@ -30,8 +30,13 @@ app = Flask(__name__)
 # Initialize Chatbot using ahmadfaizalbh/Chatbot library as a fallback
 template_path = os.path.join(os.path.dirname(__file__), "bot.template")
 
-# System prompt to give the AI context about MBServices
-SYSTEM_PROMPT = """You are a professional, friendly, and helpful virtual assistant for MBServices (Motomarket).
+# Function to generate a dynamic system prompt with the current time/date
+def get_system_prompt():
+    from datetime import datetime, timezone, timedelta
+    vn_tz = timezone(timedelta(hours=7))
+    now_str = datetime.now(vn_tz).strftime("%A, %Y-%m-%d %H:%M:%S")
+    
+    return f"""You are a professional, friendly, and helpful virtual assistant for MBServices (Motomarket).
 MBServices is a premium authorized motorcycle dealer and professional service workshop in Vietnam.
 Key Information:
 - We sell premium brands: Honda, Yamaha, Kawasaki, Ducati, BMW, Suzuki, Harley-Davidson, Triumph, KTM, and Royal Enfield.
@@ -41,10 +46,12 @@ Key Information:
 - Working Hours: 8:00 AM - 8:00 PM, every day of the week.
 - Warranty: 2-3 years or 20,000km - 30,000km depending on the model.
 - Policies: We apply promo codes at checkout for discounts. Compare up to 4 bikes side-by-side.
+- Current Date and Time: {now_str} (Vietnam timezone, UTC+7). Use this to answer queries about the current time or day.
 Instructions:
 - Keep answers polite, brief, and highly informative.
 - Recommend visiting specific sections of our website (e.g., "Motorcycles" for browsing, "Services" for booking maintenance, "Book Test Ride" for trying a bike).
-- ALWAYS respond in English. If the user writes in Vietnamese, reply in English.
+- Respond in the language used by the user. If the user writes in Vietnamese, reply in Vietnamese. If the user writes in English, reply in English.
+- If the user asks general-knowledge, chit-chat, or off-topic questions (e.g., astronomy, math, science, daily life), answer them briefly and politely, then smoothly steer the conversation back to MBServices motorcycles or services.
 """
 
 # Dictionary for expanding Vietnamese/English abbreviations, synonyms, teen-code, and common typos
@@ -144,7 +151,7 @@ def chat():
                 
                 model = genai.GenerativeModel(
                     model_name=gemini_model_name,
-                    system_instruction=SYSTEM_PROMPT
+                    system_instruction=get_system_prompt()
                 )
                 
                 response_obj = model.generate_content(user_message)
@@ -168,7 +175,7 @@ def chat():
                 completion = client.chat.completions.create(
                     model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
                     messages=[
-                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "system", "content": get_system_prompt()},
                         {"role": "user", "content": user_message}
                     ],
                     max_tokens=500,
