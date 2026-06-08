@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Search, Filter, Star, ChevronDown, Check, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import { motorcycleService } from '../../services/motorcycle.service';
 import { formatCurrency, cleanMotorcycleData, getImageUrl } from '../../utils/helpers';
@@ -20,14 +20,17 @@ const MotorcycleList = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  
+  const [searchParams] = useSearchParams();
+
+  const brandFromUrl = searchParams.get('brand') || '';
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
-  
+
   const [filters, setFilters] = useState({
     search: '',
-    brand: '',
+    brand: brandFromUrl,
     category: '',
     minPrice: '',
     maxPrice: '',
@@ -85,11 +88,11 @@ const MotorcycleList = () => {
         itemsPerPage,
         sortParam
       );
-      
+
       let fetchedMotorcycles = response.content || [];
       setTotalElements(response.totalElements);
       setTotalPages(response.totalPages);
-      
+
       setMotorcycles(cleanMotorcycleData(fetchedMotorcycles));
     } catch (error) {
       console.error('Error fetching motorcycles:', error);
@@ -120,6 +123,12 @@ const MotorcycleList = () => {
   useEffect(() => {
     fetchMotorcycles();
   }, [fetchMotorcycles]);
+
+  useEffect(() => {
+    const brand = searchParams.get('brand') || '';
+    setFilters(prev => ({ ...prev, brand: brand }));
+    setCurrentPage(1);
+  }, [searchParams]);
 
   const handleFilterChange = (key, value) => {
     setFilters({ ...filters, [key]: value });
@@ -177,7 +186,7 @@ const MotorcycleList = () => {
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
-    
+
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -201,7 +210,7 @@ const MotorcycleList = () => {
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -225,13 +234,13 @@ const MotorcycleList = () => {
         {/* Brand Cards Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12 animate-slide-in-up delay-100">
           {brands.map((brand) => {
-            const config = brandConfig[brand] || { 
-              color: 'text-gray-700', 
+            const config = brandConfig[brand] || {
+              color: 'text-gray-700',
               borderColor: 'border-t-gray-400',
               bgColor: 'bg-gray-50'
             };
             const isSelected = filters.brand === brand;
-            
+
             return (
               <button
                 key={brand}
@@ -246,7 +255,7 @@ const MotorcycleList = () => {
                   absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-10 transition-opacity
                   ${config.bgColor}
                 `}></div>
-                
+
                 <h3 className={`text-2xl font-bold mb-2 ${config.color} relative z-10`}>
                   {getDisplayName(brand)}
                 </h3>
@@ -257,7 +266,7 @@ const MotorcycleList = () => {
                   <Check className="w-4 h-4" />
                   Certified Dealer
                 </div>
-                
+
                 {isSelected && (
                   <div className="absolute top-4 right-4 bg-green-500 text-white rounded-full p-1">
                     <Check className="w-4 h-4" />
@@ -380,7 +389,7 @@ const MotorcycleList = () => {
               </span>
             )}
           </p>
-          
+
           {totalPages > 1 && (
             <p className="text-gray-600">
               Page <span className="font-bold text-gray-900">{currentPage}</span> of <span className="font-bold text-gray-900">{totalPages}</span>
@@ -416,7 +425,7 @@ const MotorcycleList = () => {
               {currentMotorcycles.map((motorcycle, index) => {
                 const brandColors = brandConfig[motorcycle.brand] || { color: 'text-gray-700' };
                 const animationDelay = `delay-${(index % 3) * 100 + 100}`;
-                
+
                 return (
                   <div key={motorcycle.id} className={`card overflow-hidden group hover:shadow-2xl transition-all duration-300 animate-slide-in-up ${animationDelay}`}>
                     <Link to={`/motorcycles/${motorcycle.id}`}>
@@ -435,12 +444,11 @@ const MotorcycleList = () => {
                           onClick={(e) => toggleWishlist(e, motorcycle)}
                           className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:scale-110 transition-transform z-10"
                         >
-                          <Heart 
-                            className={`w-5 h-5 transition-colors ${
-                              isInWishlist(motorcycle.id) 
-                                ? 'fill-red-500 text-red-500' 
+                          <Heart
+                            className={`w-5 h-5 transition-colors ${isInWishlist(motorcycle.id)
+                                ? 'fill-red-500 text-red-500'
                                 : 'text-gray-400 hover:text-red-500'
-                            }`} 
+                              }`}
                           />
                         </button>
                       </div>
@@ -540,11 +548,10 @@ const MotorcycleList = () => {
                       <button
                         key={page}
                         onClick={() => goToPage(page)}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                          currentPage === page
+                        className={`px-4 py-2 rounded-lg font-semibold transition-colors ${currentPage === page
                             ? 'bg-red-600 text-white'
                             : 'bg-white text-gray-700 hover:bg-gray-100'
-                        }`}
+                          }`}
                       >
                         {page}
                       </button>

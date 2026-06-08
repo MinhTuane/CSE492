@@ -233,18 +233,16 @@ const Home = () => {
           return (
             <div
               key={`${moto.id}-${index === currentSlide ? slideKey : 'idle'}`}
-              className={`absolute inset-0 transition-opacity duration-[1200ms] ease-in-out ${
-                index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
-              }`}
+              className={`absolute inset-0 transition-opacity duration-[1200ms] ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                }`}
             >
               {/* Background Image with Ken Burns */}
               <img
                 src={imgUrl}
                 alt={`${moto.brand} ${moto.model}`}
                 onError={handleImageError}
-                className={`absolute inset-0 w-full h-full object-cover ${
-                  index === currentSlide ? 'hero-slide-img' : ''
-                }`}
+                className={`absolute inset-0 w-full h-full object-cover ${index === currentSlide ? 'hero-slide-img' : ''
+                  }`}
                 style={{ animationDuration: '10s' }}
               />
 
@@ -351,11 +349,10 @@ const Home = () => {
             <button
               key={i}
               onClick={() => goToSlide(i)}
-              className={`transition-all duration-500 rounded-full ${
-                i === currentSlide
+              className={`transition-all duration-500 rounded-full ${i === currentSlide
                   ? 'w-10 h-2.5 bg-red-500'
                   : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
-              }`}
+                }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
@@ -371,12 +368,14 @@ const Home = () => {
           <div className="brand-scroll-track flex items-center gap-16 md:gap-24 px-12">
             {/* Duplicate for seamless infinite scroll */}
             {[...BRANDS, ...BRANDS].map((brand, i) => (
-              <span
+              <Link
                 key={`${brand.name}-${i}`}
-                className="text-2xl md:text-3xl font-bold text-gray-600 hover:text-white tracking-wider uppercase transition-colors duration-300 cursor-default select-none"
+                to={`/motorcycles?brand=${brand.name}`}
+                className='text-2xl md:text-3xl font-bold text-gray-600 hover:text-white hover:scale-110 
+              tracking-wider uppercase transition-all duration-300 cursor-pointer select-none inline-block'
               >
                 {brand.display}
-              </span>
+              </Link>
             ))}
           </div>
         </div>
@@ -468,7 +467,7 @@ const Home = () => {
                       onError={handleImageError}
                       className="absolute inset-0 w-full h-full object-cover"
                     />
-                    
+
                     {/* Overlay */}
                     <div className="card-overlay absolute inset-0 z-10" />
 
