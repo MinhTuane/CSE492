@@ -87,6 +87,25 @@ const Profile = () => {
     !profile.address
   );
   const showSetupWizard = !!profile && !setupDone && (needsUsername || needsEmail || needsPassword || needsPersonal);
+  const isRedirectedFromCheckout = new URLSearchParams(location.search).get('next')?.includes('/checkout');
+  
+  const getMissingFields = () => {
+    const list = [];
+    if (!profile) return list;
+    if (!profile.username) list.push({ field: 'username', label: 'Tên đăng nhập (Username) còn thiếu' });
+    if (isPlaceholderEmail(profile.email)) list.push({ field: 'email', label: 'Email thật chưa được cập nhật' });
+    if (isSocial && !hasLocalCredentials) list.push({ field: 'password', label: 'Mật khẩu chưa được thiết lập' });
+    if (!profile.firstname) list.push({ field: 'firstname', label: 'Họ và tên đệm còn thiếu' });
+    if (!profile.lastname) list.push({ field: 'lastname', label: 'Tên còn thiếu' });
+    if (!profile.phone) {
+      list.push({ field: 'phone', label: 'Số điện thoại còn thiếu' });
+    } else if (!/^[0-9]{10,11}$/.test(profile.phone)) {
+      list.push({ field: 'phone', label: 'Số điện thoại không đúng định dạng (phải gồm 10-11 chữ số)' });
+    }
+    if (!profile.address) list.push({ field: 'address', label: 'Địa chỉ nhận hàng còn thiếu' });
+    return list;
+  };
+  const missingFields = getMissingFields();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -284,11 +303,27 @@ const Profile = () => {
           <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Complete Your Profile</h2>
-                <div className="text-sm text-gray-600">
+                <h2 className="text-xl font-bold text-gray-900">Complete Your Profile</h2>
+                <div className="text-sm text-gray-600 font-medium">
                   Required to place orders
                 </div>
               </div>
+              
+              {missingFields.length > 0 && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl text-sm">
+                  <div className="font-bold flex items-center gap-2 mb-1.5 text-red-900">
+                    <span>⚠️</span> 
+                    {isRedirectedFromCheckout 
+                      ? "Vui lòng cập nhật đầy đủ thông tin để tiến hành mua xe và thanh toán:"
+                      : "Tài khoản của bạn còn thiếu một số thông tin bắt buộc:"}
+                  </div>
+                  <ul className="list-disc list-inside text-xs text-red-700 space-y-1 font-medium">
+                    {missingFields.map((err, i) => (
+                      <li key={i}>{err.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               
               <div className="flex items-center gap-2 text-sm mb-6">
                 <div className={`px-3 py-1 rounded-full ${setupStep === 1 ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'}`}>1. Account</div>
@@ -304,7 +339,7 @@ const Profile = () => {
                         type="text"
                         value={usernameForm.username}
                         onChange={(e) => setUsernameForm((prev) => ({ ...prev, username: e.target.value }))}
-                        className="input w-full"
+                        className={`input w-full ${!usernameForm.username ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                         placeholder="your_username"
                       />
                       {isLocalProvider && (
@@ -314,7 +349,7 @@ const Profile = () => {
                           type="password"
                           value={usernameForm.password}
                           onChange={(e) => setUsernameForm((prev) => ({ ...prev, password: e.target.value }))}
-                          className="input w-full mt-3"
+                          className={`input w-full mt-3 ${!usernameForm.password ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                           placeholder="Confirm current password"
                         />
                         </div>
@@ -329,14 +364,14 @@ const Profile = () => {
                         type="email"
                         value={emailForm.newEmail}
                         onChange={(e) => setEmailForm((prev) => ({ ...prev, newEmail: e.target.value }))}
-                        className="input w-full"
+                        className={`input w-full ${(!emailForm.newEmail || isPlaceholderEmail(emailForm.newEmail)) ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                         placeholder="you@example.com"
                       />
                       <input
                         type="password"
                         value={emailForm.password}
                         onChange={(e) => setEmailForm((prev) => ({ ...prev, password: e.target.value }))}
-                        className="input w-full mt-3"
+                        className={`input w-full mt-3 ${!emailForm.password ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                         placeholder="Confirm password"
                       />
                     </div>
@@ -349,14 +384,14 @@ const Profile = () => {
                         type="password"
                         value={passwordForm.newPassword}
                         onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
-                        className="input w-full"
+                        className={`input w-full ${(!passwordForm.newPassword || passwordForm.newPassword.length < 6) ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                         placeholder="New password"
                       />
                       <input
                         type="password"
                         value={passwordForm.confirmPassword}
                         onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                        className="input w-full mt-3"
+                        className={`input w-full mt-3 ${(!passwordForm.confirmPassword || passwordForm.confirmPassword !== passwordForm.newPassword) ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                         placeholder="Confirm new password"
                       />
                     </div>
@@ -371,14 +406,14 @@ const Profile = () => {
                       type="text"
                       value={formData.firstname}
                       onChange={(e) => setFormData((prev) => ({ ...prev, firstname: e.target.value }))}
-                      className="input w-full"
+                      className={`input w-full ${!formData.firstname ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                       placeholder="First name"
                     />
                     <input
                       type="text"
                       value={formData.lastname}
                       onChange={(e) => setFormData((prev) => ({ ...prev, lastname: e.target.value }))}
-                      className="input w-full"
+                      className={`input w-full ${!formData.lastname ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                       placeholder="Last name"
                     />
                   </div>
@@ -387,14 +422,14 @@ const Profile = () => {
                       type="text"
                       value={formData.phone}
                       onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                      className="input w-full"
+                      className={`input w-full ${(!formData.phone || !/^[0-9]{10,11}$/.test(formData.phone)) ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                       placeholder="Phone (10-11 digits)"
                     />
                     <input
                       type="text"
                       value={formData.address}
                       onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
-                      className="input w-full"
+                      className={`input w-full ${!formData.address ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                       placeholder="Address"
                     />
                   </div>
