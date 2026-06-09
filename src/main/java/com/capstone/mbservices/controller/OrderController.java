@@ -106,11 +106,13 @@ public class OrderController {
     public ResponseEntity<Order> verifyVNPayCallback(@RequestParam Map<String, String> params) {
         String secureHash = params.get("vnp_SecureHash");
         if (secureHash == null || secureHash.isBlank()) {
+            log.warn("[VNPAY-VERIFY] Missing vnp_SecureHash in params={}", params);
             return ResponseEntity.badRequest().build();
         }
         String responseCode = params.get("vnp_ResponseCode");
         String txnRef = params.get("vnp_TxnRef");
         if (txnRef == null || txnRef.isBlank()) {
+            log.warn("[VNPAY-VERIFY] Missing vnp_TxnRef in params={}", params);
             return ResponseEntity.badRequest().build();
         }
         // txnRef format is "orderId_timestamp" (UUID has no underscores).
@@ -146,6 +148,7 @@ public class OrderController {
         }
 
         if (!"00".equals(responseCode)) {
+            log.warn("[VNPAY-VERIFY] ResponseCode is not 00, responseCode={}, params={}", responseCode, params);
             return ResponseEntity.status(400).build();
         }
 
@@ -153,6 +156,8 @@ public class OrderController {
         double amountToPay = Boolean.TRUE.equals(order.getIsDeposit()) ? order.getDepositAmount() : order.getTotalAmount();
         int expectedAmount = (int) (amountToPay * 100);
         if (vnpAmount == null || !String.valueOf(expectedAmount).equals(vnpAmount)) {
+            log.warn("[VNPAY-VERIFY] Amount mismatch. expectedAmount={} (int value of {} * 100), got vnp_Amount={}", 
+                    expectedAmount, amountToPay, vnpAmount);
             return ResponseEntity.status(400).build();
         }
 
