@@ -131,7 +131,7 @@ public class OrderController {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
         String hashData = filtered.entrySet().stream()
-                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8))
+                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20"))
                 .collect(Collectors.joining("&"));
 
         String expectedHash = com.capstone.mbservices.config.VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
@@ -182,7 +182,7 @@ public class OrderController {
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
             String hashData = filtered.entrySet().stream()
-                    .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8))
+                    .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20"))
                     .collect(Collectors.joining("&"));
 
             String expectedHash = com.capstone.mbservices.config.VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
