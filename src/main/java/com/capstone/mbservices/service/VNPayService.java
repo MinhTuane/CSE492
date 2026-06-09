@@ -105,8 +105,13 @@ public class VNPayService {
         
         System.out.println("[VNPAY-DEBUG] tmnCode: '" + vnp_TmnCode + "'");
         System.out.println("[VNPAY-DEBUG] secretKey length: " + (secret != null ? secret.length() : 0));
-        if (secret != null && secret.length() > 4) {
-            System.out.println("[VNPAY-DEBUG] secretKey start/end: " + secret.substring(0, 4) + "..." + secret.substring(secret.length() - 4));
+        if (secret != null) {
+            byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
+            System.out.print("[VNPAY-DEBUG] secretKey bytes: ");
+            for (byte b : secretBytes) {
+                System.out.print((int)b + " ");
+            }
+            System.out.println();
         }
         System.out.println("[VNPAY-DEBUG] hashData: '" + hashData.toString() + "'");
         System.out.println("[VNPAY-DEBUG] secureHash: '" + vnp_SecureHash + "'");
