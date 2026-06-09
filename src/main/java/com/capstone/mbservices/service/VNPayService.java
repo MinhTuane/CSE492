@@ -102,20 +102,6 @@ public class VNPayService {
         String queryUrl = query.toString();
         String secret = getSecretKey();
         String vnp_SecureHash = VNPayConfig.hmacSHA512(secret, hashData.toString());
-        
-        System.out.println("[VNPAY-DEBUG] tmnCode: '" + vnp_TmnCode + "'");
-        System.out.println("[VNPAY-DEBUG] secretKey length: " + (secret != null ? secret.length() : 0));
-        if (secret != null) {
-            byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
-            System.out.print("[VNPAY-DEBUG] secretKey bytes: ");
-            for (byte b : secretBytes) {
-                System.out.print((int)b + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("[VNPAY-DEBUG] hashData: '" + hashData.toString() + "'");
-        System.out.println("[VNPAY-DEBUG] secureHash: '" + vnp_SecureHash + "'");
-        System.out.println("[VNPAY-DEBUG] paymentUrl: '" + vnPayConfig.getVnp_PayUrl() + "?" + queryUrl + "'");
 
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
         String paymentUrl = vnPayConfig.getVnp_PayUrl() + "?" + queryUrl;
