@@ -18,7 +18,8 @@ public class VNPayService {
     private final VNPayConfig vnPayConfig;
 
     public String getSecretKey() {
-        return vnPayConfig.getSecretKey();
+        String key = vnPayConfig.getSecretKey();
+        return key != null ? key.trim() : null;
     }
 
     public VNPayResponse createPayment(double amount, String orderInfo, String orderId,
@@ -42,9 +43,12 @@ public class VNPayService {
         String vnp_TxnRef = orderId + "_" + System.currentTimeMillis();
         String vnp_IpAddr = VNPayConfig.getIpAddress(request);
         String vnp_TmnCode = vnPayConfig.getVnp_TmnCode();
+        if (vnp_TmnCode != null) {
+            vnp_TmnCode = vnp_TmnCode.trim();
+        }
 
-        int amountVal = (int) (amount * 100);
-        
+        long amountVal = Math.round(amount * 100);
+
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
@@ -96,7 +100,7 @@ public class VNPayService {
         }
         
         String queryUrl = query.toString();
-        String vnp_SecureHash = VNPayConfig.hmacSHA512(vnPayConfig.getSecretKey(), hashData.toString());
+        String vnp_SecureHash = VNPayConfig.hmacSHA512(getSecretKey(), hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
         String paymentUrl = vnPayConfig.getVnp_PayUrl() + "?" + queryUrl;
         
