@@ -50,6 +50,7 @@ public class SecurityConfig {
                     "/bookings/stores/nearest",
                     "/orders/momo-ipn",
                     "/orders/vnpay-ipn",
+                    "/vnpay/**",
                     "/chatbot/ask",
                     "/chat/**",
                     "/inventory/motorcycle/**",

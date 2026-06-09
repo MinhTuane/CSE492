@@ -35,6 +35,9 @@ public class VNPayConfig {
     @Value("${vnpay.notify-url:}")
     private String vnp_NotifyUrl;
 
+    @Value("${vnpay.api-url:https://sandbox.vnpayment.vn/merchant_webapi/api/transaction}")
+    private String vnp_ApiUrl;
+
     public String vnp_Version = "2.1.0";
     public String vnp_Command = "pay";
 
@@ -93,19 +96,35 @@ public class VNPayConfig {
         }
     }
 
+    public String hashAllFields(Map fields) {
+        List fieldNames = new ArrayList(fields.keySet());
+        Collections.sort(fieldNames);
+        StringBuilder sb = new StringBuilder();
+        Iterator itr = fieldNames.iterator();
+        while (itr.hasNext()) {
+            String fieldName = (String) itr.next();
+            String fieldValue = (String) fields.get(fieldName);
+            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                sb.append(fieldName);
+                sb.append("=");
+                sb.append(fieldValue);
+            }
+            if (itr.hasNext()) {
+                sb.append("&");
+            }
+        }
+        return hmacSHA512(secretKey, sb.toString());
+    }
+
     public static String getIpAddress(HttpServletRequest request) {
         String ipAdress;
         try {
             ipAdress = request.getHeader("X-FORWARDED-FOR");
-            if (ipAdress == null || ipAdress.isBlank()) {
+            if (ipAdress == null) {
                 ipAdress = request.getRemoteAddr();
-            } else {
-                if (ipAdress.contains(",")) {
-                    ipAdress = ipAdress.split(",")[0].trim();
-                }
             }
         } catch (Exception e) {
-            ipAdress = "127.0.0.1";
+            ipAdress = "Invalid IP:" + e.getMessage();
         }
         return ipAdress;
     }
