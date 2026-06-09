@@ -12,6 +12,7 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState(null);
 
   const { login, loginWithGoogle, loginWithFacebook } = useAuthStore();
   const navigate = useNavigate();
@@ -39,11 +40,16 @@ const Login = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    if (loginError) {
+      setLoginError(null);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setLoginError(null);
     try {
       const u = await login(formData);
       toast.success('Successfully logged in!');
@@ -57,8 +63,8 @@ const Login = () => {
       navigate(needsSetup ? '/profile?setup=1' : '/');
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to login';
+      setLoginError(errorMsg);
       toast.error(errorMsg);
-
       // Show specific error for rate limiting
       if (error.message && error.message.includes('Too many requests')) {
         toast.error(error.message, { duration: 5000 });
@@ -141,7 +147,7 @@ const Login = () => {
                     required
                     value={formData.identifier}
                     onChange={handleChange}
-                    className="input pl-10"
+                    className={`input pl-10 ${loginError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                     placeholder="Email or username"
                   />
                 </div>
@@ -163,7 +169,7 @@ const Login = () => {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="input pl-10 pr-10"
+                    className={`input pl-10 ${loginError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                     placeholder="Enter your password"
                   />
                   <button
@@ -178,6 +184,13 @@ const Login = () => {
                     )}
                   </button>
                 </div>
+                {loginError && (
+                  <p
+                    className="text-red-500 text-sm mt-2 animate-fade-in font-medium"
+                  >
+                    {loginError}
+                  </p>
+                )}
               </div>
 
               {/* Remember Me & Forgot Password */}
