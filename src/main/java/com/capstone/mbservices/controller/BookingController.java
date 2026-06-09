@@ -142,12 +142,12 @@ public class BookingController {
         String testRideId = txnRef.contains("_") ? txnRef.split("_")[0] : txnRef;
 
         Map<String, String> filtered = params.entrySet().stream()
-            .filter(e -> e.getKey() != null && !"vnp_SecureHash".equals(e.getKey()) && !"vnp_SecureHashType".equals(e.getKey()))
+            .filter(e -> e.getKey() != null && e.getKey().startsWith("vnp_") && !"vnp_SecureHash".equals(e.getKey()) && !"vnp_SecureHashType".equals(e.getKey()))
             .filter(e -> e.getValue() != null && !e.getValue().isBlank())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
         String hashData = filtered.entrySet().stream()
-            .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20"))
+            .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8))
             .collect(Collectors.joining("&"));
 
         String expectedHash = VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
@@ -166,12 +166,12 @@ public class BookingController {
                 return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Invalid Signature"));
 
             Map<String, String> filtered = params.entrySet().stream()
-                .filter(e -> e.getKey() != null && !"vnp_SecureHash".equals(e.getKey()) && !"vnp_SecureHashType".equals(e.getKey()))
+                .filter(e -> e.getKey() != null && e.getKey().startsWith("vnp_") && !"vnp_SecureHash".equals(e.getKey()) && !"vnp_SecureHashType".equals(e.getKey()))
                 .filter(e -> e.getValue() != null && !e.getValue().isBlank())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
             String hashData = filtered.entrySet().stream()
-                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20"))
+                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8))
                 .collect(Collectors.joining("&"));
 
             String expectedHash = VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);

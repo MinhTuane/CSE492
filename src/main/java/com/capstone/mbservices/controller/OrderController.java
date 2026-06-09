@@ -124,14 +124,14 @@ public class OrderController {
         }
 
         Map<String, String> filtered = params.entrySet().stream()
-                .filter(e -> e.getKey() != null)
+                .filter(e -> e.getKey() != null && e.getKey().startsWith("vnp_"))
                 .filter(e -> !"vnp_SecureHash".equals(e.getKey()))
                 .filter(e -> !"vnp_SecureHashType".equals(e.getKey()))
                 .filter(e -> e.getValue() != null && !e.getValue().isBlank())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
         String hashData = filtered.entrySet().stream()
-                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20"))
+                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8))
                 .collect(Collectors.joining("&"));
 
         String expectedHash = com.capstone.mbservices.config.VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
@@ -175,14 +175,14 @@ public class OrderController {
             }
 
             Map<String, String> filtered = params.entrySet().stream()
-                    .filter(e -> e.getKey() != null)
+                    .filter(e -> e.getKey() != null && e.getKey().startsWith("vnp_"))
                     .filter(e -> !"vnp_SecureHash".equals(e.getKey()))
                     .filter(e -> !"vnp_SecureHashType".equals(e.getKey()))
                     .filter(e -> e.getValue() != null && !e.getValue().isBlank())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
             String hashData = filtered.entrySet().stream()
-                    .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20"))
+                    .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8))
                     .collect(Collectors.joining("&"));
 
             String expectedHash = com.capstone.mbservices.config.VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
