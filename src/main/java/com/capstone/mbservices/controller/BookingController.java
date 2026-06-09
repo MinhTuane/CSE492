@@ -147,7 +147,7 @@ public class BookingController {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
         String hashData = filtered.entrySet().stream()
-            .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.US_ASCII))
+            .map(e -> e.getKey() + "=" + e.getValue())
             .collect(Collectors.joining("&"));
 
         String expectedHash = VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
@@ -171,7 +171,7 @@ public class BookingController {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
             String hashData = filtered.entrySet().stream()
-                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.US_ASCII))
+                .map(e -> e.getKey() + "=" + e.getValue())
                 .collect(Collectors.joining("&"));
 
             String expectedHash = VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
