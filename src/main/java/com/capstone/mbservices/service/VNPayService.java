@@ -61,10 +61,6 @@ public class VNPayService {
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", returnUrl);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
-        String notifyUrl = vnPayConfig.getVnp_NotifyUrl();
-        if (notifyUrl != null && !notifyUrl.isBlank()) {
-            vnp_Params.put("vnp_NotifyUrl", notifyUrl);
-        }
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
