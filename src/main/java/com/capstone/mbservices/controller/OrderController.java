@@ -154,9 +154,9 @@ public class OrderController {
 
         String vnpAmount = params.get("vnp_Amount");
         double amountToPay = Boolean.TRUE.equals(order.getIsDeposit()) ? order.getDepositAmount() : order.getTotalAmount();
-        int expectedAmount = (int) (amountToPay * 100);
+        long expectedAmount = Math.round(amountToPay * 100);
         if (vnpAmount == null || !String.valueOf(expectedAmount).equals(vnpAmount)) {
-            log.warn("[VNPAY-VERIFY] Amount mismatch. expectedAmount={} (int value of {} * 100), got vnp_Amount={}", 
+            log.warn("[VNPAY-VERIFY] Amount mismatch. expectedAmount={} (long value of {} * 100), got vnp_Amount={}", 
                     expectedAmount, amountToPay, vnpAmount);
             return ResponseEntity.status(400).build();
         }
@@ -223,7 +223,7 @@ public class OrderController {
 
             String vnpAmount = params.get("vnp_Amount");
             double amountToPay = Boolean.TRUE.equals(order.getIsDeposit()) ? order.getDepositAmount() : order.getTotalAmount();
-            int expectedAmount = (int) (amountToPay * 100);
+            long expectedAmount = Math.round(amountToPay * 100);
             if (vnpAmount == null || !String.valueOf(expectedAmount).equals(vnpAmount)) {
                 log.error("[VNPAY-IPN] Amount mismatch for order={}: expected={} got={}", orderId, expectedAmount, vnpAmount);
                 return ResponseEntity.ok(Map.of("RspCode", "04", "Message", "Invalid Amount"));
