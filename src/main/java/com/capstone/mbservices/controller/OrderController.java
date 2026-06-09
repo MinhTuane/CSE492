@@ -137,6 +137,11 @@ public class OrderController {
         String expectedHash = com.capstone.mbservices.config.VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
 
         if (!expectedHash.equalsIgnoreCase(secureHash)) {
+            log.warn("[VNPAY-VERIFY] Signature mismatch. expected={}, got={}, hashData={}, key={}", 
+                    expectedHash, secureHash, hashData, 
+                    vnPayService.getSecretKey() != null && vnPayService.getSecretKey().length() > 4 
+                            ? vnPayService.getSecretKey().substring(0, 4) + "..." 
+                            : "null");
             return ResponseEntity.status(400).build();
         }
 
