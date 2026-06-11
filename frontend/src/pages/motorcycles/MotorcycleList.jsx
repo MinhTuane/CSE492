@@ -12,6 +12,171 @@ const handleImageError = (e) => {
   e.target.onerror = null;
 };
 
+const MotorcycleCard = ({
+  motorcycle,
+  index,
+  brandConfig,
+  toggleWishlist,
+  isInWishlist,
+  handleAddToCart
+}) => {
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const brandColors = brandConfig[motorcycle.brand] || { color: 'text-gray-700' };
+  const animationDelay = `delay-${(index % 3) * 100 + 100}`;
+  const images = motorcycle.images || [];
+
+  useEffect(() => {
+    if (!isHovered || images.length <= 1) {
+      setActiveImageIndex(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % images.length);
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [isHovered, images.length]);
+
+  return (
+    <div
+      className={`card overflow-hidden group hover:shadow-2xl transition-all duration-300 animate-slide-in-up ${animationDelay}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Link to={`/motorcycles/${motorcycle.id}`}>
+        <div className="relative h-56 overflow-hidden bg-gray-100">
+          {images.length > 0 ? (
+            images.map((imgUrl, imgIndex) => (
+              <img
+                key={imgIndex}
+                src={getImageUrl(imgUrl)}
+                alt={`${motorcycle.brand} ${motorcycle.model}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out ${
+                  activeImageIndex === imgIndex
+                    ? 'opacity-100 scale-105 pointer-events-auto'
+                    : 'opacity-0 scale-100 pointer-events-none'
+                }`}
+                onError={handleImageError}
+              />
+            ))
+          ) : (
+            <img
+              src={getImageUrl(null)}
+              alt={`${motorcycle.brand} ${motorcycle.model}`}
+              className="w-full h-full object-cover transition-transform duration-700 ease-out"
+              onError={handleImageError}
+            />
+          )}
+
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          
+          <span className="absolute top-4 left-4 bg-green-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg z-10 pointer-events-none">
+            Available
+          </span>
+
+          <button
+            onClick={(e) => toggleWishlist(e, motorcycle)}
+            className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:scale-110 transition-transform z-20"
+          >
+            <Heart
+              className={`w-5 h-5 transition-colors ${
+                isInWishlist(motorcycle.id)
+                  ? 'fill-red-500 text-red-500'
+                  : 'text-gray-400 hover:text-red-500'
+              }`}
+            />
+          </button>
+
+          {/* Indicator dots for slideshow */}
+          {isHovered && images.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-20 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full transition-opacity duration-300">
+              {images.map((_, dotIdx) => (
+                <div
+                  key={dotIdx}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                    activeImageIndex === dotIdx ? 'bg-white scale-125' : 'bg-white/50'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </Link>
+
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className={`text-sm font-bold uppercase ${brandColors.color}`}>
+            {motorcycle.brand}
+          </span>
+          {motorcycle.averageRating > 0 && (
+            <div className="flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded-full">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-sm font-semibold text-yellow-700">
+                {motorcycle.averageRating.toFixed(1)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <Link to={`/motorcycles/${motorcycle.id}`}>
+          <h3 className="text-xl font-bold mb-2 group-hover:text-red-600 transition-colors line-clamp-1">
+            {motorcycle.model}
+          </h3>
+        </Link>
+
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2 h-10">
+          {motorcycle.description || 'Premium motorcycle with exceptional performance'}
+        </p>
+
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col">
+            {motorcycle.discountPercentage > 0 ? (
+              <>
+                <span className="text-sm text-gray-500 line-through">
+                  {formatCurrency(motorcycle.price)}
+                </span>
+                <span className="text-2xl font-bold text-red-600 flex items-center gap-2">
+                  {formatCurrency(motorcycle.price * (1 - motorcycle.discountPercentage / 100))}
+                  <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                    -{motorcycle.discountPercentage}%
+                  </span>
+                </span>
+              </>
+            ) : (
+              <span className="text-2xl font-bold text-gray-900">
+                {formatCurrency(motorcycle.price)}
+              </span>
+            )}
+          </div>
+          {motorcycle.stock > 0 && (
+            <span className="text-sm text-green-600 font-semibold bg-green-50 px-2 py-1 rounded h-fit">
+              {motorcycle.stock} in stock
+            </span>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <Link
+            to={`/motorcycles/${motorcycle.id}`}
+            className="btn btn-outline flex-1 text-sm"
+          >
+            View Details
+          </Link>
+          <button
+            onClick={() => handleAddToCart(motorcycle)}
+            className="btn btn-primary flex-1 text-sm"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MotorcycleList = () => {
   const [motorcycles, setMotorcycles] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -422,108 +587,17 @@ const MotorcycleList = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {currentMotorcycles.map((motorcycle, index) => {
-                const brandColors = brandConfig[motorcycle.brand] || { color: 'text-gray-700' };
-                const animationDelay = `delay-${(index % 3) * 100 + 100}`;
-
-                return (
-                  <div key={motorcycle.id} className={`card overflow-hidden group hover:shadow-2xl transition-all duration-300 animate-slide-in-up ${animationDelay}`}>
-                    <Link to={`/motorcycles/${motorcycle.id}`}>
-                      <div className="relative h-56 overflow-hidden bg-gray-100">
-                        <img
-                          src={getImageUrl(motorcycle.images?.[0])}
-                          alt={`${motorcycle.brand} ${motorcycle.model}`}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                          onError={handleImageError}
-                        />
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <span className="absolute top-4 left-4 bg-green-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-                          Available
-                        </span>
-                        <button
-                          onClick={(e) => toggleWishlist(e, motorcycle)}
-                          className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:scale-110 transition-transform z-10"
-                        >
-                          <Heart
-                            className={`w-5 h-5 transition-colors ${isInWishlist(motorcycle.id)
-                                ? 'fill-red-500 text-red-500'
-                                : 'text-gray-400 hover:text-red-500'
-                              }`}
-                          />
-                        </button>
-                      </div>
-                    </Link>
-
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-bold uppercase ${brandColors.color}`}>
-                          {motorcycle.brand}
-                        </span>
-                        {motorcycle.averageRating > 0 && (
-                          <div className="flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded-full">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-semibold text-yellow-700">
-                              {motorcycle.averageRating.toFixed(1)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <Link to={`/motorcycles/${motorcycle.id}`}>
-                        <h3 className="text-xl font-bold mb-2 group-hover:text-red-600 transition-colors line-clamp-1">
-                          {motorcycle.model}
-                        </h3>
-                      </Link>
-
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2 h-10">
-                        {motorcycle.description || 'Premium motorcycle with exceptional performance'}
-                      </p>
-
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex flex-col">
-                          {motorcycle.discountPercentage > 0 ? (
-                            <>
-                              <span className="text-sm text-gray-500 line-through">
-                                {formatCurrency(motorcycle.price)}
-                              </span>
-                              <span className="text-2xl font-bold text-red-600 flex items-center gap-2">
-                                {formatCurrency(motorcycle.price * (1 - motorcycle.discountPercentage / 100))}
-                                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
-                                  -{motorcycle.discountPercentage}%
-                                </span>
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-2xl font-bold text-gray-900">
-                              {formatCurrency(motorcycle.price)}
-                            </span>
-                          )}
-                        </div>
-                        {motorcycle.stock > 0 && (
-                          <span className="text-sm text-green-600 font-semibold bg-green-50 px-2 py-1 rounded h-fit">
-                            {motorcycle.stock} in stock
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Link
-                          to={`/motorcycles/${motorcycle.id}`}
-                          className="btn btn-outline flex-1 text-sm"
-                        >
-                          View Details
-                        </Link>
-                        <button
-                          onClick={() => handleAddToCart(motorcycle)}
-                          className="btn btn-primary flex-1 text-sm"
-                        >
-                          Add to Cart
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {currentMotorcycles.map((motorcycle, index) => (
+                <MotorcycleCard
+                  key={motorcycle.id}
+                  motorcycle={motorcycle}
+                  index={index}
+                  brandConfig={brandConfig}
+                  toggleWishlist={toggleWishlist}
+                  isInWishlist={isInWishlist}
+                  handleAddToCart={handleAddToCart}
+                />
+              ))}
             </div>
 
             {/* Pagination */}

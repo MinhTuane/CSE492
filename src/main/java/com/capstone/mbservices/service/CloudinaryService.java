@@ -230,4 +230,44 @@ public class CloudinaryService {
             return null;
         }
     }
+
+    /**
+     * Upload an image with a deterministic public ID (overwrites existing with the same ID).
+     */
+    public String uploadBytesWithPublicId(byte[] bytes, String folder, String publicId) {
+        try {
+            Map uploadResult = cloudinary.uploader().upload(
+                bytes,
+                ObjectUtils.asMap(
+                    "public_id", publicId,
+                    "folder", folder,
+                    "overwrite", true,
+                    "resource_type", "image"
+                )
+            );
+            return (String) uploadResult.get("secure_url");
+        } catch (IOException e) {
+            throw new BadRequestException("Failed to upload image with custom public ID: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Upload a remote URL with a deterministic public ID (overwrites existing with the same ID).
+     */
+    public String uploadUrlWithPublicId(String url, String folder, String publicId) {
+        try {
+            Map uploadResult = cloudinary.uploader().upload(
+                url,
+                ObjectUtils.asMap(
+                    "public_id", publicId,
+                    "folder", folder,
+                    "overwrite", true,
+                    "resource_type", "image"
+                )
+            );
+            return (String) uploadResult.get("secure_url");
+        } catch (IOException e) {
+            throw new BadRequestException("Failed to upload url with custom public ID: " + e.getMessage());
+        }
+    }
 }

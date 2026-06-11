@@ -258,26 +258,42 @@ const MotorcycleDetail = () => {
               )}
               
               <div className="relative h-96">
-                <img
-                  src={getImageUrl(motorcycle.images?.[currentImageIndex])}
-                  alt={motorcycle.model}
-                  className="w-full h-full object-cover"
-                  onError={handleImageError}
-                />
+                {motorcycle.images && motorcycle.images.length > 0 ? (
+                  motorcycle.images.map((imgUrl, imgIndex) => (
+                    <img
+                      key={imgIndex}
+                      src={getImageUrl(imgUrl)}
+                      alt={`${motorcycle.model} - view ${imgIndex + 1}`}
+                      className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out ${
+                        currentImageIndex === imgIndex
+                          ? 'opacity-100 scale-100 pointer-events-auto'
+                          : 'opacity-0 scale-95 pointer-events-none'
+                      }`}
+                      onError={handleImageError}
+                    />
+                  ))
+                ) : (
+                  <img
+                    src={getImageUrl(null)}
+                    alt={motorcycle.model}
+                    className="w-full h-full object-cover"
+                    onError={handleImageError}
+                  />
+                )}
                 
                 {motorcycle.images && motorcycle.images.length > 1 && (
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-colors"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110 z-10"
                     >
-                      <ChevronLeft className="w-6 h-6" />
+                      <ChevronLeft className="w-6 h-6 text-gray-800" />
                     </button>
                     <button
                       onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110 z-10"
                     >
-                      <ChevronRight className="w-6 h-6" />
+                      <ChevronRight className="w-6 h-6 text-gray-800" />
                     </button>
                   </>
                 )}

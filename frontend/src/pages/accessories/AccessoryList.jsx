@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { accessoryService } from '../../services/accessory.service';
 import useCartStore from '../../store/cartStore';
-import { formatCurrency } from '../../utils/helpers';
+import { formatCurrency, getImageUrl } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 import { ShoppingCart, Filter, Search } from 'lucide-react';
 
@@ -74,7 +74,7 @@ const AccessoryList = () => {
                 <div key={item.id} className="card hover:shadow-xl transition-all duration-300 group flex flex-col h-full bg-white overflow-hidden">
                   <div className="relative h-56 overflow-hidden bg-gray-100">
                     <img
-                      src={item.imageUrl}
+                      src={getImageUrl(item.imageUrl)}
                       alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
@@ -93,9 +93,16 @@ const AccessoryList = () => {
                     <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 leading-tight">
                       {item.name}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2 flex-1">
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                       {item.description}
                     </p>
+                    
+                    {item.compatibleBikes && (
+                      <div className="text-[11px] text-gray-500 bg-gray-50 border border-gray-100 rounded-lg p-2 mb-4">
+                        <span className="font-semibold text-gray-700">Compatible with: </span>
+                        {item.compatibleBikes}
+                      </div>
+                    )}
                     
                     <div className="flex items-end justify-between mt-auto">
                       <div>

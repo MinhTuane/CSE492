@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 @Component
 @RequiredArgsConstructor
@@ -105,12 +107,55 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         List<Motorcycle> motorcycles = new ArrayList<>();
-        boolean needMotorcycles = motorcycleRepository.count() == 0;
+        boolean needMotorcycles = motorcycleRepository.count() < 50;
+
+        if (needMotorcycles && motorcycleRepository.count() > 0) {
+            log.info("Refreshing database with the new 50 multi-image motorcycles...");
+            try {
+                jdbcTemplate.update("DELETE FROM order_items WHERE item_type = 'MOTORCYCLE'");
+                jdbcTemplate.update("DELETE FROM order_items WHERE motorcycle_id IS NOT NULL");
+                jdbcTemplate.update("DELETE FROM order_items");
+                orderRepository.deleteAll();
+                reviewRepository.deleteAll();
+                testRideRepository.deleteAll();
+                maintenanceServiceRepository.deleteAll();
+                motorcycleRepository.deleteAll();
+            } catch (Exception e) {
+                log.warn("Failed to clear motorcycle dependencies: {}", e.getMessage());
+            }
+        }
 
         if (needMotorcycles) {
-            // ... original code
+            try {
+                java.io.File localFile = new java.io.File("src/main/resources/motorcycles.json");
+                ObjectMapper mapper = new ObjectMapper();
+                if (localFile.exists()) {
+                    motorcycles = mapper.readValue(localFile, new TypeReference<List<Motorcycle>>() {});
+                    log.info("Loaded {} motorcycles from local file motorcycles.json", motorcycles.size());
+                    log.info("Uploading motorcycle images to Cloudinary in parallel...");
+                    motorcycles.parallelStream().forEach(m -> {
+                        m.setImages(toCloudinaryUrls(m.getBrand(), m.getModel(), m.getImages(), "motorcycles"));
+                    });
+                } else {
+                    org.springframework.core.io.ClassPathResource resource = new org.springframework.core.io.ClassPathResource("motorcycles.json");
+                    if (resource.exists()) {
+                        try (java.io.InputStream is = resource.getInputStream()) {
+                            motorcycles = mapper.readValue(is, new TypeReference<List<Motorcycle>>() {});
+                            log.info("Loaded {} motorcycles from classpath motorcycles.json", motorcycles.size());
+                            log.info("Uploading motorcycle images to Cloudinary in parallel...");
+                            motorcycles.parallelStream().forEach(m -> {
+                                m.setImages(toCloudinaryUrls(m.getBrand(), m.getModel(), m.getImages(), "motorcycles"));
+                            });
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to read motorcycles.json, using hardcoded fallback: {}", e.getMessage());
+            }
 
-            log.info("Seeding database with 32 motorcycles...");
+            if (motorcycles == null || motorcycles.isEmpty()) {
+                log.info("Seeding database with 32 fallback motorcycles...");
+                motorcycles = new ArrayList<>();
             // ============ YAMAHA (3) ============
         motorcycles.add(createMotorcycle(
             "YAMAHA", "YZF-R3", 2024, "Sport", 129000000.0,
@@ -405,6 +450,7 @@ public class DataSeeder implements CommandLineRunner {
             Arrays.asList("Milwaukee-Eight 117", "Screamin' Eagle", "Premium Suspension", "Touring Ready"),
             "Vivid Black"
         ));
+            }
 
             motorcycleRepository.saveAll(motorcycles);
             log.info("Successfully seeded {} motorcycles!", motorcycles.size());
@@ -432,8 +478,17 @@ public class DataSeeder implements CommandLineRunner {
         if (serviceOfferingRepository.count() == 0) {
             createSampleServiceOfferings();
         }
-        if (accessoryRepository.count() == 0) {
-            createSampleAccessories();
+        boolean hasPremiumPkl = accessoryRepository.findAll().stream()
+                .anyMatch(a -> a.getName().contains("Supercorsa V3"));
+        if (!hasPremiumPkl) {
+            try {
+                // Clear order items referencing accessories first to avoid FK constraints
+                jdbcTemplate.update("DELETE FROM order_items WHERE item_type = 'ACCESSORY'");
+                accessoryRepository.deleteAll();
+                createSampleAccessories();
+            } catch (Exception e) {
+                log.warn("Failed to reset and seed new accessories: {}", e.getMessage());
+            }
         }
         createSampleForumPosts(customer, customer1, admin);
     }
@@ -451,68 +506,126 @@ public class DataSeeder implements CommandLineRunner {
 
     private void createSampleAccessories() {
         log.info("Seeding accessories...");
-        List<Accessory> accessories = Arrays.asList(
-            Accessory.builder()
-                .name("Akrapovic Carbon Exhaust")
-                .description("High-performance carbon fiber slip-on exhaust. Delivers deep resonant sound and reduces weight.")
-                .price(12_500_000.0)
-                .stock(10)
-                .category("Exhaust")
-                .brand("Akrapovic")
-                .imageUrl("https://images.pexels.com/photos/1715184/pexels-photo-1715184.jpeg?auto=compress&cs=tinysrgb&w=800")
-                .isActive(true)
-                .build(),
-            Accessory.builder()
-                .name("Brembo RCS 19 Brake Master Cylinder")
-                .description("Racing level brake master cylinder for ultimate stopping power and feel.")
-                .price(8_200_000.0)
-                .stock(5)
-                .category("Brakes")
-                .brand("Brembo")
-                .imageUrl("https://images.pexels.com/photos/4006132/pexels-photo-4006132.jpeg?auto=compress&cs=tinysrgb&w=800")
-                .isActive(true)
-                .build(),
-            Accessory.builder()
-                .name("Ohlins TTX GP Rear Shock")
-                .description("Advanced suspension upgrade for track and street performance.")
-                .price(35_000_000.0)
-                .stock(3)
-                .category("Suspension")
-                .brand("Ohlins")
-                .imageUrl("https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=800")
-                .isActive(true)
-                .build(),
-            Accessory.builder()
-                .name("Rizoma Stealth Mirrors")
-                .description("Aerodynamic and stylish bar-end mirrors made from billet aluminum.")
-                .price(4_500_000.0)
-                .stock(15)
-                .category("Mirrors")
-                .brand("Rizoma")
-                .imageUrl("https://images.pexels.com/photos/1409050/pexels-photo-1409050.jpeg?auto=compress&cs=tinysrgb&w=800")
-                .isActive(true)
-                .build(),
-            Accessory.builder()
-                .name("Evotech Frame Sliders")
-                .description("Protect your engine and fairings from accidental drops and slides.")
-                .price(2_800_000.0)
-                .stock(20)
-                .category("Protection")
-                .brand("Evotech")
-                .imageUrl("https://images.pexels.com/photos/3806249/pexels-photo-3806249.jpeg?auto=compress&cs=tinysrgb&w=800")
-                .isActive(true)
-                .build(),
-            Accessory.builder()
-                .name("Shoei X-Spirit III Helmet")
-                .description("Top tier racing helmet with excellent aerodynamics and safety features.")
-                .price(18_500_000.0)
-                .stock(8)
-                .category("Gear")
-                .brand("Shoei")
-                .imageUrl("https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=800")
-                .isActive(true)
-                .build()
-        );
+        List<Accessory> accessories = null;
+        try {
+            java.io.File localFile = new java.io.File("src/main/resources/accessories.json");
+            ObjectMapper mapper = new ObjectMapper();
+            if (localFile.exists()) {
+                accessories = mapper.readValue(localFile, new TypeReference<List<Accessory>>() {});
+                log.info("Loaded {} accessories from local file accessories.json", accessories.size());
+            } else {
+                org.springframework.core.io.ClassPathResource resource = new org.springframework.core.io.ClassPathResource("accessories.json");
+                if (resource.exists()) {
+                    try (java.io.InputStream is = resource.getInputStream()) {
+                        accessories = mapper.readValue(is, new TypeReference<List<Accessory>>() {});
+                        log.info("Loaded {} accessories from classpath accessories.json", accessories.size());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to read accessories.json, falling back to default accessories: {}", e.getMessage());
+        }
+
+        if (accessories == null || accessories.isEmpty()) {
+            log.info("Using hardcoded fallback accessories.");
+            accessories = Arrays.asList(
+                Accessory.builder()
+                    .name("Pirelli Diablo Supercorsa V3 TD Tire Set")
+                    .description("Premium high-performance track day tires offering extreme cornering grip and top-tier durability at high speeds.")
+                    .price(9500000.0)
+                    .stock(15)
+                    .category("Tires")
+                    .brand("Pirelli")
+                    .imageUrl("/images/accessories/pirelli_diablo_tire.png")
+                    .compatibleBikes("Yamaha YZF-R1, Yamaha YZF-R1 WorldSBK, Honda CBR1000RR-R, Kawasaki Ninja ZX-10R, Kawasaki Ninja ZX-10RR, Ducati Panigale V4 Bagnaia, Suzuki Hayabusa, BMW M1000R")
+                    .isActive(true)
+                    .build(),
+                Accessory.builder()
+                    .name("Akrapovic Evolution Line Titanium Exhaust")
+                    .description("Full racing exhaust crafted from ultra-lightweight titanium. Delivers remarkable power gains and the iconic Akrapovic rumble.")
+                    .price(68000000.0)
+                    .stock(5)
+                    .category("Exhaust")
+                    .brand("Akrapovic")
+                    .imageUrl("/images/accessories/akrapovic_exhaust.png")
+                    .compatibleBikes("Kawasaki Ninja H2R, Yamaha YZF-R1, Honda CBR1000RR-R, Ducati Panigale V4 Bagnaia, BMW M1000R")
+                    .isActive(true)
+                    .build(),
+                Accessory.builder()
+                    .name("Ohlins TTX GP Rear Shock Absorber")
+                    .description("Rear suspension with twin-tube TTX technology. Provides unmatched traction control and high-speed stability.")
+                    .price(38000000.0)
+                    .stock(8)
+                    .category("Suspension")
+                    .brand("Ohlins")
+                    .imageUrl("/images/accessories/ohlins_rear_shock.png")
+                    .compatibleBikes("Ducati Panigale V4 Bagnaia, Ducati Streetfighter V4, Yamaha YZF-R1, Kawasaki Ninja ZX-10R, Honda CBR1000RR-R, BMW M1000R")
+                    .isActive(true)
+                    .build(),
+                Accessory.builder()
+                    .name("DID 525 VX3 Gold Chain & JT Steel Sprocket Kit")
+                    .description("Premium gold chain with patented X-Ring seals for minimal friction. Combined with laser-cut JT carbon steel sprockets.")
+                    .price(2800000.0)
+                    .stock(20)
+                    .category("Chains & Sprockets")
+                    .brand("DID")
+                    .imageUrl("/images/accessories/did_sprocket_chain.png")
+                    .compatibleBikes("Honda CBR650R, Kawasaki Ninja 650, Kawasaki Z650, Yamaha YZF-R3, Kawasaki Ninja 400, Suzuki GSX-8R")
+                    .isActive(true)
+                    .build(),
+                Accessory.builder()
+                    .name("Rizoma Sport CNC Frame Sliders Set")
+                    .description("Chassis protection machined from premium billet aluminum and Delrin. Protects engine cases and frame during falls.")
+                    .price(4800000.0)
+                    .stock(12)
+                    .category("Frame Sliders")
+                    .brand("Rizoma")
+                    .imageUrl("/images/accessories/rizoma_frame_sliders.png")
+                    .compatibleBikes("Kawasaki Ninja 400, Yamaha YZF-R3, Honda CBR650R, Ducati Streetfighter V4, Ducati Streetfighter V2, Suzuki GSX-8R, Suzuki GSX-S1000")
+                    .isActive(true)
+                    .build(),
+                Accessory.builder()
+                    .name("Brembo GP4-RX CNC Radial Brake Calipers")
+                    .description("Nickel-plated radial racing calipers machined from solid aluminum for extreme stopping force and heat dissipation.")
+                    .price(45000000.0)
+                    .stock(4)
+                    .category("Brakes")
+                    .brand("Brembo")
+                    .imageUrl("/images/accessories/brembo_gp4rx.png")
+                    .compatibleBikes("Yamaha YZF-R1, Honda CBR1000RR-R, Kawasaki Ninja ZX-10R, Ducati Panigale V4 Bagnaia, Suzuki Hayabusa, BMW M1000R")
+                    .isActive(true)
+                    .build(),
+                Accessory.builder()
+                    .name("Shoei X-Fifteen Professional Racing Helmet")
+                    .description("FIM-certified racing helmet with advanced aerodynamics, high-flow cooling channels and optimal field of view.")
+                    .price(21500000.0)
+                    .stock(10)
+                    .category("Helmets & Gear")
+                    .brand("Shoei")
+                    .imageUrl("/images/accessories/shoei_x15.png")
+                    .compatibleBikes("Universal Fit")
+                    .isActive(true)
+                    .build(),
+                Accessory.builder()
+                    .name("Dainese Mugello 3 D-Air Leather Racing Suit")
+                    .description("Elite one-piece leather racing suit with integrated D-Air airbag protection system and titanium plates.")
+                    .price(85000000.0)
+                    .stock(3)
+                    .category("Helmets & Gear")
+                    .brand("Dainese")
+                    .imageUrl("/images/accessories/dainese_mugello.png")
+                    .compatibleBikes("Universal Fit")
+                    .isActive(true)
+                    .build()
+            );
+        }
+        log.info("Uploading accessory images to Cloudinary in parallel...");
+        accessories.parallelStream().forEach(a -> {
+            String cUrl = toAccessoryCloudinaryUrl(a);
+            if (cUrl != null) {
+                a.setImageUrl(cUrl);
+            }
+        });
         accessoryRepository.saveAll(accessories);
         log.info("Seeded {} accessories", accessories.size());
     }
@@ -738,21 +851,81 @@ public class DataSeeder implements CommandLineRunner {
                 images, features, color, 0.0);
     }
     
+    private String slugify(String input) {
+        if (input == null) return "";
+        return input.toLowerCase()
+                .replaceAll("[^a-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+    }
+
+    private String uploadImageToCloudinary(String imagePath, String folder, String customPublicId) {
+        if (imagePath == null || imagePath.isBlank()) return null;
+        try {
+            boolean isRemote = imagePath.toLowerCase().startsWith("http://") 
+                    || imagePath.toLowerCase().startsWith("https://") 
+                    || imagePath.toLowerCase().startsWith("//");
+            
+            if (isRemote) {
+                log.info("Uploading remote URL to Cloudinary: {} with public_id: {}", imagePath, customPublicId);
+                return cloudinaryService.uploadUrlWithPublicId(imagePath, folder, customPublicId);
+            }
+            
+            String localPath = imagePath.startsWith("/") ? imagePath : "/" + imagePath;
+            String fullPath = "src/main/resources/static" + localPath;
+            java.io.File file = new java.io.File(fullPath);
+            
+            if (file.exists()) {
+                byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+                log.info("Uploading local file to Cloudinary: {} with public_id: {}", fullPath, customPublicId);
+                return cloudinaryService.uploadBytesWithPublicId(bytes, folder, customPublicId);
+            } else {
+                org.springframework.core.io.ClassPathResource resource = new org.springframework.core.io.ClassPathResource("static" + localPath);
+                if (resource.exists()) {
+                    try (java.io.InputStream is = resource.getInputStream()) {
+                        byte[] bytes = is.readAllBytes();
+                        log.info("Uploading classpath file to Cloudinary: static{} with public_id: {}", localPath, customPublicId);
+                        return cloudinaryService.uploadBytesWithPublicId(bytes, folder, customPublicId);
+                    }
+                }
+            }
+            log.warn("Local file not found for seeding: {}", fullPath);
+            return imagePath;
+        } catch (Exception e) {
+            log.error("Failed to seed image to Cloudinary ({}): {}", imagePath, e.getMessage());
+            return imagePath;
+        }
+    }
+
     private List<String> toCloudinaryUrls(String brand, String model, List<String> imgs, String folder) {
         if (imgs == null || imgs.isEmpty()) return java.util.Collections.emptyList();
         List<String> out = new java.util.ArrayList<>();
-        for (String url : imgs) {
+        for (int i = 0; i < imgs.size(); i++) {
+            String url = imgs.get(i);
             if (url == null || url.isBlank()) continue;
-            String lower = url.toLowerCase();
-            boolean isRemote = lower.startsWith("http://") || lower.startsWith("https://") || lower.startsWith("//") || lower.startsWith("data:") || lower.startsWith("blob:");
-            if (isRemote) {
+            
+            String baseName = slugify(brand) + "_" + slugify(model) + "_" + (i + 1);
+            String publicId = "seed_motorcycle_" + baseName;
+            
+            String cloudinaryUrl = uploadImageToCloudinary(url, folder, publicId);
+            if (cloudinaryUrl != null) {
+                out.add(cloudinaryUrl);
+            } else {
                 out.add(url);
-                continue;
             }
-            String normalized = url.startsWith("/") ? url : "/" + url;
-            out.add(normalized);
         }
         return out;
+    }
+
+    private String toAccessoryCloudinaryUrl(Accessory accessory) {
+        if (accessory.getImageUrl() == null || accessory.getImageUrl().isBlank()) return null;
+        
+        String baseName = slugify(accessory.getBrand()) + "_" + slugify(accessory.getName());
+        if (baseName.length() > 80) {
+            baseName = baseName.substring(0, 80);
+        }
+        String publicId = "seed_accessory_" + baseName;
+        
+        return uploadImageToCloudinary(accessory.getImageUrl(), "accessories", publicId);
     }
 
     private void createSampleOrders(User customer, User customer1, List<Motorcycle> motorcycles) {

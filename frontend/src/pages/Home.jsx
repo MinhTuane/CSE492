@@ -8,10 +8,10 @@ import StoreLocator from '../components/common/StoreLocator';
 
 // Fallback hero images (Cloudinary — high-res motorcycle photos)
 const HERO_FALLBACKS = [
-  'https://res.cloudinary.com/djlotprtu/image/upload/v1780919628/mbservices/static/hero-slide-1.jpg',
-  'https://res.cloudinary.com/djlotprtu/image/upload/v1780919629/mbservices/static/hero-slide-2.jpg',
-  'https://res.cloudinary.com/djlotprtu/image/upload/v1780919630/mbservices/static/hero-slide-3.jpg',
-  'https://res.cloudinary.com/djlotprtu/image/upload/v1780919631/mbservices/static/hero-slide-4.jpg',
+  '/api/images/hero/slide-1.png',
+  '/api/images/hero/slide-2.png',
+  '/api/images/hero/slide-3.png',
+  '/api/images/hero/slide-4.png',
 ];
 
 // Brand data for the scrolling strip
@@ -525,7 +525,7 @@ const Home = () => {
           <div className="relative overflow-hidden h-[400px] md:h-auto">
             <div ref={parallaxImg} className="absolute inset-[-20%]">
               <img
-                src="https://res.cloudinary.com/djlotprtu/image/upload/v1780919755/mbservices/static/parallax-showroom.jpg"
+                src="/api/images/hero/parallax-showroom.png"
                 alt="Motorcycle showroom"
                 className="w-full h-full object-cover"
                 onError={handleImageError}

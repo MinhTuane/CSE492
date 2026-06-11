@@ -1,0 +1,1507 @@
+[
+  {
+    "brand": "YAMAHA",
+    "model": "YZF-R3",
+    "year": 2024,
+    "category": "Sport",
+    "price": 129000000.0,
+    "description": "Yamaha R3 with custom black, blue, and gold livery. Perfect entry-level sportbike.",
+    "engineType": "321cc Parallel Twin",
+    "displacement": 321,
+    "power": 42.0,
+    "torque": 39.7,
+    "weight": 169.0,
+    "topSpeed": 186.0,
+    "fuelCapacity": 14.0,
+    "stock": 8,
+    "features": [
+      "Slipper Clutch",
+      "LED Lighting",
+      "Digital Display",
+      "ABS"
+    ],
+    "color": "Black/Blue/Gold",
+    "images": [
+      "/images/motorcycles/yamaha_yzf_r3_1.png",
+      "/images/motorcycles/yamaha_yzf_r3_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/yamaha_yzf_r3_4.png",
+      "/images/motorcycles/yamaha_yzf_r3_5.png"
+    ]
+  },
+  {
+    "brand": "YAMAHA",
+    "model": "YZF-R1",
+    "year": 2025,
+    "category": "Sport",
+    "price": 549000000.0,
+    "description": "2025 Yamaha YZF-R1 in Tech Black. The pinnacle of superbike performance.",
+    "engineType": "998cc Inline-4",
+    "displacement": 998,
+    "power": 200.0,
+    "torque": 112.4,
+    "weight": 199.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 17.0,
+    "stock": 3,
+    "features": [
+      "Crossplane Engine",
+      "6-Axis IMU",
+      "Quickshifter",
+      "Cornering ABS",
+      "Traction Control"
+    ],
+    "color": "Tech Black",
+    "images": [
+      "/images/motorcycles/yamaha_yzf_r1_1.png",
+      "/images/motorcycles/yamaha_yzf_r1_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/yamaha_yzf_r1_4.png",
+      "/images/motorcycles/yamaha_yzf_r1_5.png"
+    ]
+  },
+  {
+    "brand": "YAMAHA",
+    "model": "YZF-R1 WorldSBK",
+    "year": 2025,
+    "category": "Sport",
+    "price": 679000000.0,
+    "description": "Yamaha YZF-R1 WorldSBK Edition with Pata Yamaha racing livery. Limited edition.",
+    "engineType": "998cc Inline-4",
+    "displacement": 998,
+    "power": 200.0,
+    "torque": 112.4,
+    "weight": 199.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 17.0,
+    "stock": 2,
+    "features": [
+      "Racing Livery",
+      "Öhlins Suspension",
+      "Akrapovic Exhaust",
+      "Carbon Fiber Parts"
+    ],
+    "color": "Pata Blue",
+    "images": [
+      "/images/motorcycles/yamaha_yzf_r1_worldsbk_1.png",
+      "/images/motorcycles/yamaha_yzf_r1_worldsbk_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/yamaha_yzf_r1_worldsbk_4.png",
+      "/images/motorcycles/yamaha_yzf_r1_worldsbk_5.png"
+    ]
+  },
+  {
+    "brand": "YAMAHA",
+    "model": "YZF-R7",
+    "year": 2024,
+    "category": "Sport",
+    "price": 269000000.0,
+    "description": "2024 Yamaha YZF-R7 in Icon Blue. Combines sleek bodywork and a torque-rich CP2 engine.",
+    "engineType": "689cc Parallel Twin",
+    "displacement": 689,
+    "power": 73.4,
+    "torque": 67.0,
+    "weight": 188.0,
+    "topSpeed": 230.0,
+    "fuelCapacity": 13.0,
+    "stock": 5,
+    "features": [
+      "Assist & Slipper Clutch",
+      "Upside Down Forks",
+      "ABS",
+      "LED Projector Headlight"
+    ],
+    "color": "Icon Blue",
+    "images": [
+      "/images/motorcycles/yamaha_yzf_r7_1.png",
+      "/images/motorcycles/yamaha_yzf_r7_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/yamaha_yzf_r7_4.png",
+      "/images/motorcycles/yamaha_yzf_r7_5.png"
+    ]
+  },
+  {
+    "brand": "YAMAHA",
+    "model": "MT-09",
+    "year": 2024,
+    "category": "Naked",
+    "price": 349000000.0,
+    "description": "Yamaha MT-09 hyper-naked motorcycle. Aggressive styling and torque-heavy CP3 engine.",
+    "engineType": "890cc Inline-3",
+    "displacement": 890,
+    "power": 119.0,
+    "torque": 93.0,
+    "weight": 189.0,
+    "topSpeed": 225.0,
+    "fuelCapacity": 14.0,
+    "stock": 6,
+    "features": [
+      "Quickshifter",
+      "Traction Control",
+      "Wheelie Control",
+      "TFT Color Display"
+    ],
+    "color": "Cyan Storm",
+    "images": [
+      "/images/motorcycles/yamaha_mt_09_1.png",
+      "/images/motorcycles/yamaha_mt_09_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/yamaha_mt_09_4.png",
+      "/images/motorcycles/yamaha_mt_09_5.png"
+    ]
+  },
+  {
+    "brand": "YAMAHA",
+    "model": "MT-03",
+    "year": 2024,
+    "category": "Naked",
+    "price": 124000000.0,
+    "description": "Yamaha MT-03 entry naked street fighter. Nimble chassis and twin-cylinder motor.",
+    "engineType": "321cc Parallel Twin",
+    "displacement": 321,
+    "power": 42.0,
+    "torque": 29.6,
+    "weight": 168.0,
+    "topSpeed": 170.0,
+    "fuelCapacity": 14.0,
+    "stock": 10,
+    "features": [
+      "ABS",
+      "Monoshock Rear Suspension",
+      "LCD Instrument Cluster",
+      "LED DRLs"
+    ],
+    "color": "Midnight Black",
+    "images": [
+      "/images/motorcycles/yamaha_mt_03_1.png",
+      "/images/motorcycles/yamaha_mt_03_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/yamaha_mt_03_4.png",
+      "/images/motorcycles/yamaha_mt_03_5.png"
+    ]
+  },
+  {
+    "brand": "HONDA",
+    "model": "CBR650R",
+    "year": 2024,
+    "category": "Sport",
+    "price": 259000000.0,
+    "description": "Honda CBR650R in matte gunpowder black metallic. Perfect mid-weight sportbike.",
+    "engineType": "649cc Inline-4",
+    "displacement": 649,
+    "power": 95.0,
+    "torque": 64.0,
+    "weight": 208.0,
+    "topSpeed": 230.0,
+    "fuelCapacity": 15.4,
+    "stock": 7,
+    "features": [
+      "Showa Suspension",
+      "ABS",
+      "LED Lighting",
+      "Digital Display"
+    ],
+    "color": "Matte Gunpowder Black",
+    "images": [
+      "/images/motorcycles/honda_cbr650r_1.png",
+      "/images/motorcycles/honda_cbr650r_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/honda_cbr650r_4.png",
+      "/images/motorcycles/honda_cbr650r_5.png"
+    ]
+  },
+  {
+    "brand": "HONDA",
+    "model": "CBR Sport Concept",
+    "year": 2024,
+    "category": "Sport",
+    "price": 189000000.0,
+    "description": "Honda Light Weight Super Sports Concept. Next-generation sport bike design.",
+    "engineType": "500cc Parallel Twin",
+    "displacement": 500,
+    "power": 47.0,
+    "torque": 43.0,
+    "weight": 166.0,
+    "topSpeed": 200.0,
+    "fuelCapacity": 13.0,
+    "stock": 10,
+    "features": [
+      "Concept Design",
+      "LED Matrix",
+      "Ride-by-Wire",
+      "Cornering ABS"
+    ],
+    "color": "Carbon Black",
+    "images": [
+      "/images/motorcycles/honda_cbr_sport_concept_1.png",
+      "/images/motorcycles/honda_cbr_sport_concept_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/honda_cbr_sport_concept_4.png",
+      "/images/motorcycles/honda_cbr_sport_concept_5.png"
+    ]
+  },
+  {
+    "brand": "HONDA",
+    "model": "CBR1000RR-R",
+    "year": 2026,
+    "category": "Sport",
+    "price": 789000000.0,
+    "description": "2026 Honda CBR1000RR-R Fireblade SP in pearl white. Race-bred superbike.",
+    "engineType": "999cc Inline-4",
+    "displacement": 999,
+    "power": 217.0,
+    "torque": 113.0,
+    "weight": 201.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 16.1,
+    "stock": 4,
+    "features": [
+      "Öhlins Electronic Suspension",
+      "Brembo Stylema Brakes",
+      "Quickshifter",
+      "Launch Control"
+    ],
+    "color": "Pearl White",
+    "images": [
+      "/images/motorcycles/honda_cbr1000rr_r_1.png",
+      "/images/motorcycles/honda_cbr1000rr_r_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/honda_cbr1000rr_r_4.png",
+      "/images/motorcycles/honda_cbr1000rr_r_5.png"
+    ]
+  },
+  {
+    "brand": "HONDA",
+    "model": "CRF300L",
+    "year": 2024,
+    "category": "Adventure",
+    "price": 169000000.0,
+    "description": "Honda CRF300L dual-sport adventure motorcycle. Perfect for trail riding and city commuting.",
+    "engineType": "286cc Single Cylinder",
+    "displacement": 286,
+    "power": 27.3,
+    "torque": 26.6,
+    "weight": 142.0,
+    "topSpeed": 140.0,
+    "fuelCapacity": 7.8,
+    "stock": 4,
+    "features": [
+      "Spoke Wheels",
+      "Long Travel Suspension",
+      "Digital Display",
+      "Assist/Slipper Clutch"
+    ],
+    "color": "Extreme Red",
+    "images": [
+      "/images/motorcycles/honda_crf300l_1.png",
+      "/images/motorcycles/honda_crf300l_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/honda_crf300l_4.png",
+      "/images/motorcycles/honda_crf300l_5.png"
+    ]
+  },
+  {
+    "brand": "HONDA",
+    "model": "CB650R",
+    "year": 2024,
+    "category": "Naked",
+    "price": 244000000.0,
+    "description": "Honda CB650R Neo Sports Cafe naked bike. Inline-4 engine with retro-modern design.",
+    "engineType": "649cc Inline-4",
+    "displacement": 649,
+    "power": 95.0,
+    "torque": 64.0,
+    "weight": 202.0,
+    "topSpeed": 220.0,
+    "fuelCapacity": 15.4,
+    "stock": 6,
+    "features": [
+      "Neo Sports Cafe Styling",
+      "Honda Selectable Torque Control",
+      "ABS",
+      "Showa SFF-BP Forks"
+    ],
+    "color": "Candy Chromosphere Red",
+    "images": [
+      "/images/motorcycles/honda_cb650r_1.png",
+      "/images/motorcycles/honda_cb650r_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/honda_cb650r_4.png",
+      "/images/motorcycles/honda_cb650r_5.png"
+    ]
+  },
+  {
+    "brand": "HONDA",
+    "model": "Transalp 750",
+    "year": 2024,
+    "category": "Adventure",
+    "price": 309000000.0,
+    "description": "Honda XL750 Transalp adventure tourer. Ready for offroad trails or highway touring.",
+    "engineType": "755cc Parallel Twin",
+    "displacement": 755,
+    "power": 90.5,
+    "torque": 75.0,
+    "weight": 208.0,
+    "topSpeed": 210.0,
+    "fuelCapacity": 16.9,
+    "stock": 5,
+    "features": [
+      "Riding Modes",
+      "Spoke Wheels",
+      "Traction Control",
+      "TFT Instrument Console"
+    ],
+    "color": "Ross White",
+    "images": [
+      "/images/motorcycles/honda_transalp_750_1.png",
+      "/images/motorcycles/honda_transalp_750_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/honda_transalp_750_4.png",
+      "/images/motorcycles/honda_transalp_750_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "Ninja ZX-10RR",
+    "year": 2017,
+    "category": "Sport",
+    "price": 589000000.0,
+    "description": "2017 Kawasaki Ninja ZX-10RR Winter Test Edition. Track-focused superbike.",
+    "engineType": "998cc Inline-4",
+    "displacement": 998,
+    "power": 197.0,
+    "torque": 114.0,
+    "weight": 207.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 17.0,
+    "stock": 2,
+    "features": [
+      "Race Kit",
+      "Öhlins Suspension",
+      "Marchesini Wheels",
+      "Quickshifter"
+    ],
+    "color": "Black/Green",
+    "images": [
+      "/images/motorcycles/kawasaki_ninja_zx_10rr_1.png",
+      "/images/motorcycles/kawasaki_ninja_zx_10rr_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_ninja_zx_10rr_4.png",
+      "/images/motorcycles/kawasaki_ninja_zx_10rr_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "Ninja ZX-10R",
+    "year": 2024,
+    "category": "Sport",
+    "price": 529000000.0,
+    "description": "Kawasaki Ninja ZX-10R in iconic Kawasaki lime green. Championship-winning DNA.",
+    "engineType": "998cc Inline-4",
+    "displacement": 998,
+    "power": 197.0,
+    "torque": 114.0,
+    "weight": 207.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 17.0,
+    "stock": 5,
+    "features": [
+      "Kawasaki Traction Control",
+      "Cornering ABS",
+      "Quickshifter",
+      "Launch Control"
+    ],
+    "color": "Lime Green",
+    "images": [
+      "/images/motorcycles/kawasaki_ninja_zx_10r_1.png",
+      "/images/motorcycles/kawasaki_ninja_zx_10r_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_ninja_zx_10r_4.png",
+      "/images/motorcycles/kawasaki_ninja_zx_10r_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "Ninja ZX-10R ABS SE",
+    "year": 2024,
+    "category": "Sport",
+    "price": 549000000.0,
+    "description": "Ninja ZX-10R ABS with gold accents and special edition graphics.",
+    "engineType": "998cc Inline-4",
+    "displacement": 998,
+    "power": 197.0,
+    "torque": 114.0,
+    "weight": 207.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 17.0,
+    "stock": 3,
+    "features": [
+      "Gold Wheels",
+      "SE Graphics",
+      "Öhlins",
+      "Brembo",
+      "Carbon Parts"
+    ],
+    "color": "Green/Gold",
+    "images": [
+      "/images/motorcycles/kawasaki_ninja_zx_10r_abs_se_1.png",
+      "/images/motorcycles/kawasaki_ninja_zx_10r_abs_se_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_ninja_zx_10r_abs_se_4.png",
+      "/images/motorcycles/kawasaki_ninja_zx_10r_abs_se_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "Ninja 650",
+    "year": 2021,
+    "category": "Sport",
+    "price": 229000000.0,
+    "description": "2021 Kawasaki Ninja 650 with signature green trellis frame. Perfect middleweight.",
+    "engineType": "649cc Parallel Twin",
+    "displacement": 649,
+    "power": 68.0,
+    "torque": 64.0,
+    "weight": 193.0,
+    "topSpeed": 210.0,
+    "fuelCapacity": 15.0,
+    "stock": 12,
+    "features": [
+      "Slipper Clutch",
+      "ABS",
+      "LED Lighting",
+      "Digital Display"
+    ],
+    "color": "Black/Green",
+    "images": [
+      "/images/motorcycles/kawasaki_ninja_650_1.png",
+      "/images/motorcycles/kawasaki_ninja_650_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_ninja_650_4.png",
+      "/images/motorcycles/kawasaki_ninja_650_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "Ninja H2R",
+    "year": 2024,
+    "category": "Sport",
+    "price": 1599000000.0,
+    "description": "Kawasaki Ninja H2R. Track-only supercharged hyperbike. 300+ hp.",
+    "engineType": "998cc Supercharged Inline-4",
+    "displacement": 998,
+    "power": 310.0,
+    "torque": 165.0,
+    "weight": 216.0,
+    "topSpeed": 400.0,
+    "fuelCapacity": 17.0,
+    "stock": 1,
+    "features": [
+      "Supercharged",
+      "Track Only",
+      "Carbon Fiber Wings",
+      "Öhlins",
+      "Brembo"
+    ],
+    "color": "Mirror Silver",
+    "images": [
+      "/images/motorcycles/kawasaki_ninja_h2r_1.png",
+      "/images/motorcycles/kawasaki_ninja_h2r_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_ninja_h2r_4.png",
+      "/images/motorcycles/kawasaki_ninja_h2r_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "Ninja 400",
+    "year": 2024,
+    "category": "Sport",
+    "price": 159000000.0,
+    "description": "Kawasaki Ninja 400 in all black. Perfect beginner sportbike with big bike feel.",
+    "engineType": "399cc Parallel Twin",
+    "displacement": 399,
+    "power": 45.0,
+    "torque": 38.0,
+    "weight": 168.0,
+    "topSpeed": 190.0,
+    "fuelCapacity": 14.0,
+    "stock": 15,
+    "features": [
+      "Slipper Clutch",
+      "ABS",
+      "LED Lighting",
+      "Assist Clutch"
+    ],
+    "color": "Metallic Black",
+    "images": [
+      "/images/motorcycles/kawasaki_ninja_400_1.png",
+      "/images/motorcycles/kawasaki_ninja_400_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_ninja_400_4.png",
+      "/images/motorcycles/kawasaki_ninja_400_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "Z650",
+    "year": 2024,
+    "category": "Naked",
+    "price": 239000000.0,
+    "description": "Kawasaki Z650 naked sport with distinctive green accents. Nimble and fun.",
+    "engineType": "649cc Parallel Twin",
+    "displacement": 649,
+    "power": 68.0,
+    "torque": 64.0,
+    "weight": 187.0,
+    "topSpeed": 200.0,
+    "fuelCapacity": 15.0,
+    "stock": 10,
+    "features": [
+      "Sugomi Design",
+      "Slipper Clutch",
+      "ABS",
+      "TFT Display"
+    ],
+    "color": "Metallic Green",
+    "images": [
+      "/images/motorcycles/kawasaki_z650_1.png",
+      "/images/motorcycles/kawasaki_z650_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_z650_4.png",
+      "/images/motorcycles/kawasaki_z650_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "Ninja 650 Sport",
+    "year": 2024,
+    "category": "Sport",
+    "price": 239000000.0,
+    "description": "Kawasaki Ninja 650 in lime green livery. The most popular middleweight sport bike.",
+    "engineType": "649cc Parallel Twin",
+    "displacement": 649,
+    "power": 68.0,
+    "torque": 64.0,
+    "weight": 193.0,
+    "topSpeed": 210.0,
+    "fuelCapacity": 15.0,
+    "stock": 8,
+    "features": [
+      "Slipper Clutch",
+      "Kawasaki TRaction Control",
+      "ABS",
+      "LED Lights"
+    ],
+    "color": "Lime Green",
+    "images": [
+      "/images/motorcycles/kawasaki_ninja_650_sport_1.png",
+      "/images/motorcycles/kawasaki_ninja_650_sport_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_ninja_650_sport_4.png",
+      "/images/motorcycles/kawasaki_ninja_650_sport_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "ZX-4RR",
+    "year": 2024,
+    "category": "Sport",
+    "price": 255000000.0,
+    "description": "Kawasaki Ninja ZX-4RR inline-four screamer. 400cc class racing performance.",
+    "engineType": "399cc Inline-4",
+    "displacement": 399,
+    "power": 77.0,
+    "torque": 39.0,
+    "weight": 188.0,
+    "topSpeed": 240.0,
+    "fuelCapacity": 15.0,
+    "stock": 4,
+    "features": [
+      "16,000 RPM Redline",
+      "Quickshifter",
+      "Showa Showa SFF-BP Forks",
+      "Ram Air System"
+    ],
+    "color": "Lime Green/Ebony",
+    "images": [
+      "/images/motorcycles/kawasaki_zx_4rr_1.png",
+      "/images/motorcycles/kawasaki_zx_4rr_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_zx_4rr_4.png",
+      "/images/motorcycles/kawasaki_zx_4rr_5.png"
+    ]
+  },
+  {
+    "brand": "KAWASAKI",
+    "model": "Ninja 500",
+    "year": 2024,
+    "category": "Sport",
+    "price": 184000000.0,
+    "description": "Kawasaki Ninja 500. Upgraded middleweight sport champion, perfect daily rider.",
+    "engineType": "451cc Parallel Twin",
+    "displacement": 451,
+    "power": 52.0,
+    "torque": 43.0,
+    "weight": 171.0,
+    "topSpeed": 195.0,
+    "fuelCapacity": 14.0,
+    "stock": 7,
+    "features": [
+      "ABS",
+      "LED Headlights",
+      "LCD Instrument Console",
+      "Slipper Clutch"
+    ],
+    "color": "Metallic Matte Dark Gray",
+    "images": [
+      "/images/motorcycles/kawasaki_ninja_500_1.png",
+      "/images/motorcycles/kawasaki_ninja_500_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/kawasaki_ninja_500_4.png",
+      "/images/motorcycles/kawasaki_ninja_500_5.png"
+    ]
+  },
+  {
+    "brand": "DUCATI",
+    "model": "Hypermotard 950",
+    "year": 2024,
+    "category": "Naked",
+    "price": 449000000.0,
+    "description": "Ducati Hypermotard 950 in red and white. The ultimate fun machine.",
+    "engineType": "937cc L-Twin",
+    "displacement": 937,
+    "power": 114.0,
+    "torque": 96.0,
+    "weight": 178.0,
+    "topSpeed": 215.0,
+    "fuelCapacity": 14.5,
+    "stock": 6,
+    "features": [
+      "Ducati Traction Control",
+      "Cornering ABS",
+      "Ride Modes",
+      "TFT Display"
+    ],
+    "color": "Ducati Red/White",
+    "images": [
+      "/images/motorcycles/ducati_hypermotard_950_1.png",
+      "/images/motorcycles/ducati_hypermotard_950_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ducati_hypermotard_950_4.png",
+      "/images/motorcycles/ducati_hypermotard_950_5.png"
+    ]
+  },
+  {
+    "brand": "DUCATI",
+    "model": "Streetfighter V4",
+    "year": 2024,
+    "category": "Naked",
+    "price": 649000000.0,
+    "description": "Ducati Streetfighter V4. Fighter of the Year with 208 hp V4 engine.",
+    "engineType": "1103cc V4",
+    "displacement": 1103,
+    "power": 208.0,
+    "torque": 123.0,
+    "weight": 178.0,
+    "topSpeed": 280.0,
+    "fuelCapacity": 16.0,
+    "stock": 3,
+    "features": [
+      "V4 Engine",
+      "Öhlins",
+      "Brembo Stylema",
+      "Cornering ABS",
+      "Wheelie Control"
+    ],
+    "color": "Ducati Red",
+    "images": [
+      "/images/motorcycles/ducati_streetfighter_v4_1.png",
+      "/images/motorcycles/ducati_streetfighter_v4_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ducati_streetfighter_v4_4.png",
+      "/images/motorcycles/ducati_streetfighter_v4_5.png"
+    ]
+  },
+  {
+    "brand": "DUCATI",
+    "model": "Diavel 1260",
+    "year": 2024,
+    "category": "Cruiser",
+    "price": 579000000.0,
+    "description": "Ducati Diavel 1260. Power cruiser with 162 hp Testastretta DVT engine.",
+    "engineType": "1262cc L-Twin",
+    "displacement": 1262,
+    "power": 162.0,
+    "torque": 129.0,
+    "weight": 247.0,
+    "topSpeed": 260.0,
+    "fuelCapacity": 17.0,
+    "stock": 4,
+    "features": [
+      "DVT Engine",
+      "Cruise Control",
+      "Cornering Lights",
+      "Riding Modes"
+    ],
+    "color": "Thrilling Black",
+    "images": [
+      "/images/motorcycles/ducati_diavel_1260_1.png",
+      "/images/motorcycles/ducati_diavel_1260_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ducati_diavel_1260_4.png",
+      "/images/motorcycles/ducati_diavel_1260_5.png"
+    ]
+  },
+  {
+    "brand": "DUCATI",
+    "model": "Panigale V4 Bagnaia",
+    "year": 2024,
+    "category": "Sport",
+    "price": 1299000000.0,
+    "description": "Ducati Panigale V4 with Bagnaia World Champion livery. Limited edition.",
+    "engineType": "1103cc V4",
+    "displacement": 1103,
+    "power": 214.0,
+    "torque": 124.0,
+    "weight": 174.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 16.0,
+    "stock": 1,
+    "features": [
+      "Race Livery",
+      "Öhlins Smart EC 2.0",
+      "Brembo Stylema R",
+      "Carbon Fiber"
+    ],
+    "color": "Bagnaia Yellow",
+    "images": [
+      "/images/motorcycles/ducati_panigale_v4_bagnaia_1.png",
+      "/images/motorcycles/ducati_panigale_v4_bagnaia_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ducati_panigale_v4_bagnaia_4.png",
+      "/images/motorcycles/ducati_panigale_v4_bagnaia_5.png"
+    ]
+  },
+  {
+    "brand": "DUCATI",
+    "model": "Supersport 950 S",
+    "year": 2024,
+    "category": "Sport",
+    "price": 489000000.0,
+    "description": "Ducati Supersport 950 S in Ducati red. Sport bike comfort meets superbike performance.",
+    "engineType": "937cc L-Twin",
+    "displacement": 937,
+    "power": 110.0,
+    "torque": 93.0,
+    "weight": 184.0,
+    "topSpeed": 240.0,
+    "fuelCapacity": 16.0,
+    "stock": 7,
+    "features": [
+      "Öhlins Suspension",
+      "Quickshifter",
+      "Riding Modes",
+      "Cornering ABS"
+    ],
+    "color": "Ducati Red",
+    "images": [
+      "/images/motorcycles/ducati_supersport_950_s_1.png",
+      "/images/motorcycles/ducati_supersport_950_s_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ducati_supersport_950_s_4.png",
+      "/images/motorcycles/ducati_supersport_950_s_5.png"
+    ]
+  },
+  {
+    "brand": "DUCATI",
+    "model": "Diavel V4",
+    "year": 2024,
+    "category": "Cruiser",
+    "price": 749000000.0,
+    "description": "Ducati Diavel V4 in bright red. The most powerful Diavel ever made.",
+    "engineType": "1158cc V4 Granturismo",
+    "displacement": 1158,
+    "power": 168.0,
+    "torque": 126.0,
+    "weight": 218.0,
+    "topSpeed": 270.0,
+    "fuelCapacity": 18.0,
+    "stock": 3,
+    "features": [
+      "V4 Granturismo",
+      "Radar Adaptive Cruise Control",
+      "Cornering Lights",
+      "TFT Display"
+    ],
+    "color": "Ducati Red",
+    "images": [
+      "/images/motorcycles/ducati_diavel_v4_1.png",
+      "/images/motorcycles/ducati_diavel_v4_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ducati_diavel_v4_4.png",
+      "/images/motorcycles/ducati_diavel_v4_5.png"
+    ]
+  },
+  {
+    "brand": "DUCATI",
+    "model": "Streetfighter V2",
+    "year": 2024,
+    "category": "Naked",
+    "price": 529000000.0,
+    "description": "Ducati Streetfighter V2. Compact fighter with 155 hp Superquadro engine.",
+    "engineType": "955cc L-Twin",
+    "displacement": 955,
+    "power": 155.0,
+    "torque": 104.0,
+    "weight": 178.0,
+    "topSpeed": 250.0,
+    "fuelCapacity": 17.0,
+    "stock": 5,
+    "features": [
+      "Superquadro Engine",
+      "Electronic Suspension",
+      "Cornering ABS",
+      "Wheelie Control"
+    ],
+    "color": "Ducati Red/Black",
+    "images": [
+      "/images/motorcycles/ducati_streetfighter_v2_1.png",
+      "/images/motorcycles/ducati_streetfighter_v2_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ducati_streetfighter_v2_4.png",
+      "/images/motorcycles/ducati_streetfighter_v2_5.png"
+    ]
+  },
+  {
+    "brand": "DUCATI",
+    "model": "Monster 937",
+    "year": 2024,
+    "category": "Naked",
+    "price": 439000000.0,
+    "description": "Ducati Monster 937 naked bike. Lightweight aluminum frame and sporty performance.",
+    "engineType": "937cc Testastretta 11°",
+    "displacement": 937,
+    "power": 111.0,
+    "torque": 93.0,
+    "weight": 166.0,
+    "topSpeed": 225.0,
+    "fuelCapacity": 14.0,
+    "stock": 4,
+    "features": [
+      "Launch Control",
+      "Ducati Quick Shift",
+      "Cornering ABS",
+      "Wheelie Control"
+    ],
+    "color": "Aviator Grey",
+    "images": [
+      "/images/motorcycles/ducati_monster_937_1.png",
+      "/images/motorcycles/ducati_monster_937_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ducati_monster_937_4.png",
+      "/images/motorcycles/ducati_monster_937_5.png"
+    ]
+  },
+  {
+    "brand": "DUCATI",
+    "model": "DesertX",
+    "year": 2024,
+    "category": "Adventure",
+    "price": 649000000.0,
+    "description": "Ducati DesertX adventure tourer. Off-road rally champion with legendary Testastretta power.",
+    "engineType": "937cc L-Twin",
+    "displacement": 937,
+    "power": 110.0,
+    "torque": 92.0,
+    "weight": 202.0,
+    "topSpeed": 200.0,
+    "fuelCapacity": 21.0,
+    "stock": 2,
+    "features": [
+      "21/18-inch Spoke Wheels",
+      "Kayaba Long-Travel Suspension",
+      "Brembo Brakes",
+      "6 Riding Modes"
+    ],
+    "color": "Star White Silk",
+    "images": [
+      "/images/motorcycles/ducati_desertx_1.png",
+      "/images/motorcycles/ducati_desertx_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ducati_desertx_4.png",
+      "/images/motorcycles/ducati_desertx_5.png"
+    ]
+  },
+  {
+    "brand": "SUZUKI",
+    "model": "GSX-8R",
+    "year": 2024,
+    "category": "Sport",
+    "price": 329000000.0,
+    "description": "Suzuki GSX-8R in yellow limited edition. All-new parallel twin sportbike.",
+    "engineType": "776cc Parallel Twin",
+    "displacement": 776,
+    "power": 83.0,
+    "torque": 78.0,
+    "weight": 178.0,
+    "topSpeed": 220.0,
+    "fuelCapacity": 14.0,
+    "stock": 8,
+    "features": [
+      "New Parallel Twin",
+      "Traction Control",
+      "ABS",
+      "Quickshifter"
+    ],
+    "color": "Kiiro Yellow",
+    "images": [
+      "/images/motorcycles/suzuki_gsx_8r_1.png",
+      "/images/motorcycles/suzuki_gsx_8r_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/suzuki_gsx_8r_4.png",
+      "/images/motorcycles/suzuki_gsx_8r_5.png"
+    ]
+  },
+  {
+    "brand": "SUZUKI",
+    "model": "GSX-S1000",
+    "year": 2024,
+    "category": "Naked",
+    "price": 459000000.0,
+    "description": "Suzuki GSX-S1000 in blue. Superbike-derived engine in a naked package.",
+    "engineType": "999cc Inline-4",
+    "displacement": 999,
+    "power": 152.0,
+    "torque": 106.0,
+    "weight": 209.0,
+    "topSpeed": 260.0,
+    "fuelCapacity": 19.0,
+    "stock": 6,
+    "features": [
+      "GSX-R Derived Engine",
+      "Traction Control",
+      "ABS",
+      "Ride Modes"
+    ],
+    "color": "Triton Blue",
+    "images": [
+      "/images/motorcycles/suzuki_gsx_s1000_1.png",
+      "/images/motorcycles/suzuki_gsx_s1000_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/suzuki_gsx_s1000_4.png",
+      "/images/motorcycles/suzuki_gsx_s1000_5.png"
+    ]
+  },
+  {
+    "brand": "SUZUKI",
+    "model": "Hayabusa",
+    "year": 2024,
+    "category": "Sport",
+    "price": 749000000.0,
+    "description": "Suzuki Hayabusa in gray/green. The legendary ultimate sport bike returns.",
+    "engineType": "1340cc Inline-4",
+    "displacement": 1340,
+    "power": 190.0,
+    "torque": 150.0,
+    "weight": 264.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 20.0,
+    "stock": 2,
+    "features": [
+      "Launch Control",
+      "Anti-Lift Control",
+      "Active Speed Limiter",
+      "Cruise Control"
+    ],
+    "color": "Metallic Gray/Green",
+    "images": [
+      "/images/motorcycles/suzuki_hayabusa_1.png",
+      "/images/motorcycles/suzuki_hayabusa_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/suzuki_hayabusa_4.png",
+      "/images/motorcycles/suzuki_hayabusa_5.png"
+    ]
+  },
+  {
+    "brand": "SUZUKI",
+    "model": "Hayabusa Blue Storm",
+    "year": 2024,
+    "category": "Sport",
+    "price": 769000000.0,
+    "description": "Suzuki Hayabusa in Blue Storm metallic. The king of speed with refined power.",
+    "engineType": "1340cc Inline-4",
+    "displacement": 1340,
+    "power": 190.0,
+    "torque": 150.0,
+    "weight": 264.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 20.0,
+    "stock": 3,
+    "features": [
+      "Launch Control",
+      "Electronic Suspension",
+      "Brembo Brakes",
+      "LED Matrix"
+    ],
+    "color": "Blue Storm Metallic",
+    "images": [
+      "/images/motorcycles/suzuki_hayabusa_blue_storm_1.png",
+      "/images/motorcycles/suzuki_hayabusa_blue_storm_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/suzuki_hayabusa_blue_storm_4.png",
+      "/images/motorcycles/suzuki_hayabusa_blue_storm_5.png"
+    ]
+  },
+  {
+    "brand": "SUZUKI",
+    "model": "GSX-R150",
+    "year": 2024,
+    "category": "Sport",
+    "price": 75000000.0,
+    "description": "Suzuki GSX-R150 with MotoGP livery. Entry-level sportbike with race DNA.",
+    "engineType": "147cc Single",
+    "displacement": 147,
+    "power": 19.2,
+    "torque": 14.0,
+    "weight": 134.0,
+    "topSpeed": 145.0,
+    "fuelCapacity": 11.0,
+    "stock": 20,
+    "features": [
+      "Keyless Ignition",
+      "LED Lights",
+      "Digital Display",
+      "USD Forks"
+    ],
+    "color": "MotoGP Blue",
+    "images": [
+      "/images/motorcycles/suzuki_gsx_r150_1.png",
+      "/images/motorcycles/suzuki_gsx_r150_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/suzuki_gsx_r150_4.png",
+      "/images/motorcycles/suzuki_gsx_r150_5.png"
+    ]
+  },
+  {
+    "brand": "SUZUKI",
+    "model": "GSX-8S",
+    "year": 2024,
+    "category": "Naked",
+    "price": 299000000.0,
+    "description": "Suzuki GSX-8S naked street fighter. Innovative CP2 alternative twin with balanced handling.",
+    "engineType": "776cc Parallel Twin",
+    "displacement": 776,
+    "power": 83.0,
+    "torque": 78.0,
+    "weight": 202.0,
+    "topSpeed": 215.0,
+    "fuelCapacity": 14.0,
+    "stock": 7,
+    "features": [
+      "Bi-Directional Quickshifter",
+      "Suzuki Drive Mode Selector",
+      "ABS",
+      "LED Projector Stack"
+    ],
+    "color": "Pearl Cosmic Blue",
+    "images": [
+      "/images/motorcycles/suzuki_gsx_8s_1.png",
+      "/images/motorcycles/suzuki_gsx_8s_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/suzuki_gsx_8s_4.png",
+      "/images/motorcycles/suzuki_gsx_8s_5.png"
+    ]
+  },
+  {
+    "brand": "SUZUKI",
+    "model": "Katana",
+    "year": 2024,
+    "category": "Naked",
+    "price": 499000000.0,
+    "description": "Suzuki Katana. Modern rebirth of a legendary retro sport touring icon.",
+    "engineType": "999cc Inline-4",
+    "displacement": 999,
+    "power": 150.0,
+    "torque": 108.0,
+    "weight": 215.0,
+    "topSpeed": 250.0,
+    "fuelCapacity": 12.0,
+    "stock": 2,
+    "features": [
+      "Retro Styling",
+      "Slipper Clutch",
+      "Easy Start System",
+      "Multi-stage Traction Control"
+    ],
+    "color": "Mystic Silver",
+    "images": [
+      "/images/motorcycles/suzuki_katana_1.png",
+      "/images/motorcycles/suzuki_katana_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/suzuki_katana_4.png",
+      "/images/motorcycles/suzuki_katana_5.png"
+    ]
+  },
+  {
+    "brand": "BMW",
+    "model": "R1300 GS",
+    "year": 2024,
+    "category": "Adventure",
+    "price": 829000000.0,
+    "description": "BMW R1300 GS in racing green. The ultimate adventure motorcycle.",
+    "engineType": "1300cc Boxer Twin",
+    "displacement": 1300,
+    "power": 145.0,
+    "torque": 149.0,
+    "weight": 239.0,
+    "topSpeed": 220.0,
+    "fuelCapacity": 19.0,
+    "stock": 4,
+    "features": [
+      "Adaptive Ride Height",
+      "Dynamic ESA",
+      "Cornering ABS",
+      "Radar Cruise Control"
+    ],
+    "color": "Racing Green",
+    "images": [
+      "/images/motorcycles/bmw_r1300_gs_1.png",
+      "/images/motorcycles/bmw_r1300_gs_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/bmw_r1300_gs_4.png",
+      "/images/motorcycles/bmw_r1300_gs_5.png"
+    ]
+  },
+  {
+    "brand": "BMW",
+    "model": "R1250RS",
+    "year": 2024,
+    "category": "Sport Touring",
+    "price": 659000000.0,
+    "description": "BMW R1250RS in black. Premium sport touring with boxer engine.",
+    "engineType": "1254cc Boxer Twin",
+    "displacement": 1254,
+    "power": 136.0,
+    "torque": 143.0,
+    "weight": 224.0,
+    "topSpeed": 220.0,
+    "fuelCapacity": 18.0,
+    "stock": 5,
+    "features": [
+      "ShiftCam Technology",
+      "Dynamic ESA",
+      "Cruise Control",
+      "Heated Grips"
+    ],
+    "color": "Black Storm Metallic",
+    "images": [
+      "/images/motorcycles/bmw_r1250rs_1.png",
+      "/images/motorcycles/bmw_r1250rs_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/bmw_r1250rs_4.png",
+      "/images/motorcycles/bmw_r1250rs_5.png"
+    ]
+  },
+  {
+    "brand": "BMW",
+    "model": "M1000R",
+    "year": 2024,
+    "category": "Naked",
+    "price": 749000000.0,
+    "description": "BMW M1000R. The first M naked bike with 210 hp from S1000RR.",
+    "engineType": "999cc Inline-4",
+    "displacement": 999,
+    "power": 210.0,
+    "torque": 113.0,
+    "weight": 192.0,
+    "topSpeed": 280.0,
+    "fuelCapacity": 16.5,
+    "stock": 2,
+    "features": [
+      "M Package",
+      "Carbon Wheels",
+      "M Chassis",
+      "Launch Control",
+      "Wheelie Control"
+    ],
+    "color": "M Motorsport",
+    "images": [
+      "/images/motorcycles/bmw_m1000r_1.png",
+      "/images/motorcycles/bmw_m1000r_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/bmw_m1000r_4.png",
+      "/images/motorcycles/bmw_m1000r_5.png"
+    ]
+  },
+  {
+    "brand": "BMW",
+    "model": "S1000RR",
+    "year": 2024,
+    "category": "Sport",
+    "price": 899000000.0,
+    "description": "BMW S1000RR. German superbike benchmark featuring ShiftCam engine tech.",
+    "engineType": "999cc Inline-4",
+    "displacement": 999,
+    "power": 205.0,
+    "torque": 113.0,
+    "weight": 197.0,
+    "topSpeed": 299.0,
+    "fuelCapacity": 16.5,
+    "stock": 3,
+    "features": [
+      "Dynamic Damping Control",
+      "M Carbon Wheels",
+      "ShiftCam Technology",
+      "Dynamic Traction Control"
+    ],
+    "color": "Lightwhite Uni/M Motorsport",
+    "images": [
+      "/images/motorcycles/bmw_s1000rr_1.png",
+      "/images/motorcycles/bmw_s1000rr_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/bmw_s1000rr_4.png",
+      "/images/motorcycles/bmw_s1000rr_5.png"
+    ]
+  },
+  {
+    "brand": "BMW",
+    "model": "F900XR",
+    "year": 2024,
+    "category": "Sport Touring",
+    "price": 439000000.0,
+    "description": "BMW F900XR mid-weight adventure sports tourer. Agile handling and comfortable ergonomics.",
+    "engineType": "895cc Parallel Twin",
+    "displacement": 895,
+    "power": 99.0,
+    "torque": 92.0,
+    "weight": 219.0,
+    "topSpeed": 200.0,
+    "fuelCapacity": 15.5,
+    "stock": 4,
+    "features": [
+      "Adaptive Headlights",
+      "Dynamic ESA",
+      "Connectivity TFT Dash",
+      "Cornering ABS"
+    ],
+    "color": "Racing Red",
+    "images": [
+      "/images/motorcycles/bmw_f900xr_1.png",
+      "/images/motorcycles/bmw_f900xr_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/bmw_f900xr_4.png",
+      "/images/motorcycles/bmw_f900xr_5.png"
+    ]
+  },
+  {
+    "brand": "HARLEY-DAVIDSON",
+    "model": "Iron 883",
+    "year": 2024,
+    "category": "Cruiser",
+    "price": 379000000.0,
+    "description": "Harley-Davidson Iron 883 in black denim. Classic bobber styling.",
+    "engineType": "883cc V-Twin",
+    "displacement": 883,
+    "power": 50.0,
+    "torque": 69.0,
+    "weight": 256.0,
+    "topSpeed": 180.0,
+    "fuelCapacity": 12.5,
+    "stock": 8,
+    "features": [
+      "Evolution Engine",
+      "Low Seat Height",
+      "Chopped Fenders",
+      "Dark Custom"
+    ],
+    "color": "Black Denim",
+    "images": [
+      "/images/motorcycles/harley_davidson_iron_883_1.png",
+      "/images/motorcycles/harley_davidson_iron_883_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/harley_davidson_iron_883_4.png",
+      "/images/motorcycles/harley_davidson_iron_883_5.png"
+    ]
+  },
+  {
+    "brand": "HARLEY-DAVIDSON",
+    "model": "Street Bob 114",
+    "year": 2024,
+    "category": "Cruiser",
+    "price": 649000000.0,
+    "description": "Harley-Davidson Street Bob 114 in red. Milwaukee-Eight 114 power.",
+    "engineType": "1868cc V-Twin",
+    "displacement": 1868,
+    "power": 94.0,
+    "torque": 155.0,
+    "weight": 296.0,
+    "topSpeed": 190.0,
+    "fuelCapacity": 13.6,
+    "stock": 5,
+    "features": [
+      "Milwaukee-Eight 114",
+      "Inverted Forks",
+      "Monoshock",
+      "LED Lights"
+    ],
+    "color": "Billiard Red",
+    "images": [
+      "/images/motorcycles/harley_davidson_street_bob_114_1.png",
+      "/images/motorcycles/harley_davidson_street_bob_114_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/harley_davidson_street_bob_114_4.png",
+      "/images/motorcycles/harley_davidson_street_bob_114_5.png"
+    ]
+  },
+  {
+    "brand": "HARLEY-DAVIDSON",
+    "model": "Low Rider S",
+    "year": 2024,
+    "category": "Cruiser",
+    "price": 699000000.0,
+    "description": "Harley-Davidson Low Rider S in vivid black. High-performance cruiser.",
+    "engineType": "1923cc V-Twin",
+    "displacement": 1923,
+    "power": 92.0,
+    "torque": 161.0,
+    "weight": 302.0,
+    "topSpeed": 185.0,
+    "fuelCapacity": 18.9,
+    "stock": 4,
+    "features": [
+      "Milwaukee-Eight 117",
+      "Screamin' Eagle",
+      "Premium Suspension",
+      "Touring Ready"
+    ],
+    "color": "Vivid Black",
+    "images": [
+      "/images/motorcycles/harley_davidson_low_rider_s_1.png",
+      "/images/motorcycles/harley_davidson_low_rider_s_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/harley_davidson_low_rider_s_4.png",
+      "/images/motorcycles/harley_davidson_low_rider_s_5.png"
+    ]
+  },
+  {
+    "brand": "HARLEY-DAVIDSON",
+    "model": "Pan America 1250",
+    "year": 2024,
+    "category": "Adventure",
+    "price": 869000000.0,
+    "description": "Harley-Davidson Pan America 1250 Special. Revolutionary liquid-cooled adventure bike.",
+    "engineType": "1252cc Revolution Max 1250T",
+    "displacement": 1252,
+    "power": 150.0,
+    "torque": 128.0,
+    "weight": 258.0,
+    "topSpeed": 220.0,
+    "fuelCapacity": 21.2,
+    "stock": 2,
+    "features": [
+      "Adaptive Ride Height",
+      "Revolution Max 1250T",
+      "Semi-Active Suspension",
+      "TFT Color Touchscreen"
+    ],
+    "color": "Baja Orange/Stone Washed White",
+    "images": [
+      "/images/motorcycles/harley_davidson_pan_america_1250_1.png",
+      "/images/motorcycles/harley_davidson_pan_america_1250_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/harley_davidson_pan_america_1250_4.png",
+      "/images/motorcycles/harley_davidson_pan_america_1250_5.png"
+    ]
+  },
+  {
+    "brand": "TRIUMPH",
+    "model": "Street Triple 765 RS",
+    "year": 2024,
+    "category": "Naked",
+    "price": 419000000.0,
+    "description": "Triumph Street Triple 765 RS. The class-leading naked bike with Moto2 engine DNA.",
+    "engineType": "765cc Inline-3",
+    "displacement": 765,
+    "power": 130.0,
+    "torque": 80.0,
+    "weight": 188.0,
+    "topSpeed": 245.0,
+    "fuelCapacity": 15.0,
+    "stock": 3,
+    "features": [
+      "Moto2 Derived Engine",
+      "Brembo Stylema Calipers",
+      "Öhlins Rear Shock",
+      "Up/Down Quickshifter"
+    ],
+    "color": "Silver Ice",
+    "images": [
+      "/images/motorcycles/triumph_street_triple_765_rs_1.png",
+      "/images/motorcycles/triumph_street_triple_765_rs_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/triumph_street_triple_765_rs_4.png",
+      "/images/motorcycles/triumph_street_triple_765_rs_5.png"
+    ]
+  },
+  {
+    "brand": "TRIUMPH",
+    "model": "Tiger 900 Rally Pro",
+    "year": 2024,
+    "category": "Adventure",
+    "price": 489000000.0,
+    "description": "Triumph Tiger 900 Rally Pro adventure bike. Engineered for extreme off-road exploration.",
+    "engineType": "888cc Inline-3",
+    "displacement": 888,
+    "power": 108.0,
+    "torque": 90.0,
+    "weight": 201.0,
+    "topSpeed": 210.0,
+    "fuelCapacity": 20.0,
+    "stock": 3,
+    "features": [
+      "Show Suspension (240mm travel)",
+      "Tubeless Spoke Wheels",
+      "Riding Modes",
+      "Heated Seats"
+    ],
+    "color": "Sandstorm",
+    "images": [
+      "/images/motorcycles/triumph_tiger_900_rally_pro_1.png",
+      "/images/motorcycles/triumph_tiger_900_rally_pro_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/triumph_tiger_900_rally_pro_4.png",
+      "/images/motorcycles/triumph_tiger_900_rally_pro_5.png"
+    ]
+  },
+  {
+    "brand": "KTM",
+    "model": "1290 Super Duke R",
+    "year": 2024,
+    "category": "Naked",
+    "price": 689000000.0,
+    "description": "KTM 1290 Super Duke R EVO. 'The Beast' - extreme power, high-tech active suspension.",
+    "engineType": "1301cc V-Twin",
+    "displacement": 1301,
+    "power": 180.0,
+    "torque": 140.0,
+    "weight": 189.0,
+    "topSpeed": 290.0,
+    "fuelCapacity": 16.0,
+    "stock": 2,
+    "features": [
+      "WP Semi-Active Suspension",
+      "KTM Ride Mode Pro",
+      "MSC (Motorcycle Stability Control)",
+      "TFT Connectivity"
+    ],
+    "color": "KTM Orange/Blue",
+    "images": [
+      "/images/motorcycles/ktm_1290_super_duke_r_1.png",
+      "/images/motorcycles/ktm_1290_super_duke_r_2.png",
+      "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "/images/motorcycles/ktm_1290_super_duke_r_4.png",
+      "/images/motorcycles/ktm_1290_super_duke_r_5.png"
+    ]
+  }
+]

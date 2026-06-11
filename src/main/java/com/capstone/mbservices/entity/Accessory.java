@@ -34,6 +34,8 @@ public class Accessory {
 
     private String imageUrl;
 
+    private String compatibleBikes;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean isActive = true;

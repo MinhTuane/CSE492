@@ -20,6 +20,7 @@ public interface AccessoryRepository extends JpaRepository<Accessory, String> {
     @Query("SELECT a FROM Accessory a WHERE a.isActive = true AND (" +
            "LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(a.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(a.compatibleBikes) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(a.brand) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Accessory> searchAccessories(String keyword, Pageable pageable);
 

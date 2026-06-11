@@ -44,6 +44,7 @@ public class AccessoryService {
         accessory.setCategory(accessoryDetails.getCategory());
         accessory.setBrand(accessoryDetails.getBrand());
         accessory.setImageUrl(accessoryDetails.getImageUrl());
+        accessory.setCompatibleBikes(accessoryDetails.getCompatibleBikes());
         accessory.setIsActive(accessoryDetails.getIsActive());
         return accessoryRepository.save(accessory);
     }
