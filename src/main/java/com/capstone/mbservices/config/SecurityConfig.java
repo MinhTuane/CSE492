@@ -58,10 +58,12 @@ public class SecurityConfig {
                     "/ws/**",
                     "/discount-codes/validate/**",
                     "/users/check-email",
-                    "/users/check-username"
+                    "/users/check-username",
+                    "/comparison/**"
                 ).permitAll()
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/motorcycles/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/accessories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/forum/**").permitAll()
                 
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER", "SALES_STAFF", "SERVICE_ADVISOR")
