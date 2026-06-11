@@ -107,7 +107,7 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         List<Motorcycle> motorcycles = new ArrayList<>();
-        boolean needMotorcycles = motorcycleRepository.count() < 50;
+        boolean needMotorcycles = motorcycleRepository.count() != 50;
 
         if (needMotorcycles && motorcycleRepository.count() > 0) {
             log.info("Refreshing database with the new 50 multi-image motorcycles...");
@@ -480,7 +480,9 @@ public class DataSeeder implements CommandLineRunner {
         }
         boolean hasPremiumPkl = accessoryRepository.findAll().stream()
                 .anyMatch(a -> a.getName().contains("Supercorsa V3"));
-        if (!hasPremiumPkl) {
+        boolean hasLocalAccessoryImg = accessoryRepository.findAll().stream()
+                .anyMatch(a -> a.getImageUrl() != null && a.getImageUrl().startsWith("/images/"));
+        if (!hasPremiumPkl || hasLocalAccessoryImg) {
             try {
                 // Clear order items referencing accessories first to avoid FK constraints
                 jdbcTemplate.update("DELETE FROM order_items WHERE item_type = 'ACCESSORY'");
