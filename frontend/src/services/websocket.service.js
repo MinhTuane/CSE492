@@ -9,12 +9,8 @@ export const connectWebSocket = (onMessageReceived) => {
   const token = localStorage.getItem('token');
   if (!token) return;
 
-  // In dev (Vite proxy), the origin is localhost:3001 which proxies to backend.
-  // In production (Nginx), the origin is the same domain that proxies /api to backend.
-  const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const socketUrl = isDev
-    ? `http://localhost:8091/api/ws`
-    : `${window.location.origin}/api/ws`;
+  // Connect using the app's current origin (handled by Vite proxy in dev, Nginx in prod)
+  const socketUrl = `${window.location.origin}/api/ws`;
   const socket = new SockJS(socketUrl);
   
   stompClient = new Client({

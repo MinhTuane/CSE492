@@ -140,15 +140,23 @@ const AdminOrders = () => {
             </tr>
           </thead>
           <tbody>
-            ${order.motorcycles?.map(moto => `
-              <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #eee;">
-                  <strong>${moto.brand} ${moto.model}</strong>
-                </td>
-                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">1</td>
-                <td style="padding: 12px; text-align: right; border-bottom: 1px solid #eee;">${formatCurrency(moto.price)}</td>
-              </tr>
-            `).join('') || ''}
+            ${(order.orderItems || order.motorcycles || [])?.map(item => {
+              const isOrderItem = !!item.itemType;
+              const name = isOrderItem 
+                ? (item.itemType === 'MOTORCYCLE' ? `${item.itemBrand || ''} ${item.itemModel || item.itemName || ''}`.trim() : item.itemName)
+                : `${item.brand} ${item.model}`;
+              const price = isOrderItem ? item.unitPrice : item.price;
+              const qty = isOrderItem ? item.quantity : 1;
+              return `
+                <tr>
+                  <td style="padding: 12px; border-bottom: 1px solid #eee;">
+                    <strong>${name}</strong>
+                  </td>
+                  <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${qty}</td>
+                  <td style="padding: 12px; text-align: right; border-bottom: 1px solid #eee;">${formatCurrency(price)}</td>
+                </tr>
+              `;
+            }).join('') || ''}
           </tbody>
         </table>
 
@@ -268,7 +276,7 @@ const AdminOrders = () => {
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">#{order.orderNumber}</div>
-                    <div className="text-sm text-gray-500">{order.motorcycles?.length || 0} items</div>
+                    <div className="text-sm text-gray-500">{(order.orderItems || order.motorcycles)?.length || 0} items</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">

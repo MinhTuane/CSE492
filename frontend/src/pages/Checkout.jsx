@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CreditCard, Truck, Check, Lock, Smartphone, Tag, Store, Star, Plus, Trash2 } from 'lucide-react';
+import { CreditCard, Truck, Check, Lock, Smartphone, Tag, Store, Star, Plus, Trash2, AlertTriangle } from 'lucide-react';
 import useCartStore, { VIETNAM_PROVINCES } from '../store/cartStore';
 import useAuthStore from '../store/authStore';
 import { orderService } from '../services/order.service';
@@ -71,6 +71,7 @@ const Checkout = () => {
   const [recommendedAccessories, setRecommendedAccessories] = useState([]);
   const [loadingAccessories, setLoadingAccessories] = useState(false);
   const [selectedAccessories, setSelectedAccessories] = useState([]);
+  const [outOfStockItems, setOutOfStockItems] = useState([]);
 
   useEffect(() => {
     if (user && !isProfileComplete(user)) {
@@ -91,6 +92,45 @@ const Checkout = () => {
     };
     fetchStores();
   }, [user, location.pathname, location.search, navigate]);
+
+  // Check branch inventory for motorcycles in cart/checkout
+  useEffect(() => {
+    const checkStoreInventory = async () => {
+      if (!shippingData.storeId) return;
+
+      const motorcyclesInCart = checkoutItems.filter(
+        item => item.itemType?.toLowerCase() === 'motorcycle'
+      );
+      const oosList = [];
+
+      for (const mc of motorcyclesInCart) {
+        try {
+          const res = await api.get(`/inventory/motorcycle/${mc.id}`);
+          const storeStockRecord = res.data.find(inv => inv.store?.id === shippingData.storeId);
+          const storeStock = storeStockRecord ? storeStockRecord.stock : 0;
+
+          if (storeStock < mc.quantity) {
+            const totalOtherStock = res.data
+              .filter(inv => inv.store?.id !== shippingData.storeId)
+              .reduce((sum, inv) => sum + inv.stock, 0);
+
+            oosList.push({
+              id: mc.id,
+              name: `${mc.brand} ${mc.model || mc.name}`.trim(),
+              storeStock,
+              otherStockAvailable: totalOtherStock > 0
+            });
+          }
+        } catch (err) {
+          console.error(`Failed to verify branch inventory for item ${mc.id}`, err);
+        }
+      }
+
+      setOutOfStockItems(oosList);
+    };
+
+    checkStoreInventory();
+  }, [shippingData.storeId, checkoutItems]);
 
   // Load recommended accessories
   useEffect(() => {
@@ -540,6 +580,25 @@ const Checkout = () => {
                     </select>
                   </div>
 
+                  {outOfStockItems.length > 0 && (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-sm flex gap-3 animate-fade-in">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="font-bold">Branch Transfer Required</p>
+                        {outOfStockItems.map(item => (
+                          <p key={item.id}>
+                            <strong>{item.name}</strong> is currently out of stock at this branch (Stock: {item.storeStock}).
+                            {item.otherStockAvailable ? (
+                              <span> We will transfer it from another branch. Delivery to this branch will take <strong>3-5 business days</strong>.</span>
+                            ) : (
+                              <span> Note: This item is currently low in stock across all branches, transfer might take longer.</span>
+                            )}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Registration & License Plate Service Option */}
                   <div className="border-t border-gray-150 pt-6">
                     <div className="flex items-start gap-3">
@@ -846,6 +905,18 @@ const Checkout = () => {
                     </div>
                   )}
                 </div>
+
+                {outOfStockItems.length > 0 && (
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-sm flex gap-3 animate-fade-in mb-4">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold">Branch Transfer Required (Estimated delay: 3-5 business days)</p>
+                      <p className="text-xs text-amber-700 mt-1">
+                        One or more vehicles are currently not in stock at your selected showroom. Placing this order confirms your request to transfer the vehicle(s) from another branch.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <button
                   onClick={handlePlaceOrder}

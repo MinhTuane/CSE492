@@ -113,20 +113,31 @@ const MyOrders = () => {
               {selectedOrder?.id === order.id && (
                 <div className="mt-6 pt-6 border-t">
                   <h4 className="font-semibold mb-4">Order Items</h4>
-                  {order.motorcycles?.map((m) => (
-                    <div key={m.id} className="flex gap-4 mb-4">
-                      <img
-                        src={getImageUrl(m.images?.[0])}
-                        alt={m.model}
-                        className="w-20 h-20 object-cover rounded"
-                        onError={handleImageError}
-                      />
-                      <div>
-                        <h5 className="font-semibold">{m.brand} {m.model}</h5>
-                        <p className="text-sm text-gray-600">{formatCurrency(m.price)}</p>
+                  {(order.orderItems || order.motorcycles || [])?.map((item) => {
+                    const isOrderItem = !!item.itemType;
+                    const name = isOrderItem 
+                      ? (item.itemType === 'MOTORCYCLE' ? `${item.itemBrand || ''} ${item.itemModel || item.itemName || ''}`.trim() : item.itemName)
+                      : `${item.brand} ${item.model}`;
+                    const imgUrl = isOrderItem ? item.itemImageUrl : item.images?.[0];
+                    const price = isOrderItem ? item.unitPrice : item.price;
+                    const qty = isOrderItem ? item.quantity : 1;
+                    return (
+                      <div key={item.id} className="flex gap-4 mb-4">
+                        <img
+                          src={getImageUrl(imgUrl)}
+                          alt={name}
+                          className="w-20 h-20 object-cover rounded"
+                          onError={handleImageError}
+                        />
+                        <div>
+                          <h5 className="font-semibold">{name}</h5>
+                          <p className="text-sm text-gray-600">
+                            {formatCurrency(price)} {qty > 1 ? `x ${qty}` : ''}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <div className="mt-6">
                     <h4 className="font-semibold mb-4">Shipping Details</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

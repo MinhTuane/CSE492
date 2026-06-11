@@ -71,6 +71,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.debug("User authenticated: {} authorities: {}", user.getEmail(), authToken.getAuthorities());
                 }
             }
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.warn("JWT expired: {}", e.getMessage());
+        } catch (io.jsonwebtoken.security.SignatureException | io.jsonwebtoken.MalformedJwtException | io.jsonwebtoken.UnsupportedJwtException e) {
+            log.warn("Invalid JWT: {}", e.getMessage());
         } catch (Exception e) {
             log.error("JWT validation error: {}", e.getMessage());
         }
@@ -88,6 +92,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (path.startsWith("/v3/api-docs") ||
             path.startsWith("/swagger-ui") ||
             path.startsWith("/api/auth/") ||
+            path.startsWith("/api/ws") ||
+            path.startsWith("/ws") ||
             path.startsWith("/api/reviews/motorcycle/") ||
             path.equals("/api/reviews/approved") ||
             path.equals("/api/bookings/services/stats") ||

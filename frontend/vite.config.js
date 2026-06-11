@@ -16,6 +16,7 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8091',
         changeOrigin: true,
+        ws: true,
       },
       '/images': {
         target: 'http://localhost:8091',
