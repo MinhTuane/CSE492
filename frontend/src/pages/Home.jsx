@@ -6,12 +6,40 @@ import { formatCurrency, cleanMotorcycleData, getImageUrl } from '../utils/helpe
 import toast from 'react-hot-toast';
 import StoreLocator from '../components/common/StoreLocator';
 
-// Fallback hero images (Cloudinary — high-res motorcycle photos)
-const HERO_FALLBACKS = [
-  '/api/images/hero/slide-1.png',
-  '/api/images/hero/slide-2.png',
-  '/api/images/hero/slide-3.png',
-  '/api/images/hero/slide-4.png',
+// High-resolution premium hero slide configurations
+const HERO_SLIDES = [
+  {
+    id: 'hero-1',
+    brand: 'KAWASAKI',
+    model: 'NINJA H2R',
+    description: 'Supercharged hyperbike performance, pushing the limits of speed and track dominance.',
+    image: '/api/images/hero/slide-1.png',
+    link: '/motorcycles?search=H2R'
+  },
+  {
+    id: 'hero-2',
+    brand: 'DUCATI',
+    model: 'PANIGALE V4',
+    description: 'Pure racing adrenaline. Italian passion engineered for the ultimate track experience.',
+    image: '/api/images/hero/slide-2.png',
+    link: '/motorcycles?search=Panigale'
+  },
+  {
+    id: 'hero-3',
+    brand: 'BMW MOTORRAD',
+    model: 'M 1000 RR',
+    description: 'Born on the racetrack, optimized for the road. Uncompromising power and aerodynamics.',
+    image: '/api/images/hero/slide-3.png',
+    link: '/motorcycles?search=M1000R'
+  },
+  {
+    id: 'hero-4',
+    brand: 'YAMAHA',
+    model: 'YZF-R1M',
+    description: 'Ultimate factory superbike featuring MotoGP-derived crossplane engine technology.',
+    image: '/api/images/hero/slide-4.png',
+    link: '/motorcycles?search=R1'
+  }
 ];
 
 // Brand data for the scrolling strip
@@ -155,7 +183,7 @@ const Home = () => {
   };
 
   // ─── Hero Slideshow Auto-rotate ──────────────────────────────────
-  const totalSlides = heroMotorcycles.length || HERO_FALLBACKS.length;
+  const totalSlides = HERO_SLIDES.length;
 
   const goToSlide = useCallback((index) => {
     setCurrentSlide(index);
@@ -221,25 +249,18 @@ const Home = () => {
         onMouseLeave={resumeSlideshow}
       >
         {/* Slides */}
-        {(heroMotorcycles.length > 0 ? heroMotorcycles : HERO_FALLBACKS.map((url, i) => ({
-          id: `fallback-${i}`,
-          brand: ['KAWASAKI', 'DUCATI', 'BMW', 'YAMAHA'][i] || 'PREMIUM',
-          model: ['Ninja ZX-10R', 'Panigale V4', 'R1300 GS', 'YZF-R1'][i] || 'Motorcycle',
-          description: 'Experience the thrill of riding a premium motorcycle',
-          images: [url],
-          price: 0,
-        }))).map((moto, index) => {
-          const imgUrl = moto.images?.[0] ? getImageUrl(moto.images[0]) : HERO_FALLBACKS[index % HERO_FALLBACKS.length];
+        {HERO_SLIDES.map((slide, index) => {
+          const imgUrl = getImageUrl(slide.image);
           return (
             <div
-              key={`${moto.id}-${index === currentSlide ? slideKey : 'idle'}`}
+              key={`${slide.id}-${index === currentSlide ? slideKey : 'idle'}`}
               className={`absolute inset-0 transition-opacity duration-[1200ms] ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
                 }`}
             >
               {/* Background Image with Ken Burns */}
               <img
                 src={imgUrl}
-                alt={`${moto.brand} ${moto.model}`}
+                alt={`${slide.brand} ${slide.model}`}
                 onError={handleImageError}
                 className={`absolute inset-0 w-full h-full object-cover ${index === currentSlide ? 'hero-slide-img' : ''
                   }`}
@@ -263,7 +284,7 @@ const Home = () => {
                 key={`brand-${currentSlide}`}
               >
                 <span className="text-red-500 font-semibold tracking-[0.3em] uppercase text-sm md:text-base animate-fade-in">
-                  {heroMotorcycles[currentSlide]?.brand || 'PREMIUM MOTORCYCLES'}
+                  {HERO_SLIDES[currentSlide].brand}
                 </span>
               </div>
 
@@ -272,7 +293,7 @@ const Home = () => {
                 className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-4 leading-[1.1] animate-slide-in-up"
                 key={`title-${currentSlide}`}
               >
-                {heroMotorcycles[currentSlide]?.model || 'Ride Into Your Dreams'}
+                {HERO_SLIDES[currentSlide].model}
               </h1>
 
               {/* Description */}
@@ -280,29 +301,18 @@ const Home = () => {
                 className="text-lg md:text-xl text-gray-300 mb-8 max-w-lg animate-slide-in-up delay-100"
                 key={`desc-${currentSlide}`}
               >
-                {heroMotorcycles[currentSlide]?.description?.substring(0, 100) ||
-                  'Discover premium motorcycles from world-renowned brands. Experience the thrill, embrace the freedom.'}
+                {HERO_SLIDES[currentSlide].description}
               </p>
 
               {/* Price + CTA */}
               <div className="flex flex-wrap items-center gap-4 animate-slide-in-up delay-200" key={`cta-${currentSlide}`}>
-                {heroMotorcycles[currentSlide]?.id ? (
-                  <Link
-                    to={`/motorcycles/${heroMotorcycles[currentSlide].id}`}
-                    className="group inline-flex items-center gap-2 bg-white text-gray-900 font-semibold px-8 py-3.5 rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-                  >
-                    Explore
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                ) : (
-                  <Link
-                    to="/motorcycles"
-                    className="group inline-flex items-center gap-2 bg-white text-gray-900 font-semibold px-8 py-3.5 rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-                  >
-                    Browse Collection
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                )}
+                <Link
+                  to={HERO_SLIDES[currentSlide].link}
+                  className="group inline-flex items-center gap-2 bg-white text-gray-900 font-semibold px-8 py-3.5 rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  Explore Collection
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
                 <Link
                   to="/my-bookings?open=testride"
                   className="group inline-flex items-center gap-2 border-2 border-white/40 text-white font-semibold px-8 py-3.5 rounded-full hover:bg-white/10 hover:border-white transition-all duration-300"
@@ -310,12 +320,6 @@ const Home = () => {
                   <Play className="w-4 h-4" />
                   Book Test Ride
                 </Link>
-
-                {heroMotorcycles[currentSlide]?.price > 0 && (
-                  <span className="text-2xl md:text-3xl font-bold text-white ml-2">
-                    {formatCurrency(heroMotorcycles[currentSlide].price)}
-                  </span>
-                )}
               </div>
             </div>
           </div>
