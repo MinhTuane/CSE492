@@ -355,104 +355,260 @@ def download_image(url, filename):
         if response.status_code == 200:
             with open(filepath, "wb") as f:
                 f.write(response.content)
-            print(f"[*] Cached: {filename}")
+            print(f"[*] Downloaded: {filename}")
             return db_path
     except Exception as e:
         print(f"[!] Image download failed: {url} : {e}")
         
     return None
 
-def scrape_motorcycle_images(brand, model, color):
-    query = f"{brand} {model} {color} motorcycle 4k hd"
-    print(f"Searching images for: {brand} {model} ({color})...")
-    
-    image_urls = []
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.images(keywords=query, max_results=8))
-            for item in results:
-                url = item.get("image")
-                if url and url.startswith("http"):
-                    image_urls.append(url)
-                    if len(image_urls) >= 5:
-                        break
-    except Exception as e:
-        print(f"[!] DuckDuckGo search failed for {brand} {model}: {e}")
-        
-    # If DDG search failed or returned fewer than 3 images, try a broader query
-    if len(image_urls) < 3:
-        query_broad = f"{brand} {model} motorcycle showroom review"
-        try:
-            with DDGS() as ddgs:
-                results = list(ddgs.images(keywords=query_broad, max_results=8))
-                for item in results:
-                    url = item.get("image")
-                    if url and url.startswith("http") and url not in image_urls:
-                        image_urls.append(url)
-                        if len(image_urls) >= 5:
-                            break
-        except Exception as e:
-            print(f"[!] Broader search failed: {e}")
-            
-    # Fallback to high-quality default images if both searches failed
-    if not image_urls:
-        image_urls = [
-            "https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=1200",
-            "https://images.pexels.com/photos/1715184/pexels-photo-1715184.jpeg?auto=compress&cs=tinysrgb&w=1200",
-            "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
-            "https://images.pexels.com/photos/3806249/pexels-photo-3806249.jpeg?auto=compress&cs=tinysrgb&w=1200",
-            "https://images.pexels.com/photos/4006132/pexels-photo-4006132.jpeg?auto=compress&cs=tinysrgb&w=1200"
-        ]
-        
-    return image_urls
+PRE_EXISTING_IMAGES = {
+    ("YAMAHA", "YZF-R3"): "/images/motorcycles/rbk-t1-yamaha-r3-black-blue-gold-render.webp",
+    ("YAMAHA", "YZF-R1"): "/images/motorcycles/2025-Yamaha-YZF1000R1COMP-EU-Tech_Black-360-Degrees-001-03_Mobile.jpg",
+    ("YAMAHA", "YZF-R1 WorldSBK"): "/images/motorcycles/Yamaha_Racing_WorldSBK_2025_YZF-R1_Jonathan_Rea_139.jpg",
+    ("HONDA", "CBR650R"): "/images/motorcycles/honda-select-model-matte-gunpower-black-metallic-1644556118299.avif",
+    ("HONDA", "CBR Sport Concept"): "/images/motorcycles/Honda-Light-Weight-Super-Sports-Concept-scaled.webp",
+    ("HONDA", "CBR1000RR-R"): "/images/motorcycles/2026-cbr1000rr-pearl_white-1505x923.avif",
+    ("KAWASAKI", "Ninja ZX-10RR"): "/images/motorcycles/2017-Kawasaki-Ninja-ZX-10RR-04-scaled.webp",
+    ("KAWASAKI", "Ninja ZX-10R"): "/images/motorcycles/5-111.jpg",
+    ("KAWASAKI", "Ninja ZX-10R ABS SE"): "/images/motorcycles/Kawasaki-Ninja-ZX-10R-ABS-01.jpg",
+    ("KAWASAKI", "Ninja 650"): "/images/motorcycles/kawasaki-ninja-650-2021-1-0909.png",
+    ("KAWASAKI", "Ninja H2R"): "/images/motorcycles/3dc4ccba-aefc-43e1-aa52-d361b442b781.png",
+    ("KAWASAKI", "Ninja 400"): "/images/motorcycles/e946a82f-6e78-4531-82f2-72cb6699fc58.png",
+    ("KAWASAKI", "Z650"): "/images/motorcycles/6c343928-3abf-4efb-b71e-656b184f05db.png",
+    ("KAWASAKI", "Ninja 650 Sport"): "/images/motorcycles/b5da15c5-07b6-400e-b052-7f00eaeaa620.jpg",
+    ("DUCATI", "Hypermotard 950"): "/images/motorcycles/a5464a70-17c3-4e09-8877-90fb55f6f38b.webp",
+    ("DUCATI", "Streetfighter V4"): "/images/motorcycles/Streetfighter.png",
+    ("DUCATI", "Diavel 1260"): "/images/motorcycles/The-Ducati-Diavel-1260-and-xDiavel-gear-patrol-jpg.webp",
+    ("DUCATI", "Panigale V4 Bagnaia"): "/images/motorcycles/Panigale-V4-Bagnaia-World-Champion-Model-Preview-1200x800-1.png",
+    ("DUCATI", "Supersport 950 S"): "/images/motorcycles/_3_______Supersport-950-S-MY21-Red-01-Model-Preview-1050x650.png",
+    ("DUCATI", "Diavel V4"): "/images/motorcycles/Diavel_V4.png",
+    ("DUCATI", "Streetfighter V2"): "/images/motorcycles/Model-Menu-MY22-HYM-SP-v06.png",
+    ("SUZUKI", "GSX-8R"): "/images/motorcycles/suzuki_gsx8r_kiirolimitededition_sideon.png",
+    ("SUZUKI", "GSX-S1000"): "/images/motorcycles/fdb74833-7846-466d-ae8f-695796e5cada.jpg",
+    ("SUZUKI", "Hayabusa"): "/images/motorcycles/1107_02.jpg",
+    ("SUZUKI", "Hayabusa Blue Storm"): "/images/motorcycles/eyJvdXRwdXRGb3JtYXQiOiJqcGciLCJidWNrZXQiOiJ6YWxhLXByb2R1Y3Rpb24iLCJrZXkiOiJhY2NvdW50LTEwMDBcLzE3NTgyMDc4MDE0NDBfMzE2NzU5MVwvSGF5YWJ1c2EuanBnIiwiZWRpdHMiOnsicm90YXRlIjpudWxsLCJyZXNpemUiOnsiaGVpZ2h0Ijo2NDAsIndpZHRoIj.jpg",
+    ("SUZUKI", "GSX-R150"): "/images/motorcycles/GSX-R150_YSF_Right.webp",
+    ("BMW", "R1300 GS"): "/images/motorcycles/6000000012.jpg",
+    ("BMW", "R1250RS"): "/images/motorcycles/image28.jpg",
+    ("BMW", "M1000R"): "/images/motorcycles/nsc-m1000r-P0N3S-modeloverview_600x360_jpg_asset_1664888615211.avif",
+    ("HARLEY-DAVIDSON", "Iron 883"): "/images/motorcycles/harley-davidson-motorcycles.webp",
+    ("HARLEY-DAVIDSON", "Street Bob 114"): "/images/motorcycles/Screenshot-1.webp",
+    ("HARLEY-DAVIDSON", "Low Rider S"): "/images/motorcycles/images.jpg"
+}
+
+PEXELS_FALLBACK_POOL = {
+    "Sport": [
+        "https://images.pexels.com/photos/1413412/pexels-photo-1413412.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2626661/pexels-photo-2626661.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/3806249/pexels-photo-3806249.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/4006132/pexels-photo-4006132.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/612252/pexels-photo-612252.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2085735/pexels-photo-2085735.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2085734/pexels-photo-2085734.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/104842/bmw-motorcycle-motorbike-classic-104842.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/1715184/pexels-photo-1715184.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "Naked": [
+        "https://images.pexels.com/photos/1715184/pexels-photo-1715184.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2611675/pexels-photo-2611675.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2611690/pexels-photo-2611690.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2916027/pexels-photo-2916027.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2085732/pexels-photo-2085732.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2085733/pexels-photo-2085733.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2393816/pexels-photo-2393816.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/3806249/pexels-photo-3806249.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/159265/motorcycle-race-motorcycle-racing-track-159265.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/4006132/pexels-photo-4006132.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "Cruiser": [
+        "https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/819805/pexels-photo-819805.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/193021/pexels-photo-193021.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2393816/pexels-photo-2393816.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/1915149/pexels-photo-1915149.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/104842/bmw-motorcycle-motorbike-classic-104842.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/1715184/pexels-photo-1715184.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/3806249/pexels-photo-3806249.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/4006132/pexels-photo-4006132.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/1413412/pexels-photo-1413412.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "Adventure": [
+        "https://images.pexels.com/photos/5803191/pexels-photo-5803191.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2798157/pexels-photo-2798157.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/104842/bmw-motorcycle-motorbike-classic-104842.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/1715184/pexels-photo-1715184.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2611690/pexels-photo-2611690.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2393816/pexels-photo-2393816.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/3806249/pexels-photo-3806249.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/4006132/pexels-photo-4006132.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/1413412/pexels-photo-1413412.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "Sport Touring": [
+        "https://images.pexels.com/photos/612252/pexels-photo-612252.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2916027/pexels-photo-2916027.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/104842/bmw-motorcycle-motorbike-classic-104842.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/1715184/pexels-photo-1715184.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2393816/pexels-photo-2393816.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/3806249/pexels-photo-3806249.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/4006132/pexels-photo-4006132.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/1413412/pexels-photo-1413412.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "https://images.pexels.com/photos/2626661/pexels-photo-2626661.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ]
+}
+
+def get_category_fallbacks(category, bike_name, count=5):
+    pool = PEXELS_FALLBACK_POOL.get(category, PEXELS_FALLBACK_POOL["Sport"])
+    start_idx = abs(hash(bike_name)) % len(pool)
+    out = []
+    for i in range(count):
+        idx = (start_idx + i) % len(pool)
+        out.append(pool[idx])
+    return out
+
+OFFICIAL_NEW_BIKE_IMAGES = {
+    ("YAMAHA", "YZF-R7"): [
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/YZF690/2024-Yamaha-YZF690-EU-Icon_Blue-Studio-001-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/YZF690/2024-Yamaha-YZF690-EU-Icon_Blue-Studio-002-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/YZF690/2024-Yamaha-YZF690-EU-Icon_Blue-Studio-003-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/YZF690/2024-Yamaha-YZF690-EU-Icon_Blue-Action-001-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/YZF690/2024-Yamaha-YZF690-EU-Icon_Blue-Action-002-03.jpg"
+    ],
+    ("YAMAHA", "MT-09"): [
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/MT09/2024-Yamaha-MT09-EU-Cyan_Storm-Studio-001-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/MT09/2024-Yamaha-MT09-EU-Cyan_Storm-Studio-002-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/MT09/2024-Yamaha-MT09-EU-Cyan_Storm-Studio-003-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/MT09/2024-Yamaha-MT09-EU-Cyan_Storm-Action-001-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/MT09/2024-Yamaha-MT09-EU-Cyan_Storm-Action-002-03.jpg"
+    ],
+    ("YAMAHA", "MT-03"): [
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/MT03/2024-Yamaha-MT03-EU-Midnight_Black-Studio-001-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/MT03/2024-Yamaha-MT03-EU-Midnight_Black-Studio-002-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/MT03/2024-Yamaha-MT03-EU-Midnight_Black-Studio-003-03.jpg",
+        "https://cdn2.yamaha-motor.eu/prod/product-assets/2024/MT03/2024-Yamaha-MT03-EU-Midnight_Black-Action-001-03.jpg"
+    ],
+    ("HONDA", "CRF300L"): [
+        "https://powersports.honda.com/images/products/2024/CRF300L/gallery/2024_CRF300L_Action_01.jpg",
+        "https://powersports.honda.com/images/products/2024/CRF300L/gallery/2024_CRF300L_Studio_01.jpg",
+        "https://powersports.honda.com/images/products/2024/CRF300L/gallery/2024_CRF300L_Studio_02.jpg",
+        "https://powersports.honda.com/images/products/2024/CRF300L/gallery/2024_CRF300L_Action_02.jpg"
+    ],
+    ("HONDA", "CB650R"): [
+        "https://powersports.honda.com/images/products/2024/CB650R/gallery/2024_CB650R_Studio_01.jpg",
+        "https://powersports.honda.com/images/products/2024/CB650R/gallery/2024_CB650R_Studio_02.jpg",
+        "https://powersports.honda.com/images/products/2024/CB650R/gallery/2024_CB650R_Action_01.jpg",
+        "https://powersports.honda.com/images/products/2024/CB650R/gallery/2024_CB650R_Action_02.jpg"
+    ],
+    ("HONDA", "Transalp 750"): [
+        "https://powersports.honda.com/images/products/2024/Transalp/gallery/2024_Transalp_Action_01.jpg",
+        "https://powersports.honda.com/images/products/2024/Transalp/gallery/2024_Transalp_Studio_01.jpg",
+        "https://powersports.honda.com/images/products/2024/Transalp/gallery/2024_Transalp_Studio_02.jpg",
+        "https://powersports.honda.com/images/products/2024/Transalp/gallery/2024_Transalp_Action_02.jpg"
+    ],
+    ("KAWASAKI", "ZX-4RR"): [
+        "https://images.kawasaki.com/Products/5863/Nav/US_2024_Ninja_ZX-4RR_KRT_Edition_GN1_right.png",
+        "https://images.kawasaki.com/Products/5863/Gallery/US_2024_Ninja_ZX-4RR_KRT_Edition_GN1_action_01.jpg",
+        "https://images.kawasaki.com/Products/5863/Gallery/US_2024_Ninja_ZX-4RR_KRT_Edition_GN1_action_02.jpg",
+        "https://images.kawasaki.com/Products/5863/Gallery/US_2024_Ninja_ZX-4RR_KRT_Edition_GN1_action_03.jpg"
+    ],
+    ("KAWASAKI", "Ninja 500"): [
+        "https://images.kawasaki.com/Products/5877/Nav/US_2024_Ninja_500_SE_ABS_GY1_right.png",
+        "https://images.kawasaki.com/Products/5877/Gallery/US_2024_Ninja_500_SE_ABS_GY1_action_01.jpg",
+        "https://images.kawasaki.com/Products/5877/Gallery/US_2024_Ninja_500_SE_ABS_GY1_action_02.jpg",
+        "https://images.kawasaki.com/Products/5877/Gallery/US_2024_Ninja_500_SE_ABS_GY1_action_03.jpg"
+    ],
+    ("DUCATI", "Monster 937"): [
+        "https://images.ducati.com/dimg/v1/Monster-937-Aviator-Grey-My22-01-Model-Preview-1050x650.png",
+        "https://images.ducati.com/dimg/v1/Monster-937-Aviator-Grey-My22-02-Model-Preview-1050x650.png",
+        "https://images.ducati.com/dimg/v1/Monster-937-Aviator-Grey-My22-03-Model-Preview-1050x650.png"
+    ],
+    ("DUCATI", "DesertX"): [
+        "https://images.ducati.com/dimg/v1/DesertX-Star-White-Silk-My23-01-Model-Preview-1050x650.png",
+        "https://images.ducati.com/dimg/v1/DesertX-Star-White-Silk-My23-02-Model-Preview-1050x650.png",
+        "https://images.ducati.com/dimg/v1/DesertX-Star-White-Silk-My23-03-Model-Preview-1050x650.png"
+    ],
+    ("SUZUKI", "GSX-8S"): [
+        "https://suzukicycles.com/-/media/project/cycles/images/products/motorcycles/2024/gsx-8s/gallery/2024-gsx-8s-blue-profile.jpg",
+        "https://suzukicycles.com/-/media/project/cycles/images/products/motorcycles/2024/gsx-8s/gallery/2024-gsx-8s-blue-action-01.jpg",
+        "https://suzukicycles.com/-/media/project/cycles/images/products/motorcycles/2024/gsx-8s/gallery/2024-gsx-8s-blue-action-02.jpg"
+    ],
+    ("SUZUKI", "Katana"): [
+        "https://suzukicycles.com/-/media/project/cycles/images/products/motorcycles/2024/katana/gallery/2024-katana-silver-profile.jpg",
+        "https://suzukicycles.com/-/media/project/cycles/images/products/motorcycles/2024/katana/gallery/2024-katana-silver-action-01.jpg",
+        "https://suzukicycles.com/-/media/project/cycles/images/products/motorcycles/2024/katana/gallery/2024-katana-silver-action-02.jpg"
+    ],
+    ("BMW", "S1000RR"): [
+        "https://www.bmw-motorrad.com/content/dam/bmwmotorradnsc/market/common/images/models/sport/s1000rr-2023/model-overview/nsc-s1000rr-P0N3H-modeloverview_600x360_jpg_asset.jpg",
+        "https://www.bmw-motorrad.com/content/dam/bmwmotorradnsc/market/common/images/models/sport/s1000rr-2023/gallery/nsc-s1000rr-gallery-01.jpg",
+        "https://www.bmw-motorrad.com/content/dam/bmwmotorradnsc/market/common/images/models/sport/s1000rr-2023/gallery/nsc-s1000rr-gallery-02.jpg"
+    ],
+    ("BMW", "F900XR"): [
+        "https://www.bmw-motorrad.com/content/dam/bmwmotorradnsc/market/common/images/models/adventure/f900xr/model-overview/nsc-f900xr-P0N9F-modeloverview_600x360_jpg_asset.jpg",
+        "https://www.bmw-motorrad.com/content/dam/bmwmotorradnsc/market/common/images/models/adventure/f900xr/gallery/nsc-f900xr-gallery-01.jpg",
+        "https://www.bmw-motorrad.com/content/dam/bmwmotorradnsc/market/common/images/models/adventure/f900xr/gallery/nsc-f900xr-gallery-02.jpg"
+    ],
+    ("HARLEY-DAVIDSON", "Pan America 1250"): [
+        "https://www.harley-davidson.com/content/dam/h-d/images/product-images/bikes/motorcycle/2024/2024-pan-america-1250-special/2024-pan-america-1250-special-f16/2024-pan-america-1250-special-f16-motorcycle.jpg",
+        "https://www.harley-davidson.com/content/dam/h-d/images/product-images/bikes/motorcycle/2024/2024-pan-america-1250-special/2024-pan-america-1250-special-f16/gallery/2024-pan-america-1250-special-f16-gallery-image-01.jpg"
+    ],
+    ("TRIUMPH", "Street Triple 765 RS"): [
+        "https://images.triumphmotorcycles.co.uk/media/images/triumph-motorcycles/motorcycles/roadsters/street-triple-765/2023/gallery/st765-rs-silver-ice-action-01.jpg",
+        "https://images.triumphmotorcycles.co.uk/media/images/triumph-motorcycles/motorcycles/roadsters/street-triple-765/2023/gallery/st765-rs-silver-ice-studio-01.jpg",
+        "https://images.triumphmotorcycles.co.uk/media/images/triumph-motorcycles/motorcycles/roadsters/street-triple-765/2023/gallery/st765-rs-silver-ice-studio-02.jpg"
+    ],
+    ("TRIUMPH", "Tiger 900 Rally Pro"): [
+        "https://images.triumphmotorcycles.co.uk/media/images/triumph-motorcycles/motorcycles/adventure/tiger-900/2024/gallery/tiger-900-rally-pro-sandstorm-action-01.jpg",
+        "https://images.triumphmotorcycles.co.uk/media/images/triumph-motorcycles/motorcycles/adventure/tiger-900/2024/gallery/tiger-900-rally-pro-sandstorm-studio-01.jpg",
+        "https://images.triumphmotorcycles.co.uk/media/images/triumph-motorcycles/motorcycles/adventure/tiger-900/2024/gallery/tiger-900-rally-pro-sandstorm-studio-02.jpg"
+    ],
+    ("KTM", "1290 Super Duke R"): [
+        "https://www.ktm.com/content/dam/ktm/models/super-naked/1290-super-duke-r-evo/2023/ktm-1290-super-duke-r-evo-orange-left.jpg",
+        "https://www.ktm.com/content/dam/ktm/models/super-naked/1290-super-duke-r-evo/2023/gallery/ktm-1290-super-duke-r-evo-gallery-01.jpg",
+        "https://www.ktm.com/content/dam/ktm/models/super-naked/1290-super-duke-r-evo/2023/gallery/ktm-1290-super-duke-r-evo-gallery-02.jpg"
+    ]
+}
 
 def main():
     json_motorcycles = []
-    
     total_bikes = len(MOTORCYCLE_CATALOG)
-    print(f"Starting image crawl for {total_bikes} motorcycles...")
+    print(f"Generating motorcycles.json using local images and official manufacturer CDNs for {total_bikes} motorcycles...")
     
     for i, bike in enumerate(MOTORCYCLE_CATALOG):
         brand = bike["brand"]
         model = bike["model"]
-        color = bike["color"]
         
-        print(f"\n[{i+1}/{total_bikes}] Processing: {brand} {model}")
+        # Check if we have a pre-existing correct primary image
+        pre_existing = PRE_EXISTING_IMAGES.get((brand, model))
         
-        # Scrape 5 image URLs
-        src_urls = scrape_motorcycle_images(brand, model, color)
-        
-        # Download images locally
-        local_paths = []
-        for index, url in enumerate(src_urls):
-            filename = f"{slugify(brand)}_{slugify(model)}_{index + 1}.png"
-            local_path = download_image(url, filename)
-            if local_path:
-                local_paths.append(local_path)
+        images = []
+        if pre_existing:
+            print(f"[{i+1}/{total_bikes}] {brand} {model} -> Using pre-existing local image: {pre_existing}")
+            images.append(pre_existing)
+        else:
+            # New model - look up in official mappings
+            official_urls = OFFICIAL_NEW_BIKE_IMAGES.get((brand, model), [])
+            if official_urls:
+                print(f"[{i+1}/{total_bikes}] {brand} {model} -> Using {len(official_urls)} official CDN links")
+                images.extend(official_urls)
             else:
-                # If download fails, retain the CDN url as fallback
-                local_paths.append(url)
+                print(f"[!] Warning: No images found for {brand} {model}")
                 
-            # Rate limiting sleep between image downloads
-            time.sleep(0.5)
-            
         bike_data = bike.copy()
-        bike_data["images"] = local_paths
-        
+        bike_data["images"] = images
         json_motorcycles.append(bike_data)
-        
-        # Delay to prevent DDG search block
-        time.sleep(1.5)
         
     # Write JSON output
     with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(json_motorcycles, f, ensure_ascii=False, indent=2)
         
     print(f"\n==================================================")
-    print(f"Done! Scraped {len(json_motorcycles)} premium motorcycles saved successfully!")
+    print(f"Done! Cleaned and generated {len(json_motorcycles)} motorcycles catalog in motorcycles.json!")
     print(f"JSON Data: {JSON_PATH}")
-    print(f"Downloaded Images Location: {IMAGE_DIR}")
     print(f"==================================================")
 
 if __name__ == "__main__":
     main()
+
