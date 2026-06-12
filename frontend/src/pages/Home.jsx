@@ -13,7 +13,7 @@ const HERO_SLIDES = [
     brand: 'KAWASAKI',
     model: 'NINJA H2R',
     description: 'Supercharged hyperbike performance, pushing the limits of speed and track dominance.',
-    image: '/api/images/hero/slide-1.png',
+    image: '/images/hero/slide-1.png',
     link: '/motorcycles?search=H2R'
   },
   {
@@ -21,7 +21,7 @@ const HERO_SLIDES = [
     brand: 'DUCATI',
     model: 'PANIGALE V4',
     description: 'Pure racing adrenaline. Italian passion engineered for the ultimate track experience.',
-    image: '/api/images/hero/slide-2.png',
+    image: '/images/hero/slide-2.png',
     link: '/motorcycles?search=Panigale'
   },
   {
@@ -29,7 +29,7 @@ const HERO_SLIDES = [
     brand: 'BMW MOTORRAD',
     model: 'M 1000 RR',
     description: 'Born on the racetrack, optimized for the road. Uncompromising power and aerodynamics.',
-    image: '/api/images/hero/slide-3.png',
+    image: '/images/hero/slide-3.png',
     link: '/motorcycles?search=M1000R'
   },
   {
@@ -37,7 +37,7 @@ const HERO_SLIDES = [
     brand: 'YAMAHA',
     model: 'YZF-R1M',
     description: 'Ultimate factory superbike featuring MotoGP-derived crossplane engine technology.',
-    image: '/api/images/hero/slide-4.png',
+    image: '/images/hero/slide-4.png',
     link: '/motorcycles?search=R1'
   }
 ];
@@ -55,7 +55,7 @@ const BRANDS = [
 
 // Image error handler
 const handleImageError = (e) => {
-  e.target.src = HERO_FALLBACKS[0];
+  e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"><rect width="1920" height="1080" fill="%231a1a1a"/><text x="960" y="540" font-family="sans-serif" font-size="48" fill="%234b5563" text-anchor="middle" dominant-baseline="middle">MBServices Premium Motorcycles</text></svg>';
   e.target.onerror = null;
 };
 
@@ -529,7 +529,7 @@ const Home = () => {
           <div className="relative overflow-hidden h-[400px] md:h-auto">
             <div ref={parallaxImg} className="absolute inset-[-20%]">
               <img
-                src="/api/images/hero/parallax-showroom.png"
+                src={getImageUrl('/images/hero/parallax-showroom.png')}
                 alt="Motorcycle showroom"
                 className="w-full h-full object-cover"
                 onError={handleImageError}
