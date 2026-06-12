@@ -107,18 +107,21 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         List<Motorcycle> motorcycles = new ArrayList<>();
-        boolean needMotorcycles = motorcycleRepository.count() != 50;
+        boolean needMotorcycles = motorcycleRepository.count() != 32;
 
         if (needMotorcycles && motorcycleRepository.count() > 0) {
-            log.info("Refreshing database with the new 50 multi-image motorcycles...");
+            log.info("Refreshing database with the original 32 motorcycles...");
             try {
+                // Clear all foreign key dependencies for motorcycles
+                jdbcTemplate.update("DELETE FROM warranty_cards");
+                jdbcTemplate.update("DELETE FROM store_inventory");
+                jdbcTemplate.update("DELETE FROM order_motorcycles");
+                jdbcTemplate.update("DELETE FROM reviews");
+                jdbcTemplate.update("DELETE FROM test_rides");
+                jdbcTemplate.update("DELETE FROM maintenance_services");
                 jdbcTemplate.update("DELETE FROM order_items WHERE item_type = 'MOTORCYCLE'");
-                jdbcTemplate.update("DELETE FROM order_items WHERE motorcycle_id IS NOT NULL");
                 jdbcTemplate.update("DELETE FROM order_items");
                 orderRepository.deleteAll();
-                reviewRepository.deleteAll();
-                testRideRepository.deleteAll();
-                maintenanceServiceRepository.deleteAll();
                 motorcycleRepository.deleteAll();
             } catch (Exception e) {
                 log.warn("Failed to clear motorcycle dependencies: {}", e.getMessage());
@@ -126,32 +129,6 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         if (needMotorcycles) {
-            try {
-                java.io.File localFile = new java.io.File("src/main/resources/motorcycles.json");
-                ObjectMapper mapper = new ObjectMapper();
-                if (localFile.exists()) {
-                    motorcycles = mapper.readValue(localFile, new TypeReference<List<Motorcycle>>() {});
-                    log.info("Loaded {} motorcycles from local file motorcycles.json", motorcycles.size());
-                    log.info("Uploading motorcycle images to Cloudinary in parallel...");
-                    motorcycles.parallelStream().forEach(m -> {
-                        m.setImages(toCloudinaryUrls(m.getBrand(), m.getModel(), m.getImages(), "motorcycles"));
-                    });
-                } else {
-                    org.springframework.core.io.ClassPathResource resource = new org.springframework.core.io.ClassPathResource("motorcycles.json");
-                    if (resource.exists()) {
-                        try (java.io.InputStream is = resource.getInputStream()) {
-                            motorcycles = mapper.readValue(is, new TypeReference<List<Motorcycle>>() {});
-                            log.info("Loaded {} motorcycles from classpath motorcycles.json", motorcycles.size());
-                            log.info("Uploading motorcycle images to Cloudinary in parallel...");
-                            motorcycles.parallelStream().forEach(m -> {
-                                m.setImages(toCloudinaryUrls(m.getBrand(), m.getModel(), m.getImages(), "motorcycles"));
-                            });
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Failed to read motorcycles.json, using hardcoded fallback: {}", e.getMessage());
-            }
 
             if (motorcycles == null || motorcycles.isEmpty()) {
                 log.info("Seeding database with 32 fallback motorcycles...");
@@ -381,7 +358,7 @@ public class DataSeeder implements CommandLineRunner {
             "SUZUKI", "Hayabusa Blue Storm", 2024, "Sport", 769000000.0,
             "Suzuki Hayabusa in Blue Storm metallic. The king of speed with refined power.",
             "1340cc Inline-4", 1340, 190.0, 150.0, 264.0, 299.0, 20.0, 3,
-            Arrays.asList("/images/motorcycles/eyJvdXRwdXRGb3JtYXQiOiJqcGciLCJidWNrZXQiOiJ6YWxhLXByb2R1Y3Rpb24iLCJrZXkiOiJhY2NvdW50LTEwMDBcLzE3NTgyMDc4MDE0NDBfMzE2NzU5MVwvSGF5YWJ1c2EuanBnIiwiZWRpdHMiOnsicm90YXRlIjpudWxsLCJyZXNpemUiOnsiaGVpZ2h0Ijo2NDAsIndpZHRoIj.jpg"),
+            Arrays.asList("/images/motorcycles/hayabusa.jpg"),
             Arrays.asList("Launch Control", "Electronic Suspension", "Brembo Brakes", "LED Matrix"),
             "Blue Storm Metallic"
         ));
@@ -869,6 +846,27 @@ public class DataSeeder implements CommandLineRunner {
             
             if (isRemote) {
                 log.info("Uploading remote URL to Cloudinary: {} with public_id: {}", imagePath, customPublicId);
+                try {
+                    String finalUrl = imagePath.startsWith("//") ? "https:" + imagePath : imagePath;
+                    java.net.URL url = new java.net.URL(finalUrl);
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("GET");
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                    conn.setConnectTimeout(15000);
+                    conn.setReadTimeout(15000);
+                    
+                    int status = conn.getResponseCode();
+                    if (status == 200) {
+                        try (java.io.InputStream is = conn.getInputStream()) {
+                            byte[] bytes = is.readAllBytes();
+                            return cloudinaryService.uploadBytesWithPublicId(bytes, folder, customPublicId);
+                        }
+                    } else {
+                        log.warn("Failed to download remote URL directly (HTTP {}), falling back to Cloudinary URL upload: {}", status, imagePath);
+                    }
+                } catch (Exception ex) {
+                    log.warn("Error downloading remote URL directly: {}, falling back to Cloudinary URL upload", ex.getMessage());
+                }
                 return cloudinaryService.uploadUrlWithPublicId(imagePath, folder, customPublicId);
             }
             

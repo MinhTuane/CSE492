@@ -13,7 +13,7 @@ const HERO_SLIDES = [
     brand: 'KAWASAKI',
     model: 'NINJA H2R',
     description: 'Supercharged hyperbike performance, pushing the limits of speed and track dominance.',
-    image: '/images/hero/slide-1.png',
+    image: 'https://res.cloudinary.com/djlotprtu/image/upload/v1780919628/mbservices/static/hero-slide-1.jpg',
     link: '/motorcycles?search=H2R'
   },
   {
@@ -21,7 +21,7 @@ const HERO_SLIDES = [
     brand: 'DUCATI',
     model: 'PANIGALE V4',
     description: 'Pure racing adrenaline. Italian passion engineered for the ultimate track experience.',
-    image: '/images/hero/slide-2.png',
+    image: 'https://res.cloudinary.com/djlotprtu/image/upload/v1780919629/mbservices/static/hero-slide-2.jpg',
     link: '/motorcycles?search=Panigale'
   },
   {
@@ -29,7 +29,7 @@ const HERO_SLIDES = [
     brand: 'BMW MOTORRAD',
     model: 'M 1000 RR',
     description: 'Born on the racetrack, optimized for the road. Uncompromising power and aerodynamics.',
-    image: '/images/hero/slide-3.png',
+    image: 'https://res.cloudinary.com/djlotprtu/image/upload/v1780919630/mbservices/static/hero-slide-3.jpg',
     link: '/motorcycles?search=M1000R'
   },
   {
@@ -37,7 +37,7 @@ const HERO_SLIDES = [
     brand: 'YAMAHA',
     model: 'YZF-R1M',
     description: 'Ultimate factory superbike featuring MotoGP-derived crossplane engine technology.',
-    image: '/images/hero/slide-4.png',
+    image: 'https://res.cloudinary.com/djlotprtu/image/upload/v1780919631/mbservices/static/hero-slide-4.jpg',
     link: '/motorcycles?search=R1'
   }
 ];
@@ -529,7 +529,7 @@ const Home = () => {
           <div className="relative overflow-hidden h-[400px] md:h-auto">
             <div ref={parallaxImg} className="absolute inset-[-20%]">
               <img
-                src={getImageUrl('/images/hero/parallax-showroom.png')}
+                src={getImageUrl('https://res.cloudinary.com/djlotprtu/image/upload/v1780919755/mbservices/static/parallax-showroom.jpg')}
                 alt="Motorcycle showroom"
                 className="w-full h-full object-cover"
                 onError={handleImageError}
