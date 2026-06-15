@@ -37,7 +37,6 @@ public class User {
     @Builder.Default
     private String authProvider = "LOCAL";
 
-    @Column(nullable = false)
     @Builder.Default
     private Boolean hasLocalCredentials = false;
     

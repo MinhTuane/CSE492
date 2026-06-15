@@ -2,8 +2,12 @@ import api from './api';
 
 // ============ DASHBOARD ============
 
-export const getDashboardStats = async () => {
-  const response = await api.get('/admin/dashboard/stats');
+export const getDashboardStats = async (storeId = null) => {
+  let url = '/admin/dashboard/stats';
+  if (storeId && storeId !== 'all') {
+    url += `?storeId=${storeId}`;
+  }
+  const response = await api.get(url);
   return response.data;
 };
 

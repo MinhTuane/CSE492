@@ -73,11 +73,14 @@ const AdminDashboard = () => {
   const [lowStock, setLowStock] = useState([]);
   const [pendingOrders, setPendingOrders] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [stores, setStores] = useState([]);
+  const [selectedStoreId, setSelectedStoreId] = useState('all');
   const navigate = useNavigate();
 
-  const loadDashboard = useCallback(async () => {
+  const loadDashboard = useCallback(async (storeId = 'all') => {
     try {
-      const data = await adminService.getDashboardStats();
+      setLoading(true);
+      const data = await adminService.getDashboardStats(storeId);
       setStats(data);
       if (data?.revenueData) setChartData(data.revenueData);
     } catch (error) {
@@ -108,26 +111,39 @@ const AdminDashboard = () => {
     } catch { /* silent */ }
   }, []);
 
+  const loadStores = useCallback(async () => {
+    try {
+      const data = await adminService.getAllStores();
+      setStores(data || []);
+    } catch (error) {
+      console.error('Failed to load stores for dropdown', error);
+    }
+  }, []);
+
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([loadDashboard(), loadRecentOrders(), loadLowStock(), loadPending()]);
+    await Promise.all([loadDashboard(selectedStoreId), loadRecentOrders(), loadLowStock(), loadPending()]);
     setRefreshing(false);
     toast.success('Dashboard refreshed');
   };
 
   useEffect(() => {
-    loadDashboard();
+    loadDashboard(selectedStoreId);
     loadRecentOrders();
     loadLowStock();
     loadPending();
-  }, [loadDashboard, loadRecentOrders, loadLowStock, loadPending]);
+  }, [loadDashboard, loadRecentOrders, loadLowStock, loadPending, selectedStoreId]);
+
+  useEffect(() => {
+    loadStores();
+  }, [loadStores]);
 
   const handleUpdateOrderStatus = async (orderId, status) => {
     if (!status) return;
     try {
       await adminService.updateOrderStatus(orderId, status);
       toast.success('Order status updated');
-      loadPending(); loadRecentOrders(); loadDashboard();
+      loadPending(); loadRecentOrders(); loadDashboard(selectedStoreId);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to update order');
     }
@@ -169,10 +185,29 @@ const AdminDashboard = () => {
             <p className="text-slate-400 text-sm mt-1">{now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
           </div>
           <div className="flex items-center gap-3">
+            <div className="relative">
+              <select
+                value={selectedStoreId}
+                onChange={(e) => setSelectedStoreId(e.target.value)}
+                className="appearance-none bg-white/10 hover:bg-white/20 text-white pl-4 pr-10 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer outline-none border border-white/15 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              >
+                <option value="all" className="bg-slate-900 text-white">All Branches</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id} className="bg-slate-900 text-white">
+                    {store.name}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-white">
+                <svg className="w-4 h-4 fill-current opacity-70" viewBox="0 0 20 20">
+                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
+              </div>
+            </div>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-white/15"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh

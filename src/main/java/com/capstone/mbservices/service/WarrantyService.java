@@ -49,7 +49,7 @@ public class WarrantyService {
                         .build();
 
                 warrantyCardRepository.save(card);
-                log.info("🔔 [E-WARRANTY] Activated 3-Year Sổ bảo hành điện tử for Motorcycle: {} {} (Owner: {})", 
+                log.info("🔔 [E-WARRANTY] Activated 3-Year Electronic Warranty Booklet for Motorcycle: {} {} (Owner: {})", 
                     motorcycle.getBrand(), motorcycle.getModel(), 
                     order.getUser() != null ? order.getUser().getFirstname() : "Guest");
             }

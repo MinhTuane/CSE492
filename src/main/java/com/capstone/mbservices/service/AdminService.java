@@ -103,8 +103,10 @@ public class AdminService {
     
     // ==================== DASHBOARD ====================
     
-    public DashboardResponse getDashboard() {
-        String storeId = getCurrentUserStoreId();
+    public DashboardResponse getDashboard(String storeIdOverride) {
+        String storeId = (storeIdOverride != null && !storeIdOverride.isBlank() && !"all".equalsIgnoreCase(storeIdOverride))
+            ? storeIdOverride 
+            : getCurrentUserStoreId();
         
         Long totalUsers = userRepository.count();
         Long totalMotorcycles = storeId != null ? (long) storeRepository.findById(storeId).map(s -> storeRepository.findById(storeId).get().getId() != null ? motorcycleRepository.count() : 0).orElse(0L) : motorcycleRepository.count(); // Approximate
@@ -144,9 +146,15 @@ public class AdminService {
                 .mapToDouble(o -> o.getTotalAmount() != null ? o.getTotalAmount() : 0.0)
                 .sum();
                 
+            Long monthOrders = orders.stream()
+                .filter(o -> o.getCreateAt().isAfter(startOfMonth) && 
+                            o.getCreateAt().isBefore(endOfMonth))
+                .count();
+                
             Map<String, Object> monthData = new HashMap<>();
             monthData.put("name", monthName);
             monthData.put("revenue", monthRevenue);
+            monthData.put("orders", monthOrders);
             revenueData.add(monthData);
         }
         

@@ -23,8 +23,8 @@ public class MobileApiController {
     private final MotorcycleRepository motorcycleRepository;
 
     /**
-     * Endpoint tối ưu cho Mobile App: Trả về danh sách xe rút gọn (chỉ lấy các field cần thiết)
-     * giúp giảm băng thông và tăng tốc độ load trên thiết bị di động.
+     * Optimized endpoint for Mobile App: Returns a shortened list of motorcycles (only retrieves necessary fields)
+     * helping to reduce bandwidth and speed up loading time on mobile devices.
      */
     @GetMapping("/motorcycles/lite")
     public ResponseEntity<List<Map<String, Object>>> getMotorcyclesLite() {
@@ -42,12 +42,12 @@ public class MobileApiController {
     }
     
     /**
-     * Endpoint mock để nhận Push Notification Token từ thiết bị di động (FCM/APNs)
+     * Mock endpoint to receive Push Notification Token from mobile devices (FCM/APNs)
      */
     @PostMapping("/users/device-token")
     public ResponseEntity<String> updateDeviceToken(@RequestBody Map<String, String> request) {
         String token = request.get("token");
-        // TODO: Lưu token này vào Entity User hoặc bảng DeviceToken để dùng cho Firebase Cloud Messaging sau này
+        // TODO: Save this token to User Entity or DeviceToken table for Firebase Cloud Messaging usage later
         return ResponseEntity.ok("Device token updated successfully for push notifications");
     }
 }

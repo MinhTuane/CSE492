@@ -46,6 +46,7 @@ const AdminForum = React.lazy(() => import('./pages/admin/AdminForum'));
 const AdminServices = React.lazy(() => import('./pages/admin/AdminServices'));
 const AdminInventory = React.lazy(() => import('./pages/admin/AdminInventory'));
 const AdminDiscountCodes = React.lazy(() => import('./pages/admin/AdminDiscountCodes'));
+const AdminAccessories = React.lazy(() => import('./pages/admin/AdminAccessories'));
 const StaffOrders = React.lazy(() => import('./pages/staff/StaffOrders'));
 
 /** Roles allowed to call /api/admin/** (see SecurityConfig) */
@@ -207,6 +208,7 @@ function App() {
           <Route path="services" element={<AdminServices />} />
           <Route path="discounts" element={<AdminDiscountCodes />} />
           <Route path="forum" element={<AdminForum />} />
+          <Route path="accessories" element={<AdminAccessories />} />
         </Route>
 
         {/* 404 Not Found */}

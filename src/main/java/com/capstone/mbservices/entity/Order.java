@@ -57,13 +57,11 @@ public class Order {
     private String discountCode;
     private Integer loyaltyPointsRedeemed;
 
-    @Column(nullable = false)
     @Builder.Default
     private Boolean paymentSettlementDone = false;
 
     private Boolean useLoyaltyPoints;
     
-    @Column(nullable = false)
     @Builder.Default
     private Boolean isDeposit = false;
     

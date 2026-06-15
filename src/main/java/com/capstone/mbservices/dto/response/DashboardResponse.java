@@ -17,7 +17,7 @@ public class DashboardResponse {
     private Long scheduledServices;
     private List<Object> recentOrders;
     private List<Object> popularMotorcycles;
-    private List<Object> revenueData; // Thêm trường dữ liệu doanh thu theo tháng
+    private List<Object> revenueData; // Monthly revenue data field
     private Long lowStockCount;
     private Long pendingTestRides;
     private Long pendingReviews;

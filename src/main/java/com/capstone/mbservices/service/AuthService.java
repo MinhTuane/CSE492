@@ -293,8 +293,8 @@ public class AuthService {
             String cleanName = fullName.trim();
             int lastSpaceIdx = cleanName.lastIndexOf(' ');
             if (lastSpaceIdx > 0) {
-                // Vietnamese order: "Phạm Minh Tuấn"
-                // First name (Tên) is "Tuấn", Last name (Họ & Tên đệm) is "Phạm Minh"
+                // Vietnamese order: "Pham Minh Tuan"
+                // First name is "Tuan", Last name is "Pham Minh"
                 resFirstName = cleanName.substring(lastSpaceIdx + 1);
                 resLastName = cleanName.substring(0, lastSpaceIdx);
             } else {

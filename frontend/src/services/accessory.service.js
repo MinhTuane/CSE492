@@ -21,5 +21,20 @@ export const accessoryService = {
   getById: async (id) => {
     const response = await api.get(`/accessories/${id}`);
     return response.data;
+  },
+
+  create: async (accessoryData) => {
+    const response = await api.post('/accessories', accessoryData);
+    return response.data;
+  },
+
+  update: async (id, accessoryData) => {
+    const response = await api.put(`/accessories/${id}`, accessoryData);
+    return response.data;
+  },
+
+  delete: async (id) => {
+    const response = await api.delete(`/accessories/${id}`);
+    return response.data;
   }
 };

@@ -522,7 +522,7 @@ public class OrderService {
         String notes = order.getNotes();
         if (notes.contains("[License Plate Service]")) {
             try {
-                // Example notes text: "[License Plate Service] Citizen ID: 001202003456, Province: Hà Nội, District: Cầu Giấy"
+                // Example notes text: "[License Plate Service] Citizen ID: 001202003456, Province: Ha Noi, District: Cau Giay"
                 String idCard = extractValue(notes, "Citizen ID:");
                 String province = extractValue(notes, "Province:");
                 String district = extractValue(notes, "District:");

@@ -92,17 +92,17 @@ const Profile = () => {
   const getMissingFields = () => {
     const list = [];
     if (!profile) return list;
-    if (!profile.username) list.push({ field: 'username', label: 'Tên đăng nhập (Username) còn thiếu' });
-    if (isPlaceholderEmail(profile.email)) list.push({ field: 'email', label: 'Email thật chưa được cập nhật' });
-    if (isSocial && !hasLocalCredentials) list.push({ field: 'password', label: 'Mật khẩu chưa được thiết lập' });
-    if (!profile.firstname) list.push({ field: 'firstname', label: 'Họ và tên đệm còn thiếu' });
-    if (!profile.lastname) list.push({ field: 'lastname', label: 'Tên còn thiếu' });
+    if (!profile.username) list.push({ field: 'username', label: 'Username is missing' });
+    if (isPlaceholderEmail(profile.email)) list.push({ field: 'email', label: 'Real email has not been updated' });
+    if (isSocial && !hasLocalCredentials) list.push({ field: 'password', label: 'Password has not been set' });
+    if (!profile.firstname) list.push({ field: 'firstname', label: 'First name is missing' });
+    if (!profile.lastname) list.push({ field: 'lastname', label: 'Last name is missing' });
     if (!profile.phone) {
-      list.push({ field: 'phone', label: 'Số điện thoại còn thiếu' });
+      list.push({ field: 'phone', label: 'Phone number is missing' });
     } else if (!/^[0-9]{10,11}$/.test(profile.phone)) {
-      list.push({ field: 'phone', label: 'Số điện thoại không đúng định dạng (phải gồm 10-11 chữ số)' });
+      list.push({ field: 'phone', label: 'Phone number format is incorrect (must be 10-11 digits)' });
     }
-    if (!profile.address) list.push({ field: 'address', label: 'Địa chỉ nhận hàng còn thiếu' });
+    if (!profile.address) list.push({ field: 'address', label: 'Shipping address is missing' });
     return list;
   };
   const missingFields = getMissingFields();
@@ -314,8 +314,8 @@ const Profile = () => {
                   <div className="font-bold flex items-center gap-2 mb-1.5 text-red-900">
                     <span>⚠️</span> 
                     {isRedirectedFromCheckout 
-                      ? "Vui lòng cập nhật đầy đủ thông tin để tiến hành mua xe và thanh toán:"
-                      : "Tài khoản của bạn còn thiếu một số thông tin bắt buộc:"}
+                      ? "Please update all details to proceed with purchasing and payment:"
+                      : "Your account is missing some required details:"}
                   </div>
                   <ul className="list-disc list-inside text-xs text-red-700 space-y-1 font-medium">
                     {missingFields.map((err, i) => (

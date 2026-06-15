@@ -1,7 +1,8 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Bike, Package, Users, Star, 
-  Calendar, LogOut, Menu, X, MessageSquare, Wrench, Tag
+  Calendar, LogOut, Menu, X, MessageSquare, Wrench, Tag,
+  ShoppingBag
 } from 'lucide-react';
 import { useState } from 'react';
 import useAuthStore from '../../store/authStore';
@@ -20,6 +21,7 @@ const AdminLayout = () => {
   const navigation = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER'] },
     { name: 'Motorcycles', path: '/admin/motorcycles', icon: Bike, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER'] },
+    { name: 'Accessories', path: '/admin/accessories', icon: ShoppingBag, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER'] },
     { name: 'Inventory', path: '/admin/inventory', icon: Package, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'STAFF'] },
     { name: 'Orders', path: '/admin/orders', icon: Package, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'STAFF'] },
     { name: 'Users', path: '/admin/users', icon: Users, roles: ['ADMIN', 'SUPER_ADMIN'] },

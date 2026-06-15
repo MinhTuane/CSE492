@@ -31,9 +31,9 @@ public class AdminController {
     // ==================== DASHBOARD ====================
 
     @GetMapping("/dashboard/stats")
-    public ResponseEntity<DashboardResponse> getDashboard() {
+    public ResponseEntity<DashboardResponse> getDashboard(@RequestParam(required = false) String storeId) {
         try {
-            DashboardResponse stats = adminService.getDashboard();
+            DashboardResponse stats = adminService.getDashboard(storeId);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
