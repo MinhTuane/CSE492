@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, User, Loader2, Headphones, Phone, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import ChatbotProductPreview from './ChatbotProductPreview';
 import api from '../../services/api';
 import useAuthStore from '../../store/authStore';
 import { isStaff } from '../../utils/helpers';
@@ -260,6 +262,55 @@ const ChatbotWidget = () => {
   };
 
   const renderMessageList = () => {
+    const renderFormattedText = (text, isMe) => {
+      const combinedRegex = /(\[PRODUCT:[^\]]+\]|\[([^\]]+)\]\([^)]+\))/g;
+      const parts = [];
+      let lastIndex = 0;
+      let match;
+
+      while ((match = combinedRegex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push(text.substring(lastIndex, match.index));
+        }
+        
+        const token = match[0];
+        if (token.startsWith('[PRODUCT:')) {
+          const keyword = token.substring(9, token.length - 1); // Extract keyword
+          parts.push(<ChatbotProductPreview key={lastIndex} keyword={keyword} />);
+        } else {
+          // Standard markdown link
+          const linkMatch = /\[([^\]]+)\]\(([^)]+)\)/.exec(token);
+          if (linkMatch) {
+            const label = linkMatch[1];
+            const url = linkMatch[2];
+            
+            const linkClass = isMe 
+              ? "text-blue-100 underline font-semibold hover:text-white transition-colors" 
+              : "text-blue-600 underline font-semibold hover:text-blue-800 transition-colors";
+
+            if (url.startsWith('/')) {
+              parts.push(
+                <Link key={lastIndex} to={url} className={linkClass}>
+                  {label}
+                </Link>
+              );
+            } else {
+              parts.push(
+                <a key={lastIndex} href={url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  {label}
+                </a>
+              );
+            }
+          }
+        }
+        lastIndex = combinedRegex.lastIndex;
+      }
+      if (lastIndex < text.length) {
+        parts.push(text.substring(lastIndex));
+      }
+      return parts.length > 0 ? parts : text;
+    };
+
     return (
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.map((msg) => {
@@ -287,14 +338,14 @@ const ChatbotWidget = () => {
               }`}>
                 {isMe ? <User className="w-4 h-4" /> : isStaffSender ? <Headphones className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
               </div>
-              <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-sm leading-relaxed ${
+              <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-sm leading-relaxed whitespace-pre-wrap ${
                 isMe 
                   ? 'bg-blue-600 text-white rounded-br-none' 
                   : isStaffSender 
                     ? 'bg-white text-gray-800 border-l-4 border-l-blue-600 border-gray-100 rounded-bl-none'
                     : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
               }`}>
-                {msg.content}
+                {renderFormattedText(msg.content, isMe)}
               </div>
             </div>
           );
