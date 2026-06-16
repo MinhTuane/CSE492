@@ -257,7 +257,7 @@ def chat():
             try:
                 # Use Google Gemini Pro 2.5 / 1.5 Flash (ultra-fast, highly intelligent, and free-tier friendly)
                 client = genai.Client(api_key=gemini_key)
-                gemini_model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash") # Switch to 1.5-flash for higher free quota
+                gemini_model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash") # Use gemini-2.0-flash as it is available in the region
                 
                 response_obj = client.models.generate_content(
                     model=gemini_model_name,
