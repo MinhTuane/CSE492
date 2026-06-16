@@ -27,6 +27,7 @@ export const motorcycleService = {
     if (filters.minPrice) params.append('minPrice', filters.minPrice);
     if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
     if (filters.year) params.append('year', filters.year);
+    if (filters.keyword) params.append('keyword', filters.keyword);
 
     const response = await api.get(`/motorcycles/search?${params.toString()}`);
     return response.data;
