@@ -31,12 +31,65 @@ app = Flask(__name__)
 # Initialize Chatbot using ahmadfaizalbh/Chatbot library as a fallback
 template_path = os.path.join(os.path.dirname(__file__), "bot.template")
 
+import requests
+
+# Cache to avoid spamming the backend API
+api_cache = {
+    'motorcycles': [],
+    'last_fetch': None
+}
+
+def fetch_all_motorcycles():
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    if api_cache['last_fetch'] and (now - api_cache['last_fetch']) < timedelta(minutes=5):
+        return api_cache['motorcycles']
+        
+    try:
+        response = requests.get('http://localhost:8080/api/motorcycles/all', timeout=3)
+        if response.status_code == 200:
+            api_cache['motorcycles'] = response.json()
+            api_cache['last_fetch'] = now
+            return api_cache['motorcycles']
+    except Exception as e:
+        print(f"Error fetching motorcycles: {e}")
+    return api_cache['motorcycles']
+
+def get_n_best_motorcycles(motorcycles, n=10):
+    if not motorcycles:
+        return []
+    # Sort by discount (highest first), then price (lowest first)
+    sorted_bikes = sorted(
+        motorcycles,
+        key=lambda m: (m.get('discountPercentage') or 0.0, -(m.get('price') or 0.0)),
+        reverse=True
+    )
+    return sorted_bikes[:n]
+
 # Function to generate a dynamic system prompt with the current time/date
 def get_system_prompt():
     from datetime import datetime, timezone, timedelta
     vn_tz = timezone(timedelta(hours=7))
     now_str = datetime.now(vn_tz).strftime("%A, %Y-%m-%d %H:%M:%S")
     
+    # Fetch real data
+    all_bikes = fetch_all_motorcycles()
+    best_bikes = get_n_best_motorcycles(all_bikes, n=10)
+    
+    best_bikes_str = ""
+    first_bike_name = "Model Name"
+    if best_bikes:
+        first_bike_name = best_bikes[0].get('model', 'Model Name')
+        for i, bike in enumerate(best_bikes):
+            name = bike.get('model', '')
+            brand = bike.get('brand', '')
+            price = bike.get('price', 0)
+            discount = bike.get('discountPercentage', 0)
+            category = bike.get('category', '')
+            best_bikes_str += f"  {i+1}. {brand} {name} (Category: {category}, Price: {price:,.0f} VND, Discount: {discount}%)\n"
+    else:
+        best_bikes_str = "  (Currently no real-time data available, please suggest standard models like Yamaha YZF-R3, Kawasaki Ninja 400)"
+
     return f"""You are a professional, friendly, and helpful virtual assistant for MBServices (Motomarket).
 MBServices is a premium authorized motorcycle dealer and professional service workshop in Vietnam.
 Key Information:
@@ -50,18 +103,9 @@ Key Information:
 - Current Date and Time: {now_str} (Vietnam timezone, UTC+7). Use this to answer queries about the current time or day.
 Instructions & Handling Specific Scenarios:
 - [General]: Keep answers polite, brief, and highly informative. ALWAYS respond in ENGLISH, regardless of the language the user uses.
-- [Available Models]: Here is the list of motorcycles we currently sell. You MUST pick from this list when recommending:
-  1. Yamaha YZF-R3 (Sport)
-  2. Kawasaki Ninja 400 (Sport)
-  3. Ducati Panigale V4 (Superbike)
-  4. BMW R 1250 GS (Adventure)
-  5. Honda Gold Wing (Touring)
-  6. Suzuki SV650 (Naked)
-  7. Harley-Davidson Iron 883 (Cruiser)
-  8. Triumph Bonneville T120 (Classic)
-  9. KTM 390 Duke (Naked)
-  10. Royal Enfield Classic 350 (Classic)
-- [Rich Previews]: Whenever you mention a specific motorcycle model, you MUST format it exactly like this: `[PRODUCT:Model Name]`. For example: `[PRODUCT:KTM 390 Duke]` or `[PRODUCT:Honda Gold Wing]`. Our system will automatically convert this tag into a beautiful Shopee-style product card with images and prices!
+- [Available Models]: Here is the LIVE list of our current "Best Deals" based on real-time database data. You MUST pick from this list when recommending:
+{best_bikes_str}
+- [Rich Previews]: Whenever you mention a specific motorcycle model, you MUST format it exactly like this: `[PRODUCT:Model Name]`. For example: `[PRODUCT:{first_bike_name}]`. Our system will automatically convert this tag into a beautiful Shopee-style product card!
 - [Vague Recommendations]: If the user asks for a recommendation (even vaguely), YOU MUST IMMEDIATELY suggest exactly ONE specific model from our Available Models list using the `[PRODUCT:...]` tag. NEVER reply with only questions. Always give a product FIRST, then you may ask ONE short follow-up question.
 - [Handling Rejections/Other Options]: If the user says they don't like your suggestion or asks for another option, YOU MUST IMMEDIATELY suggest a DIFFERENT motorcycle model using the `[PRODUCT:...]` tag. DO NOT recommend the same bike twice. DO NOT ask questions before giving the new option.
 - [Force Choice]: If the user says "just pick 1 for me", "I don't care", or "infinite budget", YOU MUST pick ONE flagship model right away (e.g. `[PRODUCT:Ducati Panigale V4]`). NEVER ask for their budget or preferences in this case. Just pick one and be confident!
