@@ -19,8 +19,8 @@ WHERE name = 'MBServices Thu Dau Mot';
 UPDATE stores
 SET 
     address = N'Đường Lê Lợi, Phường Hòa Phú, TP. Bình Dương',
-    latitude = 11.0040,
-    longitude = 106.6850
+    latitude = 11.0528,
+    longitude = 106.6667
 WHERE name = 'MBServices Thanh Pho Moi';
 
 UPDATE stores

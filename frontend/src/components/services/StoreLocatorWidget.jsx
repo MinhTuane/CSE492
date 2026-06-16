@@ -10,14 +10,60 @@ const StoreLocatorWidget = ({ onStoreFound }) => {
   const [userCoords, setUserCoords] = useState(null);
 
   useEffect(() => {
-    // Try to load cached location/store
+    // Try to load cached location/store and refresh it from the backend
     const cachedStore = localStorage.getItem('nearestStore');
     const cachedCoords = localStorage.getItem('userCoords');
-    if (cachedStore && cachedCoords) {
-      const store = JSON.parse(cachedStore);
-      setNearestStore(store);
-      setUserCoords(JSON.parse(cachedCoords));
-      if (onStoreFound) onStoreFound(store);
+    
+    const parseAndSetCachedStore = () => {
+      if (cachedStore) {
+        try {
+          const store = JSON.parse(cachedStore);
+          setNearestStore(store);
+          if (onStoreFound) onStoreFound(store);
+          return store;
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    };
+
+    const initialStore = parseAndSetCachedStore();
+
+    if (cachedCoords) {
+      try {
+        const coords = JSON.parse(cachedCoords);
+        setUserCoords(coords);
+        
+        // Always fetch the freshest store details from DB using user coordinates
+        bookingService.getNearestStore(coords.lat, coords.lng)
+          .then((freshStore) => {
+            if (freshStore) {
+              setNearestStore(freshStore);
+              localStorage.setItem('nearestStore', JSON.stringify(freshStore));
+              if (onStoreFound) onStoreFound(freshStore);
+            }
+          })
+          .catch(err => {
+            console.error("Failed to refresh nearest store:", err);
+          });
+      } catch (e) {
+        console.error("Error parsing user coords:", e);
+      }
+    } else if (initialStore && initialStore.id) {
+      // If we don't have coords but have a cached store, refresh its details from the full store list
+      bookingService.getStores()
+        .then(stores => {
+          const freshStore = (stores || []).find(s => s.id === initialStore.id);
+          if (freshStore) {
+            setNearestStore(freshStore);
+            localStorage.setItem('nearestStore', JSON.stringify(freshStore));
+            if (onStoreFound) onStoreFound(freshStore);
+          }
+        })
+        .catch(err => {
+          console.error("Failed to refresh cached store by ID:", err);
+        });
     }
   }, [onStoreFound]);
 
