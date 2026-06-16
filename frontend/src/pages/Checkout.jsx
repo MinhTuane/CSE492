@@ -867,9 +867,19 @@ const Checkout = () => {
                   <div className="mb-6 pb-6 border-b">
                     <h3 className="font-bold mb-3">Payment Method</h3>
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">
-                        {paymentMethods.find(m => m.value === paymentData.paymentMethod)?.icon}
-                      </span>
+                      {paymentMethods.find(m => m.value === paymentData.paymentMethod)?.logoImg ? (
+                        <div className="w-10 h-10 flex items-center justify-center bg-white rounded-lg border border-gray-100 p-1 shadow-sm">
+                          <img 
+                            src={paymentMethods.find(m => m.value === paymentData.paymentMethod)?.logoImg} 
+                            alt="" 
+                            className="w-full h-full object-contain" 
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-2xl w-10 h-10 flex items-center justify-center">
+                          {paymentMethods.find(m => m.value === paymentData.paymentMethod)?.icon}
+                        </span>
+                      )}
                       <div>
                         <p className="font-semibold">
                           {paymentMethods.find(m => m.value === paymentData.paymentMethod)?.label}
