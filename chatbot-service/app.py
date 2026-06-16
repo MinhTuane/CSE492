@@ -149,7 +149,7 @@ def chat():
             try:
                 # Use Google Gemini Pro 2.5 / 1.5 Flash (ultra-fast, highly intelligent, and free-tier friendly)
                 client = genai.Client(api_key=gemini_key)
-                gemini_model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash") # Revert to working model
+                gemini_model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite") # Use lite version to save quota
                 
                 response_obj = client.models.generate_content(
                     model=gemini_model_name,
@@ -254,7 +254,7 @@ if __name__ == '__main__':
     print(" 🚀 MBSERVICES CHATBOT MICROSERVICE STARTED")
     print("="*50)
     print(f" 🟢 Port: 5000")
-    print(f" 🤖 Google Gemini Support:  {'ACTIVE (Using ' + os.getenv('GEMINI_MODEL', 'gemini-2.5-flash') + ')' if gemini_active else 'INACTIVE (Key missing or SDK not installed)'}")
+    print(f" 🤖 Google Gemini Support:  {'ACTIVE (Using ' + os.getenv('GEMINI_MODEL', 'gemini-2.5-flash-lite') + ')' if gemini_active else 'INACTIVE (Key missing or SDK not installed)'}")
     print(f" 🧠 OpenAI ChatGPT Support: {'ACTIVE (Using ' + os.getenv('OPENAI_MODEL', 'gpt-4o-mini') + ')' if openai_active else 'INACTIVE (Key missing or SDK not installed)'}")
     print(f" 📦 Rule-Based Fallback:    ACTIVE (bot.template)")
     print("="*50 + "\n")
