@@ -9,6 +9,9 @@ import { accessoryService } from '../services/accessory.service';
 import api from '../services/api';
 import { formatCurrency, getImageUrl, isStaff, isValidPhone } from '../utils/helpers';
 import toast from 'react-hot-toast';
+import vnpayLogo from '../assets/vnpay_logo.svg';
+import zalopayLogo from '../assets/zalopay_logo.png';
+import momoLogo from '../assets/momo_logo.png';
 
 const isPlaceholderEmail = (email) => typeof email === 'string' && email.endsWith('@mbservices.local');
 
@@ -388,6 +391,7 @@ const Checkout = () => {
       value: 'MOMO', 
       label: 'Momo E-Wallet', 
       icon: '🟣',
+      logoImg: momoLogo,
       description: 'Pay with Momo - Fast & Secure',
       logo: 'M'
     },
@@ -395,6 +399,7 @@ const Checkout = () => {
       value: 'ZALOPAY', 
       label: 'ZaloPay E-Wallet', 
       icon: '🔵',
+      logoImg: zalopayLogo,
       description: 'Pay with ZaloPay - Easy Payment',
       logo: 'Z'
     },
@@ -402,6 +407,7 @@ const Checkout = () => {
       value: 'VNPAY', 
       label: 'VNPay E-Wallet', 
       icon: '🔴',
+      logoImg: vnpayLogo,
       description: 'Pay with VNPay - National Payment Gateway',
       logo: 'V'
     },
@@ -756,7 +762,13 @@ const Checkout = () => {
                             })}
                             className="text-red-600 w-5 h-5"
                           />
-                          <div className="text-3xl">{method.icon}</div>
+                          {method.logoImg ? (
+                            <div className="w-12 h-12 flex items-center justify-center bg-white rounded-lg border border-gray-100 p-1 shadow-sm">
+                              <img src={method.logoImg} alt={method.label} className="w-full h-full object-contain" />
+                            </div>
+                          ) : (
+                            <div className="text-3xl w-12 h-12 flex items-center justify-center">{method.icon}</div>
+                          )}
                           <div className="flex-1">
                             <div className="font-semibold text-lg">{method.label}</div>
                             <div className="text-sm text-gray-600">{method.description}</div>
@@ -1219,21 +1231,21 @@ const Checkout = () => {
               <div className="border-t pt-4">
                 <p className="text-xs text-gray-500 mb-3">We accept:</p>
                 <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-purple-100 rounded p-2 text-center">
-                    <div className="text-2xl">🟣</div>
-                    <div className="text-xs font-semibold mt-1">Momo</div>
+                  <div className="bg-purple-50 border border-purple-100 rounded p-2 flex flex-col items-center justify-center min-h-[60px]">
+                    <img src={momoLogo} alt="Momo" className="h-6 object-contain" />
+                    <div className="text-[10px] font-semibold mt-1 text-purple-700">Momo</div>
                   </div>
-                  <div className="bg-blue-100 rounded p-2 text-center">
-                    <div className="text-2xl">🔵</div>
-                    <div className="text-xs font-semibold mt-1">ZaloPay</div>
+                  <div className="bg-blue-50 border border-blue-100 rounded p-2 flex flex-col items-center justify-center min-h-[60px]">
+                    <img src={zalopayLogo} alt="ZaloPay" className="h-6 object-contain" />
+                    <div className="text-[10px] font-semibold mt-1 text-blue-700">ZaloPay</div>
                   </div>
-                  <div className="bg-red-100 rounded p-2 text-center">
-                    <div className="text-2xl">🔴</div>
-                    <div className="text-xs font-semibold mt-1">VNPay</div>
+                  <div className="bg-red-50 border border-red-100 rounded p-2 flex flex-col items-center justify-center min-h-[60px]">
+                    <img src={vnpayLogo} alt="VNPay" className="h-6 object-contain" />
+                    <div className="text-[10px] font-semibold mt-1 text-red-700">VNPay</div>
                   </div>
-                  <div className="bg-gray-100 rounded p-2 text-center">
+                  <div className="bg-gray-50 border border-gray-100 rounded p-2 flex flex-col items-center justify-center min-h-[60px]">
                     <div className="text-2xl">💵</div>
-                    <div className="text-xs font-semibold mt-1">COD / CK</div>
+                    <div className="text-[10px] font-semibold mt-1 text-gray-700">COD / CK</div>
                   </div>
                 </div>
               </div>
