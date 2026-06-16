@@ -11,9 +11,9 @@ const ChatbotProductPreview = ({ keyword }) => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await motorcycleService.search({ keyword });
-        if (res && res.length > 0) {
-          setProduct(res[0]);
+        const res = await motorcycleService.searchPaged({ keyword }, 0, 1);
+        if (res && res.content && res.content.length > 0) {
+          setProduct(res.content[0]);
         }
       } catch (err) {
         console.error("Failed to fetch product preview", err);
