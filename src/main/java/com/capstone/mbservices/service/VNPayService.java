@@ -4,6 +4,7 @@ import com.capstone.mbservices.config.VNPayConfig;
 import com.capstone.mbservices.dto.response.VNPayResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
@@ -13,6 +14,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VNPayService {
 
     private final VNPayConfig vnPayConfig;
@@ -97,11 +99,17 @@ public class VNPayService {
         
         String queryUrl = query.toString();
         String secret = getSecretKey();
+        
+        log.info("[VNPAY-BUILD] Input amount={}, orderId={}, vnp_TmnCode={}, secretKeyLength={}", 
+                amount, orderId, vnp_TmnCode, secret != null ? secret.length() : 0);
+        log.info("[VNPAY-BUILD] params={}", vnp_Params);
+        
         String vnp_SecureHash = VNPayConfig.hmacSHA512(secret, hashData.toString());
-
 
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
         String paymentUrl = vnPayConfig.getVnp_PayUrl() + "?" + queryUrl;
+        
+        log.info("[VNPAY-BUILD] Generated paymentUrl: {}", paymentUrl);
         
         return VNPayResponse.builder()
                 .paymentUrl(paymentUrl)
