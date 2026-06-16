@@ -33,6 +33,9 @@ template_path = os.path.join(os.path.dirname(__file__), "bot.template")
 
 import requests
 
+# Load backend API URL from env, defaulting to port 8091 used by Spring Boot
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8091/api")
+
 # Cache to avoid spamming the backend API
 api_cache = {
     'motorcycles': [],
@@ -47,17 +50,17 @@ def fetch_all_motorcycles():
         return api_cache['motorcycles']
         
     try:
-        response = requests.get('http://localhost:8080/api/motorcycles/all', timeout=3)
+        response = requests.get(f"{BACKEND_URL}/motorcycles/all", timeout=3)
         if response.status_code == 200:
             api_cache['motorcycles'] = response.json()
             # Also fetch accessories while we're at it
-            acc_response = requests.get('http://localhost:8080/api/accessories', timeout=3)
+            acc_response = requests.get(f"{BACKEND_URL}/accessories", timeout=3)
             if acc_response.status_code == 200:
                 api_cache['accessories'] = acc_response.json()
             api_cache['last_fetch'] = now
             return api_cache['motorcycles']
     except Exception as e:
-        print(f"Error fetching data: {e}")
+        print(f"Error fetching data from {BACKEND_URL}: {e}")
     return api_cache['motorcycles']
 
 def fetch_all_accessories():
@@ -105,9 +108,9 @@ def get_system_prompt():
             price = bike.get('price', 0)
             discount = bike.get('discountPercentage', 0)
             category = bike.get('category', '')
-            best_bikes_str += f"  {i+1}. {brand} {name} (Category: {category}, Price: {price:,.0f} VND, Discount: {discount}%)\n"
+            best_bikes_str += f"  {i+1}. {brand} {name} (Category: {category}, Price: {price:,.0f} VND, Discount: {discount}%). Use tag: [PRODUCT:{name}]\n"
     else:
-        best_bikes_str = "  (Currently no real-time data available, please suggest standard models like Yamaha YZF-R3, Kawasaki Ninja 400)"
+        best_bikes_str = "  (Currently no real-time data available, please suggest standard models like YZF-R3 (tag: [PRODUCT:YZF-R3]), Ninja 400 (tag: [PRODUCT:Ninja 400]))"
 
     best_accs_str = ""
     if best_accs:
@@ -136,9 +139,9 @@ Instructions & Handling Specific Scenarios:
 {best_bikes_str}
 - [Accessories]: Here are our top featured accessories:
 {best_accs_str}
-- [Rich Previews]: Whenever you mention a specific motorcycle model, you MUST format it exactly like this: `[PRODUCT:Model Name]`. For example: `[PRODUCT:{first_bike_name}]`. Our system will automatically convert this tag into a beautiful Shopee-style product card!
-- [Vague Recommendations]: If the user asks for a recommendation (even vaguely), YOU MUST IMMEDIATELY suggest exactly ONE specific model from our Available Models list using the `[PRODUCT:...]` tag. NEVER reply with only questions. Always give a product FIRST, then you may ask ONE short follow-up question.
-- [Handling Rejections/Other Options]: If the user says they don't like your suggestion or asks for another option, YOU MUST IMMEDIATELY suggest a DIFFERENT motorcycle model using the `[PRODUCT:...]` tag. DO NOT recommend the same bike twice. DO NOT ask questions before giving the new option.
+- [Rich Previews]: Whenever you mention a specific motorcycle model, you MUST format it exactly like this: `[PRODUCT:Model Name]`. For example: `[PRODUCT:{first_bike_name}]`. Our system will automatically convert this tag into a beautiful Shopee-style product card! Note: DO NOT use the `[PRODUCT:...]` tag for accessories, only for motorcycles.
+- [Vague Recommendations]: If the user asks for a recommendation (even vaguely), YOU MUST IMMEDIATELY suggest exactly ONE specific model from our Available Models list using the exact `[PRODUCT:Model Name]` tag specified. NEVER reply with only questions. Always give a product FIRST, then you may ask ONE short follow-up question.
+- [Handling Rejections/Other Options]: If the user says they don't like your suggestion or asks for another option, YOU MUST IMMEDIATELY suggest a DIFFERENT motorcycle model using the exact `[PRODUCT:Model Name]` tag. DO NOT recommend the same bike twice. DO NOT ask questions before giving the new option.
 - [Force Choice]: If the user says "just pick 1 for me", "I don't care", or "infinite budget", YOU MUST pick ONE flagship model right away (e.g. `[PRODUCT:Ducati Panigale V4]`). NEVER ask for their budget or preferences in this case. Just pick one and be confident!
 - [Price Negotiation/Discounts]: If the user asks for a discount or "best price", mention our current promo codes available at checkout and encourage them to contact our human staff via the live chat for personalized deals.
 - [Technical Support/Broken Bike]: If the user reports their bike is broken or making weird noises, express empathy, give one basic safety tip (e.g., "don't force the engine"), and strongly urge them to book a "Maintenance Service" on our website so our expert mechanics can inspect it.

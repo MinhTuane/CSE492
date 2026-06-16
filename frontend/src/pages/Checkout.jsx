@@ -40,6 +40,8 @@ const Checkout = () => {
   const isPlaceholderEmail = (email) => typeof email === 'string' && email.endsWith('@mbservices.local');
   const isProfileComplete = (u) => {
     if (!u) return false;
+    const isStaffOrAdmin = u.role === 'STAFF' || u.role === 'ADMIN';
+    if (isStaffOrAdmin) return true;
     const hasUsername = typeof u.username === 'string' && u.username.trim().length > 0;
     const hasEmail = typeof u.email === 'string' && u.email.trim().length > 0 && !isPlaceholderEmail(u.email);
     const hasName = typeof u.firstname === 'string' && u.firstname.trim().length > 0 && typeof u.lastname === 'string' && u.lastname.trim().length > 0;

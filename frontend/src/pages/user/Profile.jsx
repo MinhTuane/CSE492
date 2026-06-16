@@ -86,7 +86,8 @@ const Profile = () => {
     !(typeof profile.phone === 'string' && /^[0-9]{10,11}$/.test(profile.phone)) ||
     !profile.address
   );
-  const showSetupWizard = !!profile && !setupDone && (needsUsername || needsEmail || needsPassword || needsPersonal);
+  const isStaffOrAdmin = profile?.role === 'STAFF' || profile?.role === 'ADMIN';
+  const showSetupWizard = !isStaffOrAdmin && !!profile && !setupDone && (needsUsername || needsEmail || needsPassword || needsPersonal);
   const isRedirectedFromCheckout = new URLSearchParams(location.search).get('next')?.includes('/checkout');
   
   const getMissingFields = () => {

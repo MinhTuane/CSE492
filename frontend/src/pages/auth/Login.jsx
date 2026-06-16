@@ -46,6 +46,19 @@ const Login = () => {
     }
   };
 
+  const checkNeedsSetup = (u) => {
+    if (!u) return false;
+    const isStaffOrAdmin = u.role === 'STAFF' || u.role === 'ADMIN';
+    if (isStaffOrAdmin) return false;
+    const isPlaceholderEmail = typeof u.email === 'string' && u.email.endsWith('@mbservices.local');
+    const hasLocal = u.authProvider === 'LOCAL' || u.hasLocalCredentials === true;
+    const hasName = !!u.firstname && !!u.lastname;
+    const hasPhone = typeof u.phone === 'string' && /^[0-9]{10,11}$/.test(u.phone);
+    const hasAddress = typeof u.address === 'string' && u.address.trim().length > 0;
+    const hasUsername = typeof u.username === 'string' && u.username.trim().length > 0;
+    return !hasUsername || isPlaceholderEmail || !hasName || !hasPhone || !hasAddress || !hasLocal;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -53,14 +66,7 @@ const Login = () => {
     try {
       const u = await login(formData);
       toast.success('Successfully logged in!');
-      const isPlaceholderEmail = typeof u?.email === 'string' && u.email.endsWith('@mbservices.local');
-      const hasLocal = u?.authProvider === 'LOCAL' || u?.hasLocalCredentials === true;
-      const hasName = !!u?.firstname && !!u?.lastname;
-      const hasPhone = typeof u?.phone === 'string' && /^[0-9]{10,11}$/.test(u.phone);
-      const hasAddress = typeof u?.address === 'string' && u.address.trim().length > 0;
-      const hasUsername = typeof u?.username === 'string' && u.username.trim().length > 0;
-      const needsSetup = !hasUsername || isPlaceholderEmail || !hasName || !hasPhone || !hasAddress || !hasLocal;
-      navigate(needsSetup ? '/profile?setup=1' : '/');
+      navigate(checkNeedsSetup(u) ? '/profile?setup=1' : '/');
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to login';
       setLoginError(errorMsg);
@@ -82,9 +88,9 @@ const Login = () => {
         toast.error('Google login failed: missing token. Check VITE_GOOGLE_CLIENT_ID and Authorized JavaScript origins (e.g. http://localhost:3001 for Vite dev).');
         return;
       }
-      await loginWithGoogle(idToken);
+      const u = await loginWithGoogle(idToken);
       toast.success('Successfully logged in with Google!');
-      navigate('/profile?setup=1');
+      navigate(checkNeedsSetup(u) ? '/profile?setup=1' : '/');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Google login failed');
     } finally {
@@ -102,9 +108,9 @@ const Login = () => {
     window.FB.login(function (response) {
       if (response.authResponse) {
         loginWithFacebook(response.authResponse.accessToken)
-          .then(() => {
+          .then((u) => {
             toast.success('Successfully logged in with Facebook!');
-            navigate('/profile?setup=1');
+            navigate(checkNeedsSetup(u) ? '/profile?setup=1' : '/');
           })
           .catch((error) => {
             toast.error(error.response?.data?.message || 'Facebook login failed');
