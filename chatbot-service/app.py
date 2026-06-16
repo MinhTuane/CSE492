@@ -17,10 +17,11 @@ try:
 except ImportError:
     pass
 
-# Try to import Google Generative AI (Gemini)
+# Try to import Google GenAI (New SDK)
 GEMINI_SUPPORTED = False
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
     GEMINI_SUPPORTED = True
 except ImportError:
     pass
@@ -147,15 +148,16 @@ def chat():
         if GEMINI_SUPPORTED and gemini_key and not is_dummy_gemini:
             try:
                 # Use Google Gemini Pro 2.5 / 1.5 Flash (ultra-fast, highly intelligent, and free-tier friendly)
-                genai.configure(api_key=gemini_key)
-                gemini_model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash") # or gemini-2.5-flash / gemini-2.5-pro
+                client = genai.Client(api_key=gemini_key)
+                gemini_model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash") # Use 1.5-flash to save quota
                 
-                model = genai.GenerativeModel(
-                    model_name=gemini_model_name,
-                    system_instruction=get_system_prompt()
+                response_obj = client.models.generate_content(
+                    model=gemini_model_name,
+                    contents=user_message,
+                    config=types.GenerateContentConfig(
+                        system_instruction=get_system_prompt()
+                    )
                 )
-                
-                response_obj = model.generate_content(user_message)
                 response = response_obj.text.strip()
                 
                 return jsonify({

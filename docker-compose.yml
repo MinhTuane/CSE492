@@ -54,7 +54,7 @@ services:
       - MOMO_RETURN_URL
       - MOMO_NOTIFY_URL
       - APP_FRONTEND_URL
-      - APP_CORS_ALLOWED_ORIGIN_PATTERNS=${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*,https://mbservices.io.vn}
+      - APP_CORS_ALLOWED_ORIGIN_PATTERNS=${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*,https://mbservices.io.vn,http://160.187.229.53:*}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
       db:

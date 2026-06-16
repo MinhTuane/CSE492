@@ -33,14 +33,16 @@ public class PasswordResetService {
      */
     @Transactional
     public void requestPasswordReset(String email) {
+        String processedEmail = email != null ? email.trim().toLowerCase() : "";
+        
         // Check if email is a placeholder (username-based account)
-        if (email.endsWith(PLACEHOLDER_EMAIL_DOMAIN)) {
+        if (processedEmail.endsWith(PLACEHOLDER_EMAIL_DOMAIN)) {
             throw new BadRequestException("Password reset is not available for username-based accounts. Please contact support.");
         }
         
-        java.util.Optional<User> userOpt = userRepository.findByEmail(email);
+        java.util.Optional<User> userOpt = userRepository.findByEmail(processedEmail);
         if (userOpt.isEmpty()) {
-            log.info("Password reset requested for non-existent email: {}", email);
+            log.info("Password reset requested for non-existent email: {}", processedEmail);
             return;
         }
         User user = userOpt.get();
