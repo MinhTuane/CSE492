@@ -149,7 +149,7 @@ def chat():
             try:
                 # Use Google Gemini Pro 2.5 / 1.5 Flash (ultra-fast, highly intelligent, and free-tier friendly)
                 client = genai.Client(api_key=gemini_key)
-                gemini_model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-8b") # Use 8b version to save quota
+                gemini_model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash") # Revert to working model
                 
                 response_obj = client.models.generate_content(
                     model=gemini_model_name,
@@ -228,6 +228,19 @@ def health():
         "gemini_active": gemini_active,
         "gemini_supported": GEMINI_SUPPORTED
     })
+@app.route('/models', methods=['GET'])
+def list_models():
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key or gemini_key.startswith("YOUR_"):
+        return jsonify({"error": "No valid Gemini API key found"})
+    try:
+        client = genai.Client(api_key=gemini_key)
+        models = client.models.list()
+        # Return all model names that have 'flash' in them
+        flash_models = [m.name for m in models if 'flash' in m.name.lower()]
+        return jsonify({"available_flash_models": flash_models, "all_models": [m.name for m in models]})
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
     # Print startup configuration summary
@@ -241,7 +254,7 @@ if __name__ == '__main__':
     print(" 🚀 MBSERVICES CHATBOT MICROSERVICE STARTED")
     print("="*50)
     print(f" 🟢 Port: 5000")
-    print(f" 🤖 Google Gemini Support:  {'ACTIVE (Using ' + os.getenv('GEMINI_MODEL', 'gemini-2.5-flash-8b') + ')' if gemini_active else 'INACTIVE (Key missing or SDK not installed)'}")
+    print(f" 🤖 Google Gemini Support:  {'ACTIVE (Using ' + os.getenv('GEMINI_MODEL', 'gemini-2.5-flash') + ')' if gemini_active else 'INACTIVE (Key missing or SDK not installed)'}")
     print(f" 🧠 OpenAI ChatGPT Support: {'ACTIVE (Using ' + os.getenv('OPENAI_MODEL', 'gpt-4o-mini') + ')' if openai_active else 'INACTIVE (Key missing or SDK not installed)'}")
     print(f" 📦 Rule-Based Fallback:    ACTIVE (bot.template)")
     print("="*50 + "\n")
