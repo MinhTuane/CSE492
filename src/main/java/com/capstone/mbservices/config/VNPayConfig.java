@@ -120,11 +120,15 @@ public class VNPayConfig {
         String ipAdress;
         try {
             ipAdress = request.getHeader("X-FORWARDED-FOR");
-            if (ipAdress == null) {
+            if (ipAdress == null || ipAdress.isEmpty()) {
                 ipAdress = request.getRemoteAddr();
+            } else {
+                if (ipAdress.contains(",")) {
+                    ipAdress = ipAdress.split(",")[0].trim();
+                }
             }
         } catch (Exception e) {
-            ipAdress = "Invalid IP:" + e.getMessage();
+            ipAdress = "127.0.0.1";
         }
         return ipAdress;
     }
