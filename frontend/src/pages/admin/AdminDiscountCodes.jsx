@@ -19,13 +19,12 @@ const AdminDiscountCodes = () => {
     maxUsages: '',
     isActive: true
   });
-
   const fetchDiscountCodes = async () => {
     try {
       setLoading(true);
       const res = await api.get('/discount-codes');
       setDiscountCodes(res.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to fetch discount codes');
     } finally {
       setLoading(false);
@@ -69,7 +68,7 @@ const AdminDiscountCodes = () => {
       await api.delete(`/discount-codes/${id}`);
       toast.success('Discount code deleted');
       fetchDiscountCodes();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete discount code');
     }
   };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CreditCard, Truck, Check, Lock, Smartphone, Tag, Store, Star, Plus, Trash2, AlertTriangle } from 'lucide-react';
 import useCartStore, { VIETNAM_PROVINCES } from '../store/cartStore';
@@ -7,52 +7,56 @@ import { orderService } from '../services/order.service';
 import { storeService } from '../services/store.service';
 import { accessoryService } from '../services/accessory.service';
 import api from '../services/api';
-import { formatCurrency, getImageUrl } from '../utils/helpers';
+import { formatCurrency, getImageUrl, isStaff, isValidPhone } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
+const isPlaceholderEmail = (email) => typeof email === 'string' && email.endsWith('@mbservices.local');
+
+const isProfileComplete = (u) => {
+  if (!u) return false;
+  if (isStaff(u)) return true;
+  const hasUsername = typeof u.username === 'string' && u.username.trim().length > 0;
+  const hasEmail = typeof u.email === 'string' && u.email.trim().length > 0 && !isPlaceholderEmail(u.email);
+  const hasName = typeof u.firstname === 'string' && u.firstname.trim().length > 0 && typeof u.lastname === 'string' && u.lastname.trim().length > 0;
+  const hasPhone = isValidPhone(u.phone);
+  const hasAddress = typeof u.address === 'string' && u.address.trim().length > 0;
+  const isSocial = u.authProvider && u.authProvider !== 'LOCAL';
+  const hasLocalCredentials = !isSocial || u.hasLocalCredentials === true;
+  return hasUsername && hasEmail && hasName && hasPhone && hasAddress && hasLocalCredentials;
+};
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { items, clearCart, getTotalAmount, addItem } = useCartStore();
+  const { items, clearCart, getTotalAmount } = useCartStore();
   const { user } = useAuthStore();
 
   const buyNowItem = location.state?.buyNowItem;
 
   // Robust parsing of direct Buy Now item or checkout entire cart items
-  const checkoutItems = buyNowItem ? [{
-    id: buyNowItem.id,
-    brand: buyNowItem.brand,
-    model: buyNowItem.model,
-    name: buyNowItem.name,
-    originalPrice: buyNowItem.price,
-    price: buyNowItem.discountPercentage > 0 
-      ? buyNowItem.price * (1 - buyNowItem.discountPercentage / 100) 
-      : buyNowItem.price,
-    discountPercentage: buyNowItem.discountPercentage || 0,
-    category: buyNowItem.category,
-    itemType: buyNowItem.itemType || 'motorcycle',
-    imageUrl: buyNowItem.imageUrl || buyNowItem.images?.[0],
-    quantity: 1,
-    stock: buyNowItem.stock || 0
-  }] : items;
-  
-  const isPlaceholderEmail = (email) => typeof email === 'string' && email.endsWith('@mbservices.local');
-  const isProfileComplete = (u) => {
-    if (!u) return false;
-    const isStaffOrAdmin = u.role === 'STAFF' || u.role === 'ADMIN';
-    if (isStaffOrAdmin) return true;
-    const hasUsername = typeof u.username === 'string' && u.username.trim().length > 0;
-    const hasEmail = typeof u.email === 'string' && u.email.trim().length > 0 && !isPlaceholderEmail(u.email);
-    const hasName = typeof u.firstname === 'string' && u.firstname.trim().length > 0 && typeof u.lastname === 'string' && u.lastname.trim().length > 0;
-    const hasPhone = typeof u.phone === 'string' && /^[0-9]{10,11}$/.test(u.phone);
-    const hasAddress = typeof u.address === 'string' && u.address.trim().length > 0;
-    const hasLocalCredentials = u.authProvider === 'LOCAL' || u.hasLocalCredentials === true;
-    return hasUsername && hasEmail && hasName && hasPhone && hasAddress && hasLocalCredentials;
-  };
+  const checkoutItems = useMemo(() => {
+    return buyNowItem ? [{
+      id: buyNowItem.id,
+      brand: buyNowItem.brand,
+      model: buyNowItem.model,
+      name: buyNowItem.name,
+      originalPrice: buyNowItem.price,
+      price: buyNowItem.discountPercentage > 0 
+        ? buyNowItem.price * (1 - buyNowItem.discountPercentage / 100) 
+        : buyNowItem.price,
+      discountPercentage: buyNowItem.discountPercentage || 0,
+      category: buyNowItem.category,
+      itemType: buyNowItem.itemType || 'motorcycle',
+      imageUrl: buyNowItem.imageUrl || buyNowItem.images?.[0],
+      quantity: 1,
+      stock: buyNowItem.stock || 0
+    }] : items;
+  }, [buyNowItem, items]);
 
   const [step, setStep] = useState(1); // 1: Shipping, 2: Payment, 3: Review
   const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const [shippingData, setShippingData] = useState({
     fullName: `${user?.firstname || ''} ${user?.lastname || ''}`.trim(),
@@ -76,24 +80,39 @@ const Checkout = () => {
   const [outOfStockItems, setOutOfStockItems] = useState([]);
 
   useEffect(() => {
-    if (user && !isProfileComplete(user)) {
-      const next = encodeURIComponent(location.pathname + location.search);
-      navigate(`/profile?setup=1&next=${next}`, { replace: true });
+    if (!user) {
+      navigate('/login');
       return;
     }
-    const fetchStores = async () => {
+
+    const verifyProfile = async () => {
       try {
+        const res = await api.get(`/users/profile/${user.id}`);
+        setProfile(res.data);
+        useAuthStore.getState().updateUser(res.data);
+        
+        if (!isProfileComplete(res.data)) {
+          const next = encodeURIComponent(location.pathname + location.search);
+          navigate(`/profile?setup=1&next=${next}`, { replace: true });
+          return;
+        }
+
+        // Fetch stores after profile is verified complete
         const data = await storeService.getAllStores();
         setStores(data);
         if (data.length > 0) {
           setShippingData(prev => ({ ...prev, storeId: data[0].id }));
         }
-      } catch {
-        toast.error('Failed to load stores');
+      } catch (err) {
+        console.error("Failed to verify user profile:", err);
+        toast.error('Failed to verify profile details');
+      } finally {
+        setProfileLoading(false);
       }
     };
-    fetchStores();
-  }, [user, location.pathname, location.search, navigate]);
+
+    verifyProfile();
+  }, [user, navigate, location.pathname, location.search]);
 
   // Check branch inventory for motorcycles in cart/checkout
   useEffect(() => {
@@ -161,7 +180,7 @@ const Checkout = () => {
     if (checkoutItems.length > 0) {
       loadRecommendedAccessories();
     }
-  }, [items, buyNowItem?.id, selectedAccessories.length]);
+  }, [checkoutItems, selectedAccessories]);
 
   const [paymentData, setPaymentData] = useState({
     paymentMethod: 'MOMO',
@@ -191,12 +210,7 @@ const Checkout = () => {
     }
   }
 
-  const [profile, setProfile] = useState(null);
-  useEffect(() => {
-    if (user?.id) {
-      api.get(`/users/profile/${user.id}`).then(res => setProfile(res.data)).catch(console.error);
-    }
-  }, [user?.id]);
+  // Profile is fetched and synced on mount inside the first useEffect hook
 
   let tierDiscountAmount = 0;
   if (profile?.membershipTier) {
@@ -352,6 +366,17 @@ const Checkout = () => {
       setLoading(false);
     }
   };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Verifying your profile details...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (checkoutItems.length === 0) {
     navigate('/cart');

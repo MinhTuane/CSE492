@@ -38,7 +38,7 @@ const SosButton = () => {
           setIsOpen(false);
           setPhone('');
           setDescription('');
-        } catch (error) {
+        } catch {
           toast.error('Failed to send SOS request. Please call hotline directly: 1900-MOTO');
         } finally {
           setLoading(false);

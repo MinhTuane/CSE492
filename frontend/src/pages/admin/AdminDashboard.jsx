@@ -23,33 +23,36 @@ const STATUS_STYLES = {
   CANCELLED: 'bg-red-100 text-red-700 border border-red-200',
 };
 
-const KpiCard = ({ title, value, icon: Icon, gradient, change, changeLabel, onClick }) => (
-  <div
-    onClick={onClick}
-    className={`relative overflow-hidden rounded-2xl p-6 text-white cursor-pointer group transition-transform hover:-translate-y-1 hover:shadow-xl ${gradient}`}
-  >
-    <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-110 transition-transform" />
-    <div className="absolute -right-2 -bottom-6 w-32 h-32 rounded-full bg-white/5" />
-    <div className="relative z-10">
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
-          <Icon className="w-5 h-5" />
-        </div>
-        {change !== undefined && (
-          <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${
-            change >= 0 ? 'bg-green-400/20 text-green-100' : 'bg-red-400/20 text-red-100'
-          }`}>
-            {change >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-            {Math.abs(change)}%
+const KpiCard = ({ title, value, icon, gradient, change, changeLabel, onClick }) => {
+  const CardIcon = icon;
+  return (
+    <div
+      onClick={onClick}
+      className={`relative overflow-hidden rounded-2xl p-6 text-white cursor-pointer group transition-transform hover:-translate-y-1 hover:shadow-xl ${gradient}`}
+    >
+      <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-110 transition-transform" />
+      <div className="absolute -right-2 -bottom-6 w-32 h-32 rounded-full bg-white/5" />
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-4">
+          <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+            <CardIcon className="w-5 h-5" />
           </div>
-        )}
+          {change !== undefined && (
+            <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${
+              change >= 0 ? 'bg-green-400/20 text-green-100' : 'bg-red-400/20 text-red-100'
+            }`}>
+              {change >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+              {Math.abs(change)}%
+            </div>
+          )}
+        </div>
+        <p className="text-white/70 text-sm font-medium mb-1">{title}</p>
+        <p className="text-2xl font-bold tracking-tight">{value}</p>
+        {changeLabel && <p className="text-white/60 text-xs mt-1">{changeLabel}</p>}
       </div>
-      <p className="text-white/70 text-sm font-medium mb-1">{title}</p>
-      <p className="text-2xl font-bold tracking-tight">{value}</p>
-      {changeLabel && <p className="text-white/60 text-xs mt-1">{changeLabel}</p>}
     </div>
-  </div>
-);
+  );
+};
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -362,18 +365,21 @@ const AdminDashboard = () => {
                   { label: 'Manage Users', icon: Users, color: 'text-rose-600 bg-rose-50', path: '/admin/users' },
                   { label: 'Services', icon: Wrench, color: 'text-amber-600 bg-amber-50', path: '/admin/services' },
                   { label: 'Forum', icon: Activity, color: 'text-indigo-600 bg-indigo-50', path: '/admin/forum' },
-                ].map(({ label, icon: Icon, color, path }) => (
-                  <button
-                    key={label}
-                    onClick={() => navigate(path)}
-                    className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-600 text-center">{label}</span>
-                  </button>
-                ))}
+                ].map(({ label, icon, color, path }) => {
+                  const ActionIcon = icon;
+                  return (
+                    <button
+                      key={label}
+                      onClick={() => navigate(path)}
+                      className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                    >
+                      <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                        <ActionIcon className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-semibold text-gray-600 text-center">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

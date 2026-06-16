@@ -24,7 +24,7 @@ export const connectWebSocket = (onMessageReceived) => {
     heartbeatOutgoing: 4000,
   });
 
-  stompClient.onConnect = function (frame) {
+  stompClient.onConnect = function () {
     const user = useAuthStore.getState().user;
     
     if (user?.role === 'ADMIN') {

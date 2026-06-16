@@ -29,7 +29,6 @@ const MotorcycleCard = ({
 
   useEffect(() => {
     if (!isHovered || images.length <= 1) {
-      setActiveImageIndex(0);
       return;
     }
 
@@ -44,7 +43,10 @@ const MotorcycleCard = ({
     <div
       className={`card overflow-hidden group hover:shadow-2xl transition-all duration-300 animate-slide-in-up ${animationDelay}`}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setActiveImageIndex(0);
+      }}
     >
       <Link to={`/motorcycles/${motorcycle.id}`}>
         <div className="relative h-56 overflow-hidden bg-gray-100">
@@ -203,7 +205,7 @@ const MotorcycleList = () => {
   });
 
   const { addItem } = useCartStore();
-  const { items: wishlistItems, addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
 
   const toggleWishlist = (e, motorcycle) => {
     e.preventDefault();

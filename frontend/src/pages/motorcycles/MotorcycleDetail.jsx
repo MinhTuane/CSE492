@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { motorcycleService } from '../../services/motorcycle.service';
 import { reviewService } from '../../services/review.service';
-import { accessoryService } from '../../services/accessory.service';
 import api from '../../services/api';
 import { formatCurrency, cleanMotorcycleData, getImageUrl } from '../../utils/helpers';
 import useCartStore from '../../store/cartStore';
@@ -27,7 +26,7 @@ const MotorcycleDetail = () => {
   const navigate = useNavigate();
   const { addItem } = useCartStore();
   const { isAuthenticated, user } = useAuthStore();
-  const { items: wishlistItems, addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
   
   const [motorcycle, setMotorcycle] = useState(null);
   const [reviews, setReviews] = useState([]);

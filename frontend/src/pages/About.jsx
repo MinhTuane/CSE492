@@ -1,5 +1,4 @@
 import { Award, ShieldCheck, Heart, Clock, MapPin, Users, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { getImageUrl } from '../utils/helpers';
 
 const About = () => {
   const stats = [

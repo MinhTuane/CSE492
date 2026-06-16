@@ -3,7 +3,7 @@ import { User, Mail, Phone, MapPin, Calendar, Shield, Save, X, KeyRound, Shoppin
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
 import { userService } from '../../services/user.service';
-import { getInitials } from '../../utils/helpers';
+import { getInitials, isStaff, isValidPhone, cleanPhone } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
 const Profile = () => {
@@ -83,10 +83,10 @@ const Profile = () => {
   const needsPersonal = !!profile && (
     !profile.firstname ||
     !profile.lastname ||
-    !(typeof profile.phone === 'string' && /^[0-9]{10,11}$/.test(profile.phone)) ||
+    !isValidPhone(profile.phone) ||
     !profile.address
   );
-  const isStaffOrAdmin = profile?.role === 'STAFF' || profile?.role === 'ADMIN';
+  const isStaffOrAdmin = isStaff(profile);
   const showSetupWizard = !isStaffOrAdmin && !!profile && !setupDone && (needsUsername || needsEmail || needsPassword || needsPersonal);
   const isRedirectedFromCheckout = new URLSearchParams(location.search).get('next')?.includes('/checkout');
   
@@ -100,7 +100,7 @@ const Profile = () => {
     if (!profile.lastname) list.push({ field: 'lastname', label: 'Last name is missing' });
     if (!profile.phone) {
       list.push({ field: 'phone', label: 'Phone number is missing' });
-    } else if (!/^[0-9]{10,11}$/.test(profile.phone)) {
+    } else if (!isValidPhone(profile.phone)) {
       list.push({ field: 'phone', label: 'Phone number format is incorrect (must be 10-11 digits)' });
     }
     if (!profile.address) list.push({ field: 'address', label: 'Shipping address is missing' });
@@ -115,7 +115,15 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      const updated = await userService.updateProfile(user.id, formData);
+      if (formData.phone && !isValidPhone(formData.phone)) {
+        toast.error('Phone number format is incorrect (must be 10-11 digits)');
+        return;
+      }
+      const cleanedFormData = {
+        ...formData,
+        phone: formData.phone ? cleanPhone(formData.phone) : ''
+      };
+      const updated = await userService.updateProfile(user.id, cleanedFormData);
       setProfile(updated);
       setEditing(false);
       updateUser({ ...user, firstname: updated.firstname, lastname: updated.lastname, phone: updated.phone, address: updated.address });
@@ -197,12 +205,16 @@ const Profile = () => {
         return;
       }
       
-      const phoneOk = typeof formData.phone === 'string' && /^[0-9]{10,11}$/.test(formData.phone);
+      const phoneOk = isValidPhone(formData.phone);
       if (!formData.firstname || !formData.lastname || !phoneOk || !formData.address) {
         toast.error('Please fill firstname, lastname, phone (10-11 digits), and address');
         return;
       }
-      const updated = await userService.updateProfile(user.id, formData);
+      const cleanedFormData = {
+        ...formData,
+        phone: cleanPhone(formData.phone)
+      };
+      const updated = await userService.updateProfile(user.id, cleanedFormData);
       setProfile(updated);
       updateUser({ ...user, firstname: updated.firstname, lastname: updated.lastname, phone: updated.phone, address: updated.address, username: updated.username, email: updated.email, authProvider: updated.authProvider, hasLocalCredentials: updated.hasLocalCredentials });
       setSetupDone(true);
@@ -423,7 +435,7 @@ const Profile = () => {
                       type="text"
                       value={formData.phone}
                       onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                      className={`input w-full ${(!formData.phone || !/^[0-9]{10,11}$/.test(formData.phone)) ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
+                      className={`input w-full ${(!formData.phone || !isValidPhone(formData.phone)) ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50/10' : ''}`}
                       placeholder="Phone (10-11 digits)"
                     />
                     <input

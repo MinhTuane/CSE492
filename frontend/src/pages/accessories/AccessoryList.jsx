@@ -22,7 +22,7 @@ const AccessoryList = () => {
         const data = await accessoryService.searchPaged(keyword, page, 12);
         setAccessories(data.content);
         setTotalPages(data.totalPages);
-      } catch (error) {
+      } catch {
         toast.error('Failed to load accessories');
       } finally {
         setLoading(false);

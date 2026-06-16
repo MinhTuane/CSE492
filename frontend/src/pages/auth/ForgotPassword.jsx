@@ -17,7 +17,7 @@ const ForgotPassword = () => {
       const response = await authService.requestPasswordReset(email);
       toast.success(response.message || 'Password reset link sent to your email');
       setSubmitted(true);
-    } catch (error) {
+    } catch {
       // Show generic message for security (don't reveal if email exists)
       toast.success('If an account exists with this email, a password reset link has been sent.');
       setSubmitted(true);

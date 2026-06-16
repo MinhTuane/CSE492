@@ -257,28 +257,38 @@ def chat():
         gemini_key = os.getenv("GEMINI_API_KEY")
         is_dummy_gemini = not gemini_key or gemini_key.startswith("YOUR_") or "your" in gemini_key.lower()
         if GEMINI_SUPPORTED and gemini_key and not is_dummy_gemini:
-            try:
-                # Use Google Gemini Pro 2.5 / 1.5 Flash (ultra-fast, highly intelligent, and free-tier friendly)
-                client = genai.Client(api_key=gemini_key)
-                gemini_model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash") # Use gemini-2.0-flash as it is available in the region
+            # Cascading fallback model list
+            fallback_models = ["gemini-2.5-flash-lite", "gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.0-flash"]
+            default_model = os.getenv("GEMINI_MODEL")
+            if default_model:
+                fallback_models = [default_model] + [m for m in fallback_models if m != default_model]
                 
-                response_obj = client.models.generate_content(
-                    model=gemini_model_name,
-                    contents=gemini_contents,
-                    config=types.GenerateContentConfig(
-                        system_instruction=get_system_prompt()
+            client = genai.Client(api_key=gemini_key)
+            last_error = None
+            
+            for model_name in fallback_models:
+                try:
+                    response_obj = client.models.generate_content(
+                        model=model_name,
+                        contents=gemini_contents,
+                        config=types.GenerateContentConfig(
+                            system_instruction=get_system_prompt()
+                        )
                     )
-                )
-                response = response_obj.text.strip()
-                
-                return jsonify({
-                    "response": response,
-                    "status": "success",
-                    "model_used": gemini_model_name
-                })
-            except Exception as gemini_error:
-                app.logger.error(f"Gemini API error: {str(gemini_error)}")
-                # Fall back to OpenAI or template if Gemini fails
+                    response = response_obj.text.strip()
+                    
+                    return jsonify({
+                        "response": response,
+                        "status": "success",
+                        "model_used": model_name
+                    })
+                except Exception as gemini_error:
+                    app.logger.warning(f"Gemini model {model_name} failed: {str(gemini_error)}")
+                    last_error = gemini_error
+                    continue
+            
+            if last_error:
+                app.logger.error(f"All Gemini models failed. Last error: {str(last_error)}")
 
         # 2. Check if OpenAI is configured
         openai_key = os.getenv("OPENAI_API_KEY")

@@ -50,7 +50,7 @@ const AdminInventory = () => {
       const data = await adminService.getStoreInventory(storeId);
       setInventory(data);
       setModifiedStocks({}); // Reset modifications when changing store
-    } catch (error) {
+    } catch {
       toast.error('Failed to load store inventory');
     } finally {
       setLoading(false);

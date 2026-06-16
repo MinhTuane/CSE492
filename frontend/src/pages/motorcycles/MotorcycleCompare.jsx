@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { X, Plus, ArrowRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { comparisonService } from '../../services/comparison.service';
@@ -51,15 +51,7 @@ const MotorcycleCompare = () => {
     }
   };
 
-  
-
-  useEffect(() => {
-    if (showAddDialog) {
-      searchMotorcycles(currentPage);
-    }
-  }, [showAddDialog, searchQuery, currentPage]);
-
-  const searchMotorcycles = async (page = 0) => {
+  const searchMotorcycles = useCallback(async (page = 0) => {
     setSearching(true);
     try {
       const res = await motorcycleService.searchPaged({
@@ -97,7 +89,13 @@ const MotorcycleCompare = () => {
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery, motorcycles, referenceMotorcycle]);
+
+  useEffect(() => {
+    if (showAddDialog) {
+      searchMotorcycles(currentPage);
+    }
+  }, [showAddDialog, currentPage, searchMotorcycles]);
 
   const handleRemove = (motorcycleId) => {
     const newIds = motorcycles

@@ -4,6 +4,7 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
+import { isStaff, isValidPhone } from '../../utils/helpers';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -48,12 +49,12 @@ const Login = () => {
 
   const checkNeedsSetup = (u) => {
     if (!u) return false;
-    const isStaffOrAdmin = u.role === 'STAFF' || u.role === 'ADMIN';
-    if (isStaffOrAdmin) return false;
+    if (isStaff(u)) return false;
     const isPlaceholderEmail = typeof u.email === 'string' && u.email.endsWith('@mbservices.local');
-    const hasLocal = u.authProvider === 'LOCAL' || u.hasLocalCredentials === true;
+    const isSocial = u.authProvider && u.authProvider !== 'LOCAL';
+    const hasLocal = !isSocial || u.hasLocalCredentials === true;
     const hasName = !!u.firstname && !!u.lastname;
-    const hasPhone = typeof u.phone === 'string' && /^[0-9]{10,11}$/.test(u.phone);
+    const hasPhone = isValidPhone(u.phone);
     const hasAddress = typeof u.address === 'string' && u.address.trim().length > 0;
     const hasUsername = typeof u.username === 'string' && u.username.trim().length > 0;
     return !hasUsername || isPlaceholderEmail || !hasName || !hasPhone || !hasAddress || !hasLocal;

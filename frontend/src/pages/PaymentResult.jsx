@@ -12,9 +12,7 @@ const PaymentResult = () => {
   useEffect(() => {
     const processPaymentResult = async () => {
       const paramsObj = Object.fromEntries([...searchParams.entries()]);
-      // VNPay Params
       const vnp_ResponseCode = searchParams.get('vnp_ResponseCode');
-      const vnp_TxnRef = searchParams.get('vnp_TxnRef');
 
       // ZaloPay Params
       const apptransid = searchParams.get('apptransid');
@@ -31,7 +29,7 @@ const PaymentResult = () => {
             await orderService.verifyVNPay(paramsObj);
             setStatus('success');
             toast.success('Payment successful!');
-          } catch (error) {
+          } catch {
             setStatus('failed');
             toast.error('Failed to update order status');
           }
@@ -46,7 +44,7 @@ const PaymentResult = () => {
             await orderService.verifyZaloPay(apptransid);
             setStatus('success');
             toast.success('Payment successful!');
-          } catch (error) {
+          } catch {
             setStatus('failed');
             toast.error('Failed to update order status');
           }
@@ -71,7 +69,7 @@ const PaymentResult = () => {
             }
             setStatus('failed');
             toast.error('Payment is pending confirmation');
-          } catch (error) {
+          } catch {
             setStatus('failed');
             toast.error('Failed to update order status');
           }

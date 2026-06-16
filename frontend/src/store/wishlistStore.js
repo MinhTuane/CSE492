@@ -8,7 +8,7 @@ const getCurrentUserId = () => {
       const user = JSON.parse(userStr);
       return user?.id || null;
     }
-  } catch (e) {
+  } catch {
     return null;
   }
   return null;

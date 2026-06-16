@@ -154,7 +154,6 @@ const AnimatedCounter = ({ end, suffix = '', duration = 2000 }) => {
 // ═══════════════════════════════════════════════════════════════════
 const Home = () => {
   const [featuredMotorcycles, setFeaturedMotorcycles] = useState([]);
-  const [heroMotorcycles, setHeroMotorcycles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0); // forces Ken Burns restart
@@ -170,13 +169,10 @@ const Home = () => {
       const data = await motorcycleService.searchPaged({ status: 'AVAILABLE' }, 0, 8, 'createAt,desc');
       const cleanData = cleanMotorcycleData(data.content || []);
       setFeaturedMotorcycles(cleanData);
-      // Pick first 4 for hero slideshow
-      setHeroMotorcycles(cleanData.slice(0, 4));
     } catch (error) {
       console.error('Failed to load motorcycles:', error);
       toast.error('Failed to load motorcycles');
       setFeaturedMotorcycles([]);
-      setHeroMotorcycles([]);
     } finally {
       setLoading(false);
     }

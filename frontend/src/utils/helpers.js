@@ -103,10 +103,21 @@ export const isValidEmail = (email) => {
   return re.test(email);
 };
 
+// Clean phone number (strip spaces, symbols, handle +84)
+export const cleanPhone = (phone) => {
+  if (typeof phone !== 'string') return '';
+  let cleaned = phone.replace(/[\s\-()+]/g, '');
+  if (cleaned.startsWith('84') && cleaned.length > 9) {
+    cleaned = '0' + cleaned.substring(2);
+  }
+  return cleaned;
+};
+
 // Validate phone
 export const isValidPhone = (phone) => {
+  const cleaned = cleanPhone(phone);
   const re = /^[0-9]{10,11}$/;
-  return re.test(phone);
+  return re.test(cleaned);
 };
 
 // Generate random ID

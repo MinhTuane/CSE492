@@ -164,18 +164,21 @@ const Forum = () => {
       <div className="container-custom py-8">
         {/* Tab Navigation */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-          {POST_TYPES.map(({ id, label, icon: Icon, active }) => (
-            <button
-              key={id}
-              onClick={() => { setActiveTab(id); setSelectedCategory('all'); }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-                activeTab === id ? active : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {label}
-            </button>
-          ))}
+          {POST_TYPES.map((type) => {
+            const PostIcon = type.icon;
+            return (
+              <button
+                key={type.id}
+                onClick={() => { setActiveTab(type.id); setSelectedCategory('all'); }}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                  activeTab === type.id ? type.active : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                <PostIcon className="w-4 h-4" />
+                {type.label}
+              </button>
+            );
+          })}
           <button
             onClick={() => { if (!isAuthenticated) { toast.error('Please login first'); navigate('/login'); return; } setShowNewPost(true); }}
             className="ml-auto flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors"
