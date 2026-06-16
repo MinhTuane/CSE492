@@ -224,6 +224,14 @@ public class AdminController {
         return ResponseEntity.ok(adminService.setStoreContract(storeId, years));
     }
 
+    @PutMapping("/stores/{storeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<Store> updateStore(
+            @PathVariable String storeId,
+            @RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(adminService.updateStore(storeId, body));
+    }
+
     @PatchMapping("/users/{userId}/role")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<User> updateUserRole(

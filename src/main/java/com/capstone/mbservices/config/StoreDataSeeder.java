@@ -24,10 +24,14 @@ public class StoreDataSeeder implements CommandLineRunner {
     }
 
     private void seedStores() {
+        // Store seeding is handled by DataSeeder.java (4 Binh Duong branches).
+        // This seeder is disabled to avoid creating duplicate/incorrect store records.
         if (storeRepository.count() > 0) {
             log.info("Stores already seeded. Skipping...");
             return;
         }
+        // Do not seed here - DataSeeder handles the canonical store list.
+        log.info("StoreDataSeeder: skipped (DataSeeder manages store data).");
 
         log.info("Seeding initial store locations...");
 

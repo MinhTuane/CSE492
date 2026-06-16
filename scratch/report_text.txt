@@ -1,0 +1,573 @@
+EASTERN INTERNATIONAL UNIVERSITY
+SCHOOL OF COMPUTING AND INFORMATION TECHNOLOGY
+MOTOMARKET – Motorcycle Marketplace and Service Hub
+Pham Minh Tuan - 1831200043 
+Software Engineering
+December, 2025 
+EASTERN INTERNATIONAL UNIVERSITY
+SCHOOL OF COMPUTING AND INFORMATION TECHNOLOGY
+CAPSTONE PROJECTS 
+ABSTRACT 
+The motorcycle retail and after-sales services industry continues to demand platforms capable of delivering seamless, end-to-end digital experiences spanning commerce, service booking, community interaction, and intelligent customer assistance. This Phase 3 report presents the finalization and production deployment of MotoMarket, a comprehensive web-based motorcycle marketplace and service hub, marking the culmination of a three-phase Capstone project. Phase 1 established the system's conceptual and analytical foundation through requirements analysis, system modeling, and high-fidelity UI prototyping, selecting a technology stack of React, Java Spring Boot, SQL Server, and Cloudinary. Phase 2 delivered a functional prototype operationalizing that architecture — implementing JWT-based authentication, a motorcycle catalog with search and comparison, order management, test ride and maintenance booking, a community forum, and an administrative dashboard — all validated within a development environment. However, Phase 2 intentionally deferred payment gateway integration, OAuth-based login, map functionality, email notifications, deployment automation, and user interface refinements to Phase 3.
+Phase 3 addresses these deferred capabilities and significantly expands the platform's scope to achieve production readiness. Google OAuth 2.0 was integrated to streamline user onboarding, with a mandatory profile completion workflow enforced upon first sign-in. A full Accessories marketplace was introduced alongside a dedicated administrative CRUD panel, broadening the platform's commercial offering beyond motorcycles. The VNPay payment gateway was successfully integrated, enabling complete transactional flows within the system. The order pipeline was enhanced to support an optional license plate registration service bundled at checkout. Automated email notifications were implemented and delivered via Gmail SMTP, covering key user lifecycle events including order confirmations, test ride and maintenance booking confirmations, staff assignment notifications, and password reset requests. The community Forum was redesigned for a more professional and structured experience. The Home and About pages were rebuilt with modern visual standards to reinforce brand credibility. The Admin Dashboard was substantially overhauled, introducing branch-specific performance charts with a dynamic store-selector dropdown, enabling franchise-level operational monitoring. An AI-powered chatbot service — backed by the Google Gemini API — was integrated to handle real-time customer inquiries, with unresolved queries escalated to staff and administrator dashboards. Google Maps was embedded to guide customers to their nearest branch.
+On the infrastructure side, the application was containerized using Docker, deployed to a Virtual Private Server (VPS), and exposed through NGINX configured as a reverse proxy with full HTTPS/TLS termination. A custom domain name was registered and mapped to the deployment, making MotoMarket publicly accessible. Facebook OAuth and additional domestic payment gateways — including ZaloPay, MoMo, and direct bank transfer — remain as planned future work due to API access and compliance constraints, alongside mobile application development, push notification infrastructure, and advanced analytics capabilities.
+Keywords: MotoMarket, Motorcycle Marketplace, Java Spring Boot, React, VNPay, Google OAuth, Email Notification, Gmail SMTP, Gemini AI Chatbot, Docker, NGINX, HTTPS, Accessories, Google Maps, Production Deployment, JWT Authentication, Branch Analytics.
+ACKNOWLEDGEMENT
+I express my deepest gratitude to Mr. Dang Pham Huu Thao, my supervisor, for his invaluable guidance, constructive criticism, and steadfast support throughout Capstone Project Phase 2. His expertise and timely recommendations were instrumental in refining the research direction, validating architectural decisions, and organizing the implementation plan with rigor and clarity.
+I am sincerely thankful to my peers and classmates for their moral support, insightful critiques, and engaging discussions. Their perspectives helped strengthen the design rationale, improve the usability of the system, and ensure that the evaluation considered multiple stakeholder viewpoints.
+Finally, I extend heartfelt thanks to my family and friends for their constant encouragement, patience, and confidence in my abilities. Their support provided the motivation and resilience required to complete this implementation phase. This acknowledgement would be incomplete without recognizing all who contributed, in various ways, to the successful realization of Phase 2.
+TABLE OF CONTENTS 
+ABSTRACTi
+ACKNOWLEDGEMENTiii
+TABLE OF CONTENTSiv
+LIST OF FIGURESvi
+LIST OF ABBREVIATIONSvii
+Chapter 1. Introduction1
+1.1. Motivation1
+1.2. Project Overview2
+Chapter 2. Related Work5
+2.1. Community Forums & Enthusiast Platforms5
+2.2. Existing Motorcycle Trading Platforms5
+2.3. Technology Stack Service Booking and Management Platforms6
+2.4. Technology Framework Implementations in Similar Projects6
+2.5. Gap Analysis and Research Contribution7
+Chapter 3. Proposed Approach, Analysis, Design, Implementation9
+3.1. Analysis Phase9
+3.2. Design Phase9
+3.3. Framework and Technology Selection10
+Chapter 4. Results And Discussion15
+4.1. Architectural Overview15
+4.2. Backend Design15
+4.3. Data Model Design16
+4.4. Frontend and User Interface Design25
+4.5 Limitations and Future Considerations26
+4.6. User Interface Implementation27
+4.7. Discussion39
+Chapter 5. Conclusion and Future Works44
+5.1. Conclusion44
+5.2. Future Work45
+References50
+LIST OF FIGURES
+Figure 1: React logo13
+Figure 2: Spring boot logo14
+Figure 3: Sql server logo15
+Figure 4:Cloudinary logo16
+Figure 5: Book test ride sequence diagram20
+Figure 6: Purchase motorbike sequence diagram21
+Figure 7: Post in forum sequence diagram22
+Figure 8: Admin upload motorcycle sequence diagran23
+Figure 9: Usecase diagram25
+Figure 10: Class diagram26
+Figure 11: Home page33
+Figure 12: Motorcycle page35
+Figure 13: Service page38
+Figure 14: Forum page38
+Figure 15: Post page39
+Figure 16: Contact page40
+Figure 17: Admin dashboard41
+Figure 18: Admin manage motorcycles42
+Figure 19: Admin order43
+Figure 20: Admin user43
+Figure 21: Admin review44
+Figure 22: Admin booking45
+Figure 23: Admin service45
+Figure 24: Admin forum46
+LIST OF ABBREVIATIONS
+UIUser Interface
+URLUniform Resource Locator
+IT Information Technology
+APIApplication Programming Interface
+HTTPHypertext Transfer Protocol
+UXUser Experience
+DOMDocument Object Model
+HTMLHypertext Markup Language
+JSXJavaScript XML
+CSSCascading Style Sheets
+CDNContent Delivery Network
+JWTJSON Web Token
+JPAJava Persistence API
+CRUDCreate, Read, Update, Delete
+REST/RESTfulRepresentational State Transfer
+SQLStructured Query Language
+CORSCross-Origin Resource Sharing
+RDBMSRelational Database Management System
+MFAMulti-Factor AuthenticationPSPPayment Service ProviderCAGRCompound Annual Growth RateUSDUnited States DollarCSVComma-Separated ValuesSPASingle-Page Application
+BCryptBlowfish Crypt
+SMTPSimple Mail Transfer Protocol
+PCIPayment Card IndustrySMSShort Message Service
+CDNContent Delivery Network
+HSTSHTTP Strict Transport Security
+CSPContent Security Policy
+Chapter 1. Introduction
+1.1. Motivation
+The motorcycle industry faces significant digital fragmentation that creates inefficiencies for both consumers and service providers. Research indicates that 81% of motorcycle parts consumers favor specialty websites such as RevZilla and Cycle Gear for their shopping needs, while 75% also choose traditional local dealerships as their go-to for parts purchases [22]. This demonstrates that consumers currently must navigate multiple disconnected platforms to complete basic ownership activities: separate websites for purchasing motorcycles, booking maintenance services, and engaging with community forums — none of which communicate with each other.
+Community-driven discussion plays a central role in purchasing decisions within the motorcycle market. Word-of-mouth and peer recommendations, facilitated through forums and social platforms, significantly shape brand perceptions and influence buyer behavior [22]. However, this community knowledge is currently siloed from commerce platforms, meaning a user who reads a positive review on a forum cannot act on that recommendation within the same digital environment.
+The market opportunity is substantial. The U.S. motorcycle market alone was valued at USD 10.48 billion in 2024 and is projected to grow at a CAGR of 4.1% from 2025 to 2030 [23]. Yet traditional business models face structural challenges — industry revenue has declined at a CAGR of 2.2% over the past five years [24] — suggesting that fragmented, offline-first approaches are losing competitive ground against integrated digital experiences. Consumer research identifies the principal deterrents to purchase as inventory visibility gaps (25%), pricing uncertainty (29%), and long wait times (12%) [26]. An integrated platform that unifies inventory, pricing transparency, and real-time booking can directly address these documented inefficiencies.
+Consumer sentiment data further confirms market readiness: 67% of potential powersports buyers believe the economy will remain stable or improve, and 65% anticipate purchasing a new vehicle within the season [25]. This optimism exists despite fragmentation — suggesting that reducing friction through integration could convert latent intent into completed transactions at a higher rate.
+From a software engineering perspective, the challenge is not simply building a website to list motorcycles — it is designing a multi-stakeholder platform that simultaneously serves customers (discovery, booking, purchase), branch staff (fulfillment, appointment management), branch managers (inventory oversight, per-branch analytics), and system administrators (cross-branch governance, catalog management) within a single cohesive system, with appropriate access controls, personalized workflows, and integrated payment and communication infrastructure.
+MotoMarket was conceived to address this gap: a unified, web-based platform consolidating multi-brand motorcycle commerce, test ride and maintenance service booking, an accessories marketplace, a community forum, AI-powered customer support, and multi-branch administrative management — implemented and deployed as a production-ready system in Phase 3 of this Capstone project.
+1.2. Project Overview
+Phase 3 represents the final stage of the MotoMarket Capstone project. This phase builds directly upon the architecture and modules established in Phase 2 and focuses on three primary dimensions of work: feature completion, user experience refinement, and production deployment.
+Feature Completion: The following capabilities deferred from Phase 2 were fully implemented in Phase 3:
+Google OAuth 2.0 Authentication: Users may sign in using their existing Google account, bypassing manual registration. First-time OAuth users are guided through a mandatory profile completion workflow to capture required fields before accessing the platform.
+VNPay Payment Gateway: End-to-end payment processing was integrated using the VNPay sandbox and production API, enabling real monetary transactions within the order pipeline.
+Automated Email Notifications: Transactional emails are dispatched via Gmail SMTP across key user lifecycle events — order placement confirmations, test ride and maintenance booking acknowledgements, staff assignment notifications, and password reset links.
+Google Maps Integration: An embedded interactive map guides users to the nearest store branch, resolving the deferred map functionality from Phase 2.
+Accessories Marketplace: A dedicated storefront for motorcycle accessories was introduced, complete with catalog browsing, cart integration, and a full administrative CRUD management panel.
+License Plate Registration Service: The order workflow was enhanced to allow customers to optionally request a license plate registration service bundled with their motorcycle purchase.
+User Experience Refinement: Several existing modules were redesigned to meet a higher standard of visual quality and usability:
+The Home landing page was rebuilt with a modern hero section, animated image slideshow, and curated product highlights.
+The Forum was redesigned with a structured, professional layout to support deeper community engagement.
+The About page was reconstructed to convey brand credibility and institutional trust.
+The Admin Dashboard was substantially overhauled, adding branch-specific performance charts with a dynamic store-branch selector, enabling franchise managers to monitor their own branch's metrics in isolation from the global view.
+An AI-powered chatbot backed by the Google Gemini API was integrated, providing real-time automated customer support with staff escalation for unresolved queries.
+Production Deployment: The platform was containerized using Docker and deployed to an Ubuntu-based Virtual Private Server (VPS). NGINX was configured as a reverse proxy to route traffic, enforce HTTPS/TLS via SSL certificates, and expose the application under a registered custom domain. This infrastructure configuration ensures the platform is publicly accessible, secure, and maintainable in a real-world hosting environment.
+Scope Boundaries and Future Work: Phase 3 acknowledges that certain capabilities remain outside its implementation scope and are deferred for future iterations. Facebook OAuth login was not implemented due to Meta's app review process constraints. Domestic payment alternatives — ZaloPay, MoMo, and direct bank transfers — were configured at the infrastructure level but not validated in production due to merchant account requirements. Mobile application development, push notification infrastructure, and advanced analytics pipelines are identified as the primary directions for continued development beyond the Capstone cycle.
+Academic Objectives: This phase demonstrates competency in full-stack production engineering, including secure third-party service integration (OAuth, payment gateways, AI APIs), operational infrastructure configuration (Docker, NGINX, TLS), and asynchronous communication patterns (email via SMTP, real-time chat via WebSocket). It further illustrates the complete software development lifecycle — from requirements and prototype through to a publicly accessible, deployed system — within a constrained academic timeline.
+Chapter 2. Related Work
+2.1. Community Forums & Enthusiast Platforms
+Online motorcycle forums have historically served as primary venues for technical knowledge exchange, peer recommendations, and community building. [3] Platforms such as The Motorcycle Forum and Devitt's reviewed networks maintain dedicated communities where riders share maintenance advice, model comparisons, and road experience. [4] As of 2025, Feedspot tracks over 40 active motorcycle forum communities globally, demonstrating sustained demand for peer-driven content in this industry.
+[8] Zenith Motorcycles identifies the top motorcycle forums as communities where owners seek advice before making purchase or service decisions, reinforcing the role of community content in shaping commercial outcomes. However, these forums operate as isolated discussion platforms with no connection to inventory, booking, or payment systems — users who decide to purchase based on a forum recommendation must leave the platform entirely to complete the transaction.
+[6] Research into platform health trends reveals that traditional motorcycle forums are in decline as users migrate toward social media and integrated marketplace platforms. This fragmentation and migration away from specialized forums strengthens the case for MotoMarket's model, which embeds community discussion directly within a transactional platform, creating a natural path from advice to action without context-switching.
+2.2. Existing Motorcycle Trading Platforms
+[1] Cycle Trader is the dominant specialized motorcycle marketplace in the United States, offering motorcycle listings across sport, cruiser, touring, and off-road categories from both dealers and private sellers. [2] With over 5.6 million monthly visitors browsing more than 114,000 listings, Cycle Trader demonstrates the scale achievable in digital motorcycle commerce. However, it functions purely as a listing aggregator — there is no integrated test ride booking, no service scheduling, no accessories commerce, no community forum, and no AI-powered support.
+[5] Market trend data shows that used motorcycle registrations consistently outpaced new models throughout 2023 and 2024, with used motorcycle sales growing 14% year-over-year by February 2024. This trend highlights the importance of multi-source, multi-branch inventory visibility — precisely the capability a unified platform provides.
+[7] Customer reviews of Cycle Trader reveal recurring complaints: outdated listings, difficulty contacting real sellers, and lack of trust verification. These documented user experience failures represent direct opportunities for MotoMarket's integrated approach, which provides verified dealer inventory, real-time booking, and authenticated user reviews within the same system.
+2.3. Technology Stack Service Booking and Management Platforms
+React & Spring Boot Integration: [9, 10] The combination of React and Spring Boot has been extensively validated as a reliable foundation for CRUD-driven web applications requiring role-based access control and RESTful API design. [11, 12, 13, 14] Multiple technical references document successful full-stack implementations using this stack, confirming its suitability for multi-role platforms at production scale. Phase 3 extends this foundation with OAuth 2.0, WebSocket-based real-time communication, and external payment gateway integration — all patterns natively supported by Spring Boot's ecosystem.
+Database Integration: [15] Spring Boot's integration with Microsoft SQL Server via JPA/Hibernate has been thoroughly documented for enterprise CRUD applications, providing the relational persistence layer for MotoMarket's multi-entity data model spanning users, motorcycles, accessories, orders, bookings, reviews, and community content.
+Media Management: [17] Cloudinary has been adopted by major e-commerce brands globally as a foundational media delivery technology, providing image optimization, CDN distribution, and programmatic upload APIs. [16, 18, 19, 20, 21] MotoMarket uses Cloudinary for all product imagery — motorcycle photos, accessory listings, and user avatars — ensuring consistent media quality and performance across the platform.
+Payment Gateway: [27] VNPay is the leading domestic payment gateway in Vietnam, supporting ATM card transactions, QR code payments, and internet banking across all major Vietnamese banks. Its sandbox API allows full end-to-end testing before production activation, with HMAC-SHA512 signature verification ensuring transaction integrity.
+OAuth 2.0 Authentication: [28] Google's Sign In with Google SDK provides a standards-compliant OAuth 2.0 authentication flow that eliminates the need for users to create and manage separate credentials. The id_token issued by Google is validated server-side against Google's public key infrastructure, enabling secure identity verification without storing user passwords.
+AI-Powered Customer Support: [29] Google's Gemini API provides access to large language model capabilities via a simple REST interface. For MotoMarket's chatbot, Gemini 2.5 Flash was selected for its balance of response quality and API call latency, with a system prompt contextualizing the model as a MotoMarket-specific customer support agent.
+Containerization & Deployment: [30] Docker Compose enables multi-service orchestration with consistent environment configuration across development and production. [31] NGINX as a reverse proxy provides TLS termination, HTTP-to-HTTPS redirection, and request routing between the React frontend and Spring Boot backend. [32] Let's Encrypt via Certbot provides automated, renewable SSL certificates at no cost, enabling production HTTPS without certificate management overhead.
+2.4. Gap Analysis
+Capability
+Cycle Trader
+RevZilla / Cycle Gear
+MotoMarket Phase 2
+MotoMarket Phase 3
+Multi-brand inventory
+Yes
+Partial
+Yes
+Yes
+Test ride booking
+No
+No
+Yes
+Yes
+Maintenance scheduling
+No
+No
+Yes
+Yes
+Accessories marketplace
+No
+Yes
+No
+Yes
+Community forum
+No
+No
+Yes
+Yes
+Payment gateway
+No (classifieds only, payment offline)
+Yes
+No
+Yes (VNpay)
+Traditional login (email/pass)
+Yes
+Yes
+Yes
+Yes
+Social login (Google OAuth)
+No
+Yes
+No
+Yes (Google)
+AI chatbot
+No
+No
+No
+Yes (Gemini)
+Email notifications
+No
+Yes
+No
+Yes
+Branch analytics
+No
+No
+Partial
+Yes
+Production HTTPS deployment
+Yes
+Yes
+No
+Yes
+Chapter 3. Proposed Approach, Analysis, Design, Implementation
+3.1. Analysis Phase
+Phase 2 focused on validating the conceptual artefacts developed in Phase 1 through operational implementation, empirical testing, and iterative requirements refinement. The analysis targeted the persistent fragmentation of the motorcycle ecosystem by examining how integrated workflows—discovery, transaction intent (orders), service coordination (test rides and maintenance), and community engagement—behave under a unified architecture. Stakeholder needs were revisited for three principal groups: motorcycle enthusiasts seeking trustworthy information exchange, service providers requiring predictable scheduling and communication channels, and buyers/sellers needing reliable catalogues and transaction support. This validation converted Phase 1’s high-level objectives into implementable epics and measurable non-functional targets (security, performance, scalability, maintainability).
+Requirements were refined into a prioritized backlog comprising authentication and role-based access control, motorcycle catalogue functions (search, comparison, media management), orders with status transitions, service bookings, forum interactions, and administrative oversight. Non-functional specifications were elaborated to include stateless JWT-based authentication, explicit authorization rules, CORS configuration for client–server interaction, and media offloading to Cloudinary to reduce storage and bandwidth constraints. Data modelling consolidated multi-entity relationships (e.g., User–Order–Motorcycle , User–MaintenanceService , Motorcycle–Review ) to support transactional integrity while accommodating extensibility for moderation and analytics. Empirical evaluation in the development environment verified end-to-end operability and surfaced controlled gaps: email verification during signup, user notifications for state changes (orders, bookings, forum interactions), direct online payment processing via a gateway, and an interactive map-based store locator. These gaps were documented for Phase 3, together with deployment, observability, and UX enhancements.
+3.2. Design Phase
+The design work in Phase 2 translated refined requirements into a concrete, maintainable implementation aligned with the three-tier architecture envisioned in Phase 1. The presentation layer is realized as a React/Vite single-page application employing TailwindCSS, Axios, React Router, and a lightweight state store; the business logic layer is implemented in Spring Boot with stateless JWT authentication and role-based authorization; and the data access layer uses SQL Server via JPA/Hibernate. This separation of concerns supports scalability, fault isolation, and disciplined evolution of features.
+Design artefacts were updated to reflect implementation decisions and ensure traceability from Phase 1 models to deployed components. API contracts and controller boundaries were specified to expose catalogue, orders, bookings, forum, image upload, and administrative endpoints; security design codified public routes and role-restricted actions; error handling and token interception patterns were defined for robust client–server communication. Domain services encapsulate core logic for entity lifecycles and state transitions, while repositories provide transactional persistence and query capabilities. Media workflows—multi-image upload, replacement, deletion—were designed to operate through Cloudinary-backed endpoints, reducing infrastructure overhead and standardizing asset management.
+On the frontend, routing and guarded navigation enforce role-based access to administrative and staff areas, with consistent patterns for authentication fallback and basic error states. Component and style guidelines were derived from Phase 1’s Figma prototypes and implemented using TailwindCSS to achieve responsive layouts and visual coherence. Sequence and use case diagrams were extended to cover implemented flows (registration/login, catalogue browsing and comparison, order creation and status updates, booking schedules and histories, forum posting and moderation signals), while class diagrams captured object relationships and constraints as realized in code.
+The design explicitly accommodates deferred capabilities required for production readiness in Phase 3: email verification (verification tokens and activation flows), notification services (real-time push via WebSocket/SSE and out-of-band email/SMS), payment gateway integration with secure webhook reconciliation, and an interactive map-based store locator. Operational design considerations—deployment automation, environment-based secret management, observability (structured logs, metrics, tracing), security hardening (stricter CORS, input validation, rate limiting), and performance tuning (caching, indexing, image optimization)—were planned to support reliable and scalable operation beyond the development environment.
+3.3. Framework and Technology Selection
+The goal of technology selection is to create a scalable, reliable architecture that can manage a variety of functions, such as social features, service management, and e-commerce. Each technological component and the reasoning behind its selection are covered in detail in the ensuing subsections.
+3.3.1. Frontend Technology: React
+1. What is React?
+Facebook created the open-source React JavaScript library to help developers create user interfaces, especially for web apps. [9] React's component-based architecture makes it possible for developers to design reusable user interface elements, which makes it perfect for creating intricate, dynamic apps.
+Figure 1: React logo
+2. Why React for MotoMarket
+Component-Based Architecture: React's modular approach allows for the creation of reusable components such as motorcycle listing cards, service provider profiles, and forum post elements, ensuring consistency across the platform.
+Virtual DOM: React's virtual DOM provides efficient rendering and updates, crucial for handling dynamic content such as real-time motorcycle listings, live forum discussions, and interactive comparison tools.
+Rich Ecosystem: React's extensive library ecosystem provides access to numerous third-party components and tools that can accelerate development of features like image galleries, date pickers for service bookings, and responsive design components.
+State Management: React's built-in state management capabilities, combined with hooks like useState and useEffect, provide effective handling of complex application states required for user authentication, shopping cart functionality, and forum interactions.
+3. React Benefits for E-commerce Applications
+[10,11] React's ability to produce responsive user experiences—which are crucial for product browsing, comparison tools, and smooth transitions across platform sections—has demonstrated its efficacy in e-commerce apps.
+3.3.2. Java Spring Boot
+1. What is Spring Boot?
+An addition to the Spring framework, Spring Boot streamlines the process of creating enterprise Java apps. [15] It makes it simpler to develop standalone, production-grade Spring-based apps by offering auto-configuration, embedded servers, and production-ready features right out of the box.
+Figure 2: Spring boot logo
+2. Why Spring Boot for MotoMarket
+Spring Boot was chosen as the backend framework for the following reasons:
+Enterprise-Grade Security: Spring Boot provides comprehensive security features including authentication, authorization, CSRF protection, and secure session management, essential for handling user accounts, financial transactions, and sensitive data.
+RESTful API Development: Spring Boot's robust support for creating RESTful APIs enables seamless communication between the React frontend and the backend services, supporting all CRUD operations for motorcycles, users, bookings, and forum content.
+Database Integration: Spring Data JPA integration simplifies database operations and provides object-relational mapping capabilities, making it easier to manage complex relationships between users, motorcycles, service providers, and forum data.
+Microservices Ready: Spring Boot's architecture supports future scaling through microservices, allowing different platform components (trading, services, forum) to be deployed and scaled independently.
+3. Spring Boot in Enterprise Applications
+[12,13,14] Numerous full-stack systems have successfully adopted Spring Boot, showcasing its scalability to manage millions of users and intricate business logic needs common to integrated e-commerce and community platforms.
+3.3.3. SQL Server
+1. What is SQL Server
+One relational database management system (RDBMS) that Microsoft has created is called Microsoft SQL Server. With sophisticated features for transaction processing, data integrity, and performance optimization, it offers strong data management, retrieval, and storage capabilities.
+Figure 3: Sql server logo
+2. Why SQL Server for MotoMarket
+SQL Server was selected as the database solution for several critical reasons:
+Relational Data Management: SQL Server excels at managing complex relationships between users, motorcycle listings, service providers, bookings, and forum content, ensuring data integrity through foreign key constraints and referential integrity.
+Transaction Management: Advanced transaction processing capabilities ensure data consistency during critical operations such as motorcycle purchases, service bookings, and user registrations.
+Performance Optimization: SQL Server's query optimization engine and indexing capabilities provide efficient data retrieval for complex searches across motorcycle specifications, user preferences, and forum content.
+Scalability: SQL Server supports horizontal and vertical scaling options, accommodating future growth in user base and data volume.
+3. SQL Server Integration Benefits
+[15] For enterprise CRUD applications with intricate data relationships, the well-documented and tested SQL Server integration with Spring Boot offers dependable data persistence.
+3.3.4. Cloudinary
+1. What is Cloudinary?
+A cloud-based media management platform called Cloudinary offers complete solutions for organizing, enhancing, and distributing photos and videos. [20] It provides worldwide content delivery network (CDN) services, transformation capabilities, and automatic picture and video optimization.
+Figure 4:Cloudinary logo
+2. Why Cloudinary for MotoMarket
+Cloudinary was chosen for media management due to its specialized capabilities for handling visual content:
+Automatic Optimization: Cloudinary automatically optimizes images and videos for different devices and network conditions, ensuring fast loading times for motorcycle photos, user avatars, and forum media content.
+Transformation Capabilities: Advanced image transformation features allow for automatic resizing, cropping, and format conversion, essential for displaying motorcycle images consistently across different platform sections.
+CDN Delivery: Global content delivery network ensures optimal performance worldwide, crucial for a platform targeting motorcycle enthusiasts across different geographical regions.
+API Integration: Robust APIs enable seamless integration with React components and Spring Boot backend services.
+3. Cloudinary in E-commerce Applications
+17] Major international brands like Canada Goose, DoorDash, Everlane, and Under Armour already use Cloudinary as a core technology in their e-commerce stacks, proving its efficacy in managing large volumes of media for e-commerce platforms.
+4. Benefits for Media-Rich Platforms
+[16, 18] The success of motorbike marketplaces depends on e-commerce platforms that employ Cloudinary because it streamlines media operations, improves page load efficiency, and enhances user experience through optimized visual content delivery.
+Chapter 4. Results And Discussion
+4.1. Architectural Overview
+The MotoMarket platform in Phase 2 is implemented using a layered, three‑tier architecture consisting of a presentation layer, a business logic layer, and a data access layer. This separation of concerns is intended to support scalability, maintainability, and clear allocation of responsibilities across the system.
+The presentation layer is realized as a single‑page web application. It is responsible for rendering user interfaces, handling client‑side navigation, and orchestrating API requests to the backend. The business logic layer is implemented as a set of RESTful services that encapsulate domain rules for authentication, motorcycle catalog management, orders, bookings, community features, and administrative operations. The data access layer manages persistence and retrieval of domain entities in a relational database.
+The system follows a stateless communication model between client and server, using JSON Web Tokens (JWT) for authentication and role‑based authorization for access control. Media assets, particularly motorcycle images and user‑generated content, are offloaded to a cloud‑based media service, which reduces load on the core application and simplifies asset management. This overall architecture reflects the conceptual design developed in Phase 1 while adapting it to practical implementation constraints.
+4.2. Backend Design
+The backend is designed as a modular REST API that exposes clear boundaries between functional areas. Each module is implemented as a set of controllers, services, and repositories, following a standard pattern:
+The authentication module manages user registration and login, issues JWTs, and enforces role‑based access.
+The catalog module provides endpoints for browsing, searching, and comparing motorcycles, as well as administrative endpoints for creating, updating, and deleting motorcycle records and associated images.
+The orders module supports order creation, retrieval, and status updates, along with a placeholder endpoint for recording payment transactions.
+The bookings module manages test ride and maintenance service scheduling, retrieval of user booking histories, and access to store information, recent services, and service statistics.
+The forum module enables listing, viewing, creating, and interacting with posts and comments, including like and report actions.
+The administration module aggregates management capabilities for motorcycles, orders, users, and test rides, as well as dashboard statistics and staff assignment.
+Each controller delegates core logic to dedicated service classes, which encapsulate validation and domain rules, and to repository classes, which perform database operations. This design reduces coupling between the API surface and persistence, and simplifies testing and future evolution. Cross‑cutting concerns such as error handling and logging are handled centrally where appropriate.
+Authentication and authorization are enforced through a JWT validation filter and security configuration that define which endpoints are public and which require authenticated access with specific roles (e.g., customer, staff, administrator). The backend remains stateless with respect to user sessions, relying exclusively on tokens presented by the client.
+4.3. Data Model Design
+The data model builds on the conceptual class diagrams produced in Phase 1 and is refined to support the implemented features in Phase 2. Core entities include:
+A user entity that represents individual accounts, with attributes for identity, contact information, role, and activity status, and relationships to orders, bookings, and reviews.
+A motorcycle entity that captures brand, model, technical specifications, pricing, stock levels, and associated images and reviews.
+An order entity that groups one or more motorcycles into a transaction, with fields for amounts, payment method, status, and relevant timestamps in the order lifecycle.
+Review, test ride, maintenance service, staff, store, and service offering entities that support community feedback, booking flows, service management, and staff assignment.
+Relationships between entities (for example, between users and their orders, between motorcycles and their reviews, or between services and stores) are explicitly modeled to support integrated operations across modules. The design aims to balance normalization with query performance for the expected access patterns, such as listing a user’s orders, retrieving all services for a given motorcycle, or aggregating statistics for administrative dashboards.
+4.3.1. Sequence Diagram
+a. Book Test Ride
+Figure 5: Book test ride sequence diagram
+Description: This diagram presents the user-driven workflow for reserving a test ride. The user selects a motorcycle, preferred store, and a suitable time. The application forwards the request to the backend, which verifies slot availability and persists the booking. A confirmation is returned to the user to ensure clarity of outcome.
+Key points:
+User initiates a structured request (motorcycle, store, time).
+System validates availability and creates a booking record.
+Immediate user feedback reduces uncertainty and improves experience.
+Interaction emphasizes convenience and self-service scheduling.
+b. Purchase a Motorbike
+Figure 6: Purchase motorbike sequence diagram
+Description: This diagram outlines the end-to-end purchasing flow from checkout to order confirmation. The user reviews the cart, confirms payment details, and the system creates the order and acknowledges payment. The application then presents a receipt and next steps to reinforce trust and transparency.
+Key points:
+Clear progression: review → order → payment → confirmation.
+System records the order and acknowledges payment promptly.
+User receives a definitive receipt and post-purchase guidance.
+Interaction prioritizes simplicity, certainty, and user confidence.
+c. Post in Forum
+Figure 7: Post in forum sequence diagram
+Description: This diagram describes the social interaction loop in which users publish posts and interact via comments and reactions. Upon submission, the system publishes the post, making it immediately visible. Subsequent engagement (comments, likes) updates the thread, sustaining community participation.
+Key points:
+Low-friction publishing to encourage contribution.
+Immediate visibility strengthens community responsiveness.
+Thread activity (comments, likes) maintains engagement.
+Interaction focuses on openness, continuity, and user agency.
+d. Admin Upload Motorcycle
+Figure 8: Admin upload motorcycle sequence diagran
+Description: This diagram shows the administrative workflow for adding a new motorcycle to the catalog. The Admin enters specifications and selects images in the Admin Portal; images are uploaded to Cloudinary and returned as secure URLs; the Backend saves the listing with those image URLs in the SQL Server database; the item is immediately visible to users across catalog and search views, ensuring fresh and accurate inventory.
+Key Points:
+Role-gated submission safeguards catalog integrity and prevents unauthorized changes.
+Two-step image handling (upload, then reference secure URLs) ensures reliable media delivery.
+Server-side validation of file type/size and required fields improves data quality.
+Cloud-hosted images via CDN provide fast rendering on user-facing pages.
+Immediate catalog surfacing supports discovery and market responsiveness.
+Status and stock captured on creation support downstream inventory operations.
+4.3.2. Use case diagram
+Figure 9: Usecase diagram
+Summary: The diagram models core user–system interactions across four roles (Guest, Customer, Staff, Admin) while highlighting one mandatory sub-process through include and one optional/alternative path through extend. Public discovery actions are shared by all roles; transactional and community actions require authentication.
+Include (UC_Order includes UC_Login): Checkout is a secured process that presupposes identity verification. By modeling “Place Order” as including “Login,” the diagram expresses that authentication is a mandatory prerequisite, ensuring account linkage, personalized fulfillment, and traceable transactions.
+Extend (UC_Pay extends UC_PaymentFailure): Payment may deviate into an exceptional pathway. The extend relationship captures this alternative course when authorization fails or a gateway error occurs. This preserves the base behavior (attempt to pay) while documenting the conditional branch that produces an error state and recovery options (retry or choose another method).
+Shared interactions: Browsing motorcycles, viewing details, and reading forum posts are public discovery use cases accessible to Guest, Customer, Staff, and Admin, emphasizing the platform’s openness and reducing friction in early exploration.
+Customer focus: Ordering, paying, booking test rides, scheduling services, managing profiles, and forum participation form the primary value path for end users. These use cases are intentionally minimal to communicate clear goals rather than technical procedures.
+Administrative stewardship: Inventory curation and dashboard oversight remain distinct administrative responsibilities, separated from public and customer flows to reflect governance, data quality, and operational visibility.
+Interpretation: Using include and extend clarifies process structure without overloading the diagram—include conveys a required step (security and identity), extend documents an exceptional variant (payment failure). Together, they provide a balanced view of normative and non-normative user journeys.
+4.3.3. Class diagram
+Figure 10: Class diagram
+The domain model organizes users, inventory, transactions, bookings, services, and community content into cohesive classes with clear responsibilities.
+Relationships reflect real-world ownership and collaboration (e.g., a user places orders; a motorcycle accumulates reviews and test rides).
+Lifecycle states and audit timestamps are explicit, supporting operational reliability, analytics, and administrative control.
+Entities
+1.User
+Attributes: id, email, password (secure hash), firstname, lastname, phone, address, role (CUSTOMER/STAFF/ADMIN), isActive, created/updated timestamps.
+Purpose: Represents authenticated identities; owns personal data and activities (orders, bookings, services, reviews).
+Special: Role determines access; isActive supports account suspension/reactivation without data deletion.
+2. Motorcycle
+Attributes: id, brand, model, year, category, price, status (e.g., AVAILABLE, OUT_OF_STOCK), description, engineType, displacement, power, torque, weight, topSpeed, fuelCapacity, stock, images, features, color, created/updated timestamps.
+Purpose: Core catalog item displayed to users, used in purchases and operational bookings.
+Special: Images and features are stored as simple value lists; stock and status change automatically in response to order lifecycle events.
+3. Order
+Attributes: id, orderNumber (unique), user, motorcycles (list), totalAmount, taxAmount, shippingFee, discountAmount, paymentMethod, transactionId, status (e.g., PENDING, PAID, SHIPPED, DELIVERED), shippingAddress, notes, created timestamp, paid/shipped/delivered timestamps.
+Purpose: Transaction aggregate linking a user to one or more motorcycles with financial and fulfillment details.
+Special: Many-to-many association with motorcycles supports multi-item orders; status transitions update audit timestamps and drive inventory adjustments.
+4. TestRide
+Attributes: id, user, motorcycle, store, scheduleDate and precise date-time, duration, location (derived from store), notes, status (e.g., PENDING, CONFIRMED), optional assigned staff.
+Purpose: Manages user bookings for trial rides at physical locations.
+Special: Supports staff assignment and time proposals; location is generated from store metadata for user-facing clarity.
+5. MaintenanceService
+Attributes: id, user, motorcycle, serviceType, description, scheduleDate, status (e.g., SCHEDULED, COMPLETED), cost, bundleId, notes, technician (staff), created/completed timestamps.
+Purpose: Represents workshop appointments and service execution for customer motorcycles.
+Special: Technician linkage enables resource planning; completion sets an explicit timestamp for reporting.
+6. Review
+Attributes: id, user, motorcycle, rating, content, approval flag, created timestamp.
+Purpose: Captures customer feedback and product evaluation.
+Special: Ratings are aggregated for display; an approval flag supports moderation before public visibility.
+7. ForumPost
+Attributes: id, user, title, content, category, isHot, isHidden, likesCount, reportsCount, commentsCount, created/updated timestamps.
+Purpose: Enables community knowledge sharing and discussion.
+Special: Hot/Hidden flags support curation; counts are maintained to optimize list views and engagement metrics.
+8. ForumComment
+Attributes: id, post, user, content, isHidden, created timestamp.
+Purpose: Threaded responses tied to a specific post.
+Special: Hidden flag facilitates moderation without removing historical context.
+9. Store
+Attributes: id, name, address, phone, latitude, longitude, brand, licensed, contractStart, contractEnd.
+Purpose: Physical location for test rides and services.
+Special: Geospatial attributes enable nearest-store discovery; contract fields support administrative oversight.
+10. Staff
+Attributes: id, name/contact, store assignment, role classification aligned with operational duties.
+Purpose: Operational personnel assigned to bookings and service tasks.
+Special: Store association anchors scheduling and availability checks.
+11. ServiceOffering
+Attributes: id, name, subtitle, description, price, features, active flag, optional store association.
+Purpose: Configurable catalog for maintenance services presented to users.
+Special: Active flag toggles visibility; features list conveys value succinctly.
+Relationships
+User owns many Orders, TestRides, MaintenanceServices, and Reviews (one-to-many).
+Order connects one User with many Motorcycles (many-to-many), modeling multi-item purchases without duplicating catalog entries.
+Motorcycle holds many Reviews and TestRides (one-to-many), enabling rich engagement and evaluation.
+ForumPost holds many ForumComments (one-to-many), forming coherent discussion threads.
+TestRide references one Store; MaintenanceService may reference one Staff technician; both reference one User and one Motorcycle.
+Status and Lifecycle
+Orders progress through distinct states (e.g., PENDING → PAID → SHIPPED → DELIVERED) with timestamps recorded at each milestone for auditability and analytics.
+Motorcycles toggle status based on stock and transaction outcomes (e.g., OUT_OF_STOCK when stock reaches zero; reverts to AVAILABLE when replenished).
+Maintenance services and test rides use statuses (e.g., SCHEDULED, COMPLETED; PENDING, CONFIRMED) to coordinate operations and drive user notifications.
+Approval and visibility flags (e.g., review approval, post hidden/hot) support governance without erasing history.
+Notable Design Choices
+Many-to-many Orders–Motorcycles: Enables flexible cart composition and accurate reuse of catalog entries.
+Denormalized counts and ratings: Maintained for high-performance listing and quick UI summaries without expensive live aggregations.
+Value lists for images and features: Lightweight representation avoids separate tables for simple attributes.
+Explicit timestamps: Provide clear audit trails and power dashboards without guesswork.
+Role and activity flags: Separate authorization (role) from account state (isActive) for practical administration.
+Rationale
+The model balances clarity (well-defined ownership and lifecycles) with performance (pre-aggregated metrics, straightforward value lists) and governance (moderation flags, explicit statuses).
+It supports the platform’s three pillars: commerce (orders and inventory), operations (bookings and services), and community (posts and reviews), ensuring each area has the structure needed for reliable user experiences and effective administrative oversight.
+4.4. Frontend and User Interface Design
+4.4.1. Integration of Design Components
+The design outcomes show that the three main platform functions—motorcycle trade, service scheduling, and community involvement—have been successfully integrated. The user interface prototypes demonstrate smooth transitions between various functional sections while preserving a consistent user experience and design language.
+4.4.2. Scalability and Maintainability Considerations
+Future scaling requirements are supported by the modular design approach, which is seen in the system architecture and interface components. A manageable implementation foundation is offered by the class diagram's distinct division of responsibilities and the use case requirements' precise definition.
+4.4.3. Technology Stack Alignment
+The chosen technological stack (React, Spring Boot, SQL Server, Cloudinary) is well-aligned with the design results. The class diagram layout supports the object-oriented methodology of Spring Boot and the relational data management features of SQL Server, while the component- based interface design aligns well with React's architecture.
+4.4.4. User Experience Validation
+By offering integrated functionality that removes the need for consumers to switch between platforms for trading, services, and community involvement, the thorough interface design fills the identified gap in the motorbike ecosystem.
+4.5 Limitations and Future Considerations
+4.5.1. Current Phase Limitations
+Because the planning and design phases are the main focus of this capstone project, the findings are theoretical and need to be validated through user testing and implementation. Despite being thorough, the interface designs have not been put through usability testing with real motorcycle fans.
+4.5.2. Implementation Considerations
+The design results provide a strong basis for subsequent stages of implementation. However, during the development stage, particular technical specifications will be needed for factors like real-time performance, security implementation, and third-party service integrations.
+4.5.3. Market Validation Requirements
+To make sure the design results match real user needs and market demands, further stages should involve market validation of the integrated platform concept through competition analysis, user surveys, and pilot testing.
+4.6. User Interface Implementation
+1. Home Page
+The home page welcomes users with a clean header and a bold hero banner—“Ride Into Your Dreams”—paired with a motorcycle image and two clear actions: “Browse Collection” and “Book Test Ride.” A short row of trust badges (Premium Quality, Warranty Protection, Expert Support, Test Rides) reinforces credibility right away. The “Featured Motorcycles” section highlights popular models using image cards with price, availability, rating, and a “View Details” link, with a single “View All Motorcycles” button to reach the full catalog. A red call‑to‑action band (“Ready to Start Your Journey?”) offers “Get Started” and “Contact Us” for quick next steps. The footer gathers useful links, customer service information, and contact details. Overall, the page is straightforward and responsive, making the main actions easy to spot and act on.
+Figure 11: Home page
+2. Motorcycles page 
+This page is designed for fast, confident product discovery. A trust banner (“Authorized Premium Dealers”) sets the tone, followed by brand chips (BMW, Ducati, Harley, Honda, Kawasaki, Suzuki, Yamaha) to jump straight into a preferred manufacturer. The search bar, sort control (“Newest First”), and “More Filters” button sit together to refine results without friction, with a live summary of how many motorcycles match. The main grid uses consistent image cards showing brand/model, a short spec teaser, price, rating, and a clear availability chip (e.g., “Available”, “In stock 15+”), with two primary actions on each card: “View Details” and “Add to Cart.” Pagination at the bottom keeps the list responsive and readable as inventory grows. Overall, the layout balances trust, findability, and quick actions so users can scan, filter, and act in just a few clicks.
+Figure 12: Motorcycle page
+3. Services page
+The services page introduces “Professional Service & Support” with a hero banner and simple metrics (technicians, service centers, satisfaction, motorcycles serviced) to build trust. A grid of service categories—trade‑in, financing and insurance, service and maintenance, test ride center, parts and accessories, rider education—lets users jump straight to what they need. A “Nearby Store” prompt includes “Use my location” for quick geolocation.
+Service packages are presented as clear cards with pricing and included checks (e.g., Express Care, Premium Care, Complete Care, Essential Care, Oil Change, Brake Inspection), making selection straightforward. A “Recently Scheduled Services” feed shows live activity for social proof, and a “How It Works” strip explains the steps from booking to completion. The page closes with a bold call to action—“Don’t Wait – Book Your Service Today”—with buttons to schedule a service or find the nearest store, keeping the journey simple and action‑oriented.
+Figure 13: Service page
+4. Forum page & Post
+The forum page invites community participation with a clean, open layout. A simple header presents activity counters to signal scale, while the left panel organizes topics into clear categories for quick navigation. At the top of the feed, search and a “New Post” button make it easy to find discussions or start one. Each post preview shows the author, a category tag, a brief excerpt, comment count, and a timestamp, so users can assess relevance at a glance. A compact “Hot Topics” block highlights trending threads. Overall, the page prioritizes readability and low-friction engagement: find a topic, skim the previews, and jump into the conversation in a single click.
+Figure 14: Forum page
+The thread view focuses on clarity and action. The header presents the title, author, and category tag with simple controls to like or report the post. Below, comments appear in a chronological feed with author labels and timestamps to preserve context. A writing area at the bottom keeps the reply flow straightforward: type, submit, and see the comment appear immediately. The layout avoids distraction and keeps the emphasis on helpful, concise exchanges—making it easy for users to ask questions, share experience, and get practical answers.
+Figure 15: Post page
+5. Contact page
+The contact page is intentionally simple and direct. On the left, a “Get in Touch” card lists the physical address, phone number, and support email. On the right, a brief form—name, email, message—lets users send inquiries without friction, using a single “Send Message” button. The minimal layout focuses on clarity and quick action: find the contact details or submit a message in seconds. The footer reinforces trust and offers alternative routes to help, such as customer service links and policy pages.
+Figure 16: Contact page
+6. Admin dashboard
+The dashboard gives a quick snapshot of what’s happening on the platform. At the top, summary cards show Total Users, Total Motorcycles, Total Orders, Total Revenue, Pending Orders, Active Test Rides, and Scheduled Services. A 7‑day chart tracks revenue alongside order volume for trend awareness. Quick Actions let you add a new motorcycle, view orders, and manage bookings in one click. Below, panels list Recent Orders and Low Stock Motorcycles (with stock counts), plus a Pending Orders area to spot items that need follow‑up. The left navigation groups tools for Motorcycles, Orders, Users, Reviews, Bookings, Services, and Forum. Overall, the layout is “glance → act”: see key metrics, identify issues, and jump straight to the right page.
+Figure 17: Admin dashboard
+7. Admin manage motorcycles
+This page centralizes inventory management. A top bar provides search, brand and status filters, and a “Clear Filters” control, with “Add Motorcycle” for new entries. The table lists each model with category, price, stock, and status, plus actions to edit or delete. Inline controls allow quick status and stock updates without leaving the list. Pagination keeps the view responsive as inventory grows. The design is straightforward: find items fast, adjust stock or status directly, and open edit forms when deeper changes are needed. 
+Figure 18: Admin manage motorcycles
+8. Admin order
+This page streamlines order tracking and updates. A search bar lets you find orders by number or customer email, and a status filter narrows the view to Pending, Delivered, or Cancelled. The table shows the essentials at a glance: order ID and item count, customer, date, total amount, and a status chip. Changing the status is done inline via the chip dropdown, so common updates (e.g., moving from Pending to Delivered) are quick and consistent. Clicking an order opens full details when you need more context. Overall, the layout makes it easy to review the pipeline, spot issues, and keep fulfillment records up to date.
+Figure 19: Admin order
+9. Admin user
+This view focuses on role and status management. A search bar finds users by name or email, and a role filter narrows the list to Customer, Staff, or Admin. Each row shows the user’s avatar and contact info, current role (editable via a dropdown), join date, and an active/inactive toggle. Common changes—promoting a user to Staff, deactivating an account—are done inline to minimize steps. The design keeps moderation and access control fast and transparent, while still allowing you to drill down into individual profiles when needed.
+Figure 20: Admin user
+10. Admin review
+This page is built for fast, reliable moderation of product feedback. A tab bar at the top (All, Pending, Approved, Flagged) helps you focus on what needs attention. Each review card shows the author, time, star rating, the related motorcycle, and status chips (e.g., Approved, Flagged), with clear controls to approve, reject, unflag, or remove the review. The layout favors quick scanning and decisive action: identify problematic or high‑quality feedback, make the change, and move on. This keeps the catalog trustworthy and the user experience consistent, while preserving a simple audit trail through visible statuses.
+Figure 21: Admin review
+11. Admin booking
+This page centralizes scheduling for both Test Rides and Services, organized with a simple tab switcher. Each row surfaces the essentials at a glance: customer and motorcycle, date/time with a quick “Reschedule” control, duration, store details, contact information, staff assignment, and a status chip (e.g., Confirmed, Cancelled) with an inline dropdown for fast updates. The design keeps coordination straightforward—assign or change staff, adjust time slots, and confirm or cancel bookings without leaving the list—so operations can move quickly while maintaining clear, auditable records.
+Figure 22: Admin booking
+12. Admin service
+This catalog view lets administrators curate maintenance offerings. A search bar filters by name or subtitle, and “New Service” opens a creation form. The table lists each service with subtitle, price, active status, and quick actions. The “Active/Disable” control toggles visibility instantly, making seasonal or promotional changes easy. Edit and delete buttons handle detailed updates or removal. The layout favors clarity and speed: find an offering, adjust its status, and move on—keeping the service lineup current and consistent for users.
+Figure 23: Admin service
+13. Admin forum
+This page provides lightweight moderation for community posts. Search, category, and visibility filters help you locate threads quickly. The table shows title, category, comment and like counts, and creation time. Inline actions allow you to mark a post as “Hot,” hide it from public view, or delete it entirely. The controls are simple and immediate, so curating the forum—surfacing helpful topics, suppressing inappropriate content, and removing duplicates—takes just a few clicks.
+Figure 24: Admin forum
+4.7. Discussion 
+4.7.1. Implementation Success and Key Deliverables
+Phase 2 successfully delivered a working integrated platform with 32 motorcycles spanning 10 major brands, demonstrating that the chosen technology stack can support the complete user journey from discovery through transaction and service booking. The most significant achievement is proving that fragmented motorcycle ecosystem functions—browsing catalogs, placing orders, scheduling services, and community discussion—can operate cohesively within a single platform architecture.
+The Cloudinary integration solved what could have been a major development bottleneck. Instead of building custom image storage and delivery infrastructure, the platform leverages professional-grade media management with automatic optimization and CDN delivery. This freed development time to focus on core business logic while delivering better image performance than a custom solution would achieve.
+4.7.2. Technical Decisions That Shaped Implementation
+Stateless Authentication Approach: JWT-based authentication eliminates server-side session storage, simplifying horizontal scaling for future growth. However, this creates token management challenges—once issued, tokens remain valid until expiration regardless of account changes. During development, testing administrative actions required waiting for token expiration or manually clearing browser storage rather than simply invalidating sessions. For production, implementing token refresh mechanisms and shorter token lifetimes will balance security against user experience.
+Order Status Workflow Design: Orders progress through defined status transitions (PENDING → PAID → PROCESSING → SHIPPED → DELIVERED) with validation preventing invalid jumps between states. This ensures inventory doesn't decrement for unpaid orders, but requires careful coordination between payment confirmation and fulfillment. The decision to update stock only when orders reach DELIVERED status protects against phantom inventory depletion from abandoned orders, though it creates brief windows where popular motorcycles could be oversold if multiple customers order simultaneously.
+Dual Image Upload Strategy: Supporting both pre-uploaded URLs and direct file uploads during motorcycle creation accommodates different administrative workflows. Quick catalog updates can use pre-uploaded images, while detailed curation can handle uploads during creation. This flexibility proved essential during testing when bulk catalog updates required different approaches than individual motorcycle creation. However, managing image cleanup when database operations fail required explicit rollback logic to prevent orphaned Cloudinary resources.
+Client-Side Catalog Filtering: The motorcycle catalog implements filtering and sorting entirely on the frontend after loading all motorcycles. This enables instant filter changes without API calls and simplified initial development, but doesn't scale beyond several hundred motorcycles. With 32 seeded motorcycles, the approach performs well, but migrating to server-side filtering and pagination will be necessary before production launch with larger inventories.
+4.7.3 Real Challenges Encountered
+Status Transition Validation Complexity: Initial implementation allowed arbitrary order status changes, which during testing led to scenarios where orders marked as delivered without payment triggered inventory depletion. Implementing explicit transition rules required mapping valid next states for each current status—PENDING orders can become PAID or CANCELLED, but not directly DELIVERED. This state machine logic prevents business rule violations while still allowing administrative corrections for edge cases.
+Multi-Image Management Workflow: Managing multiple images per motorcycle—adding new images, removing specific images, replacing all images—required coordinating Cloudinary operations with database updates. Early attempts treated these as separate operations, leading to inconsistencies when one operation succeeded but the other failed. The solution involved transaction-like behavior where Cloudinary uploads complete before database persistence, with cleanup logic when database operations fail.
+Service Booking Location Data: Managing store information and making it accessible for test ride and maintenance service bookings required careful consideration of data structure. The current implementation stores basic store information that users can select during booking, with plans for enhanced location-based features in Phase 3.
+Filter Reset Expectations: Users applying multiple filters expected a single "clear all" action to reset everything simultaneously. Initial implementation required clearing each filter individually, creating friction in the user experience. Adding comprehensive reset functionality required coordinating state updates across multiple filter inputs while ensuring the catalog re-filtered correctly after clearing.
+4.7.4. What Was Strategically Deferred
+Email Verification: User registration proceeds without email confirmation, creating security vulnerabilities and account recovery challenges. Implementing email verification requires SMTP server configuration, token generation, verification email templates, and activation workflow—representing 1-2 weeks of work. Since Phase 2 prioritized validating integrated platform mechanics, accepting unverified accounts for prototype testing was reasonable. Production deployment absolutely requires email verification before launch.
+Payment Gateway Integration: Orders record payment methods and transaction identifiers but don't process actual payments through providers like Stripe or VNPay. Real payment integration introduces PCI compliance requirements, webhook handling for asynchronous confirmations, refund processing, and financial reconciliation—complexity beyond Phase 2's validation scope. The placeholder approach proves order workflow correctness while clearly marking the integration boundary for Phase 3.
+Real-Time Notifications: The system lacks notifications for order status changes, booking confirmations, or forum replies. Users must manually check for updates rather than receiving proactive alerts. Building notification infrastructure requires message templating, delivery mechanisms (email/SMS/push), user preference management, and tracking sent notifications. While notifications significantly improve engagement, their absence doesn't prevent validating core functionality.
+Interactive Map and Location Features: Store location functionality with geospatial calculations and interactive map interfaces for visualizing store locations, route planning, and nearest-store identification remains to be implemented in Phase 3. The current system includes basic store data management that will serve as the foundation for these location-based features.
+4.7.5. Performance and Scaling Observations
+Current performance is adequate for the seeded dataset of 32 motorcycles and small user base, but several bottlenecks emerged during stress testing with larger datasets. Loading the entire motorcycle catalog for client-side filtering works smoothly with dozens of motorcycles but would cause noticeable delays with thousands. Migration to server-side pagination and filtering will be necessary before production launch.
+Order queries currently fetch all related data (motorcycles, user information) without pagination, creating potential performance issues as order histories grow. Implementing cursor-based pagination for order histories will prevent memory issues and improve response times for users with extensive purchase histories.
+Database query optimization through proper indexing on frequently searched fields (brand, category, price range) will become critical as the catalog grows. The current setup works adequately with 32 motorcycles but would require tuning for catalogs with thousands of listings.
+4.7.6. Security Considerations for Production
+The current security implementation provides development-appropriate protection but requires significant hardening before production deployment. JWT signing keys currently reside in configuration files, creating exposure risk. Production requires externalized secret management through environment variables or dedicated secrets managers.
+CORS configuration currently allows requests from any origin (*), necessary for development flexibility but unacceptable for production. Strict origin whitelisting limited to approved frontend domains must be implemented alongside other security headers (HSTS, CSP, X-Frame-Options).
+Password hashing uses BCrypt with default cost factor, chosen without performance benchmarking under load. Production should tune cost factor balancing security strength against authentication latency requirements during peak traffic.
+Input validation currently exists at the service layer but would benefit from additional request-level validation to provide defense-in-depth against malicious inputs. Rate limiting on authentication endpoints will prevent brute-force attacks on user accounts.
+4.7.7. Honest Assessment and Phase 3 Requirements
+Phase 2 successfully validates that an integrated motorcycle platform can work—the technology choices prove sound, the architecture supports required workflows, and users can complete end-to-end journeys from discovery through purchase and service booking. This represents meaningful progress from Phase 1's theoretical designs to working software.
+However, significant work remains before production readiness. The gap between "functional prototype" and "production system" encompasses not just missing features but fundamental operational maturity: deployment automation, monitoring and observability, incident response capabilities, backup and recovery procedures, and sustained operation under real load.
+Phase 3 must prioritize features that directly impact user trust and platform viability: email verification establishes account legitimacy, payment gateway integration enables actual transactions, notification system improves engagement and transparency. The interactive map functionality with geospatial store location will complete the service booking experience. Beyond features, operational infrastructure—monitoring, logging, alerting, deployment pipelines—determines whether the system can operate reliably at scale.
+The strategic deferrals in Phase 2 were appropriate decisions enabling focus on core validation. Now that the integrated approach proves viable, Phase 3 must address these gaps systematically while establishing operational practices supporting continuous improvement and reliable service.
+Chapter 5. Conclusion and Future Works
+5.1. Conclusion
+Phase 2 successfully transformed MotoMarket from conceptual design into a functional full-stack platform that validates the integrated marketplace approach for the motorcycle industry. The implementation demonstrates that React, Spring Boot, SQL Server, and Cloudinary can effectively support complex workflows spanning catalog management, order processing, service booking, and community engagement within a unified architecture.
+The platform now operates end-to-end: users browse a catalog of 32 motorcycles across 10 major brands, apply multi-criteria filters, compare specifications side-by-side, place orders containing multiple motorcycles, schedule test rides and maintenance services, and participate in community forums. Administrators manage inventory with sophisticated image workflows through Cloudinary integration, process orders with validated status transitions that protect inventory integrity, and oversee user activity through comprehensive dashboards. This represents substantial progress from Phase 1's wireframes and system diagrams to working software handling realistic workflows.
+Several technical decisions proved their value during implementation. Stateless JWT authentication supports horizontal scaling while maintaining security through role-based access control. The three-tier architecture cleanly separates presentation, business logic, and data access layers, enabling independent evolution of each tier. Cloudinary's managed media service eliminated the need for custom image infrastructure while delivering professional-grade performance through CDN distribution. The order status state machine prevents business rule violations by enforcing valid status transitions, ensuring inventory updates only occur for properly processed orders.
+The development process revealed important insights about transitioning from design to implementation. Phase 1's class diagrams accurately captured entity relationships but underestimated the complexity of cascade behaviors, transaction boundaries, and concurrent access patterns. API specifications provided essential contracts for frontend-backend integration but required refinement based on actual data flow requirements and pagination needs. The Figma prototypes successfully guided component development but didn't capture all necessary states—loading indicators, error messages, empty states—that emerged during implementation.
+However, Phase 2 deliberately bounded its scope to core functionality validation rather than production readiness. Email verification remains unimplemented, creating security vulnerabilities and account recovery challenges. Payment processing records transaction identifiers without actual gateway integration, deferring PCI compliance and financial reconciliation complexity. Real-time notifications for order updates, booking confirmations, and forum replies are absent, requiring users to manually check for updates. Interactive map functionality with geospatial store location will be implemented in Phase 3 to complete the service discovery experience.
+These strategic deferrals enabled focused effort on proving the integrated platform concept works. The architecture accommodates planned features—event publication points exist for future notifications, transaction recording supports payment gateway integration, store data structures await location enhancement. Phase 2 establishes a maintainable foundation demonstrating technical viability while clearly identifying the path to production deployment.
+The project successfully achieves its academic learning objectives by demonstrating competency across multiple domains: full-stack development integrating modern frontend and backend frameworks, database design implementing normalized schemas with appropriate relationships, RESTful API architecture with proper resource modeling and HTTP semantics, authentication and authorization using industry-standard JWT patterns, cloud service integration for scalable media management, and responsive web design delivering consistent experiences across devices. The systematic progression from requirements analysis through architecture design to working implementation reflects professional software engineering practices.
+From a research perspective, Phase 2 provides practical validation that integrated platforms can address documented fragmentation in specialized markets. By unifying discovery, commerce, service coordination, and community features within a single system, MotoMarket reduces transaction costs, improves information flow, and creates new value propositions for multiple stakeholder groups. The implementation offers adaptable patterns and architectural blueprints for other domains facing similar fragmentation challenges—automotive services, real estate, healthcare—where coordinated workflows across traditionally separate functions could deliver substantial user value.
+The gap between Phase 2's functional prototype and production-ready system is substantial but well-understood. Production deployment requires not just completing deferred features but establishing operational maturity: automated deployment pipelines, comprehensive monitoring and observability, incident response procedures, backup and recovery strategies, security hardening beyond development baselines, and performance optimization under realistic load. Phase 3 will systematically address these requirements while maintaining the architectural integrity and maintainability established in Phase 2.
+.Future Work
+Phase 3 will transition MotoMarket from validated prototype to production-ready platform through three parallel workstreams: completing deferred user-facing features, establishing operational infrastructure, and enhancing system performance and reliability.
+5.2.1. Critical User-Facing Features
+Email Verification and Account Security
+Implementing email verification requires SMTP server configuration (SendGrid or AWS SES), verification token generation with time-based expiration, HTML email templates with branding and clear calls-to-action, activation workflow endpoints handling token validation and account activation, and UI flows for resending verification emails and handling expired tokens. Additionally, password recovery workflows require similar infrastructure with secure reset tokens, validation of reset requests, and password change forms with strength requirements. These features gate production launch as they establish account legitimacy and enable self-service recovery.
+Payment Gateway Integration
+Integrating Stripe for production payment processing requires: Stripe SDK configuration with API keys and webhook secrets, checkout session creation endpoints generating payment intents, webhook endpoints receiving asynchronous payment confirmations with idempotent processing to handle duplicate deliveries, refund API integration for order cancellations and returns, payment reconciliation dashboards for administrative oversight, and comprehensive error handling for payment failures with clear user feedback. Testing requires extensive work with Stripe's test mode, simulating various payment scenarios (successful payments, declined cards, network failures, webhook delays), and ensuring proper order state transitions based on payment results.
+Real-Time Notification System
+Building notification infrastructure requires: message queue implementation (RabbitMQ or AWS SQS) for reliable delivery, notification preference management allowing users to control email/SMS/push settings per event type, message template system with variable substitution and multi-language support, delivery mechanism integrations (email via SendGrid, SMS via Twilio, push notifications via Firebase), delivery tracking recording sent notifications with status updates, retry logic with exponential backoff for failed deliveries, and unsubscribe mechanisms respecting user preferences. Priority events include order status changes, booking confirmations, forum replies, and promotional announcements.
+Interactive Map and Location Features
+Completing location-based services requires: Google Maps or Mapbox integration for interactive map displays, geolocation API usage requesting user position with appropriate permission handling, store location visualization with custom markers and information windows, nearest-store calculation using geospatial distance algorithms (Haversine formula), route planning integration showing directions from user location to selected stores, and responsive map components working across desktop and mobile devices. The backend store data structure already supports latitude/longitude storage, establishing the foundation for these features.
+5.2.2. Operational Infrastructure
+Deployment Automation and Environment Management
+Production deployment requires: containerization with Docker creating consistent runtime environments, Docker Compose configurations for local development matching production architecture, container orchestration with Kubernetes enabling scaling and self-healing, CI/CD pipelines using GitHub Actions or GitLab CI automating build/test/deploy workflows, environment-based configuration management separating development/staging/production settings, secrets management with AWS Secrets Manager or HashiCorp Vault protecting sensitive credentials, and blue-green deployment strategies enabling zero-downtime updates.
+Monitoring and Observability
+Reliable operation demands: centralized logging with ELK stack (Elasticsearch, Logstash, Kibana) or CloudWatch aggregating logs from all services, structured logging with consistent formats enabling effective querying, metrics collection via Micrometer and Prometheus tracking request rates/response times/error rates, distributed tracing with Jaeger or AWS X-Ray following requests across service boundaries, dashboards with Grafana visualizing system health and performance trends, alerting rules triggering notifications for critical conditions (high error rates, database connection failures, elevated latency), and on-call rotation procedures for incident response.
+Security Hardening
+Production security requires: JWT refresh token implementation with longer-lived refresh tokens and shorter access tokens, rate limiting on authentication endpoints preventing brute-force attacks, comprehensive input validation using Spring's @Valid annotations, HTTPS enforcement redirecting all HTTP traffic, security headers configuration (HSTS, CSP, X-Frame-Options, X-Content-Type-Options), CORS tightening restricting origins to approved frontend domains, dependency vulnerability scanning with tools like Snyk or Dependabot, regular penetration testing identifying security weaknesses, and security audit logging tracking sensitive operations.
+5.2.3. Performance Optimization and Scalability
+Database Optimization
+Scaling database performance requires: indexing strategy implementation on frequently queried fields (motorcycle brand/category/price, order status/creation date, user email/username), query optimization through JPA fetch strategies (eager vs lazy loading) and query plan analysis, connection pooling tuning for optimal throughput under load, read replica configuration for separating read-heavy operations from writes, and database migration to managed services (AWS RDS) with automatic backups and high availability.
+Caching Strategy
+Implementing caching requires: Redis deployment for distributed caching across application instances, catalog caching storing motorcycle listings with time-based expiration, user session caching reducing database queries for authenticated requests, cache invalidation strategies ensuring consistency when data changes, and cache warming for frequently accessed data during deployment.
+Frontend Performance
+Optimizing frontend performance requires: server-side pagination replacing client-side filtering for catalog listings, lazy loading images deferring off-screen content, code splitting creating smaller initial bundles, Progressive Web App (PWA) implementation enabling offline functionality and app-like experience, and CDN deployment for static assets reducing latency globally.
+5.2.4. Enhanced Features and Business Logic
+Inventory Management
+Advanced inventory features include: low stock alerts notifying administrators when quantities fall below thresholds, stock reservation during checkout holding inventory temporarily for active purchases, inventory forecasting predicting reorder needs based on sales patterns, and supplier integration automating purchase orders when stock depletes.
+Analytics and Reporting
+Business intelligence features include: sales analytics tracking revenue by brand/category/time period, user behavior analysis identifying popular motorcycles and conversion funnels, service booking trends informing capacity planning, forum engagement metrics measuring community health, and administrative dashboards visualizing key performance indicators.
+Search Enhancement
+Improving search capabilities requires: Elasticsearch integration enabling full-text search across motorcycle descriptions and features, autocomplete suggestions appearing as users type, search result ranking using relevance scoring and user behavior signals, and faceted search providing count previews for each filter option.
+References
+Cycle Trader. (2022). Cycle Trader Overview. Trader Interactive. https://www.traderinteractive.com/cycle-trader/ 
+Cycle Trader Media Kit. (2024). Cycle Trader Audience Statistics. https://cycletradermediakit.com/ 
+Devitt Insurance. (2021). Top 10 Motorcycle Forums. https://www.devittinsurance.com/guides/top-10/top-10-motorcycle-forums/ 
+Feedspot. (2025). Top 40 Motorcycle Forums in 2025. https://forums.feedspot.com/motorcycle_forums/
+Powersports Business. (2024). Cycle Trader shares new and used motorcycle market insights. https://powersportsbusiness.com/top-stories/2024/07/03/
+cycle-trader-shares-new-and-used-motorcycle-market-insights/ The Admin Zone. (2022). Why are online motorcycle forums drying up and dying? https://www.theadminzone.com/threads/article-why-are-online-motorcycle-forums-drying-up-and-dying-imo-relevant-to-all-forums.154401/
+WorthEPenny. Check Cycle Trader Ratings & Customer Reviews. https://cycletrader.worthepenny.com/
+Zenith Motorcycles. (2024). Discover The Top 10 Motorcycle Forums And Connect With Motorcyclists Globally. https://zenithmotorcycles.co.uk/blog/10-best-motorcycle-forums/
+Baeldung. (2025). CRUD Application With React and Spring Boot. https://www.baeldung.com/spring-boot-react-crud
+BezKoder. (2023). Spring Boot + React + MySQL: CRUD example REST APIs. https://www.bezkoder.com/react-spring-boot-crud/
+Okta Developer. (2025). Use React and Spring Boot to Build a Simple CRUD App. https://developer.okta.com/blog/2022/06/17/simple-crud-react-and-spring-boot
+Medium – Vishal Dogra. (2024). Architecture Guide: Spring Boot, React, and PostgreSQL Full Stack application scalable to 100 million users. https://vishu221b.medium.com/architecture-guide-spring-boot-react-and-postgresql-full-stack-application-scalable-to-a-100-aba4a960df8f 
+DHiWise. (2025). React Spring Boot: An Implementation Guide For Full-stack Devs. https://www.dhiwise.com/post/a-step-by-step-guide-to-implementing-react-spring-boot
+Medium – Bhargav Kanjarla. (2025). How To Combine a Java Spring Boot Back End with a ReactJS Front End App. https://medium.com/@bhargavkanjarla01/how-to-combine-a-java-spring-boot-back-end-with-a-reactjs-front-end-app-ed8d8ca65285
+Java Guides. (2023). Spring Boot + Microsoft SQL Server + JPA/Hibernate CRUD Restful API Tutorial. https://www.javaguides.net/2019/01/spring-boot-microsoft-sql-server-jpa-hibernate-crud-restful-api-tutorial.html
+Cloudinary. (2024). Integrate With E-commerce Platforms and CMS Early On. https://cloudinary.com/guides/e-commerce-platform/integrate-e-commerce-platforms-and-cms-early-on
+Cloudinary. (2024). Dynamic Media Platform: A Must-Have Technology for E-Commerce Stack. https://cloudinary.com/blog/why_dynamic_media_platform_is_must_have_for_ecommerce
+Cloudinary. (2024). Adopt the Best Media Capabilities for E-commerce. https://cloudinary.com/guides/e-commerce-platform/leverage-best-of-breed-media-capabilities
+Cloudinary. (2025). Choose the Right E-commerce Platform. https://cloudinary.com/guides/e-commerce-platform/select-the-right-e-commerce-platform-for-your-needs
+Cloudinary. (2025). Platform Overview. https://cloudinary.com/platform
+Cloudinary. (2023). Enhancing Composable Commerce: Cloudinary Integrates With commercetools. https://cloudinary.com/blog/enhancing-composable-commerce-cloudinary-now-integrates-with-commercetools
+Powersports Business. (2024). Study: consumer insights and brand preferences in motorcycle P&A. https://powersportsbusiness.com/features/2023/08/24/study-consumer-insights-and-brand-preferences-in-motorcycle-pa-purchases/
+Grand View Research. (2024). U.S. Motorcycle Market Size & Share | Industry Report, 2030. https://www.grandviewresearch.com/industry-analysis/us-motorcycle-market
+ IBISWorld. (2024). Motorcycle, Bike & Parts Manufacturing in the US – Market Research Report. https://www.ibisworld.com/united-states/industry/motorcycle-bike-parts-manufacturing/856/
+Motorcycle & Powersports News. (2024). Q&A: Powersports Consumer Sentiment Forecast for 2024. https://www.motorcyclepowersportsnews.com/qampa-powersports-consumer-sentiment-forecast-2024/
+Motorcycle & Powersports News. (2024). The Future of Buying: Navigating Powersport Consumer Trends. https://www.motorcyclepowersportsnews.com/future-buying-navigating-powersport-consumer-trends/
+VNPay. (2024). Payment Gateway Integration Guide – Developer Documentation. https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/
+Google Developers. (2024). Sign In with Google for Web – OAuth 2.0. https://developers.google.com/identity/gsi/web/guides/overview
+Google AI. (2025). Gemini API Documentation. https://ai.google.dev/api/rest
+Docker Inc. (2024). Docker Compose Overview. https://docs.docker.com/compose/ 
+NGINX. (2024). NGINX Reverse Proxy Configuration Guide. https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
+Let's Encrypt / Certbot. (2024). Automated HTTPS Certificate Management. https://certbot.eff.org/docs/

@@ -751,7 +751,26 @@ public class AdminService {
         store.setContractEnd(java.time.LocalDate.now().plusYears(years));
         return storeRepository.save(store);
     }
-    
+
+    @Transactional
+    public Store updateStore(String storeId, Map<String, Object> body) {
+        Store store = storeRepository.findById(storeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Store not found with id: " + storeId));
+        if (body.containsKey("name") && body.get("name") != null)
+            store.setName(body.get("name").toString());
+        if (body.containsKey("address") && body.get("address") != null)
+            store.setAddress(body.get("address").toString());
+        if (body.containsKey("phone") && body.get("phone") != null)
+            store.setPhone(body.get("phone").toString());
+        if (body.containsKey("brand") && body.get("brand") != null)
+            store.setBrand(body.get("brand").toString());
+        if (body.containsKey("latitude") && body.get("latitude") != null)
+            store.setLatitude(Double.parseDouble(body.get("latitude").toString()));
+        if (body.containsKey("longitude") && body.get("longitude") != null)
+            store.setLongitude(Double.parseDouble(body.get("longitude").toString()));
+        return storeRepository.save(store);
+    }
+
     // ==================== BOOKING MANAGEMENT ====================
     
     public Page<TestRide> getAllTestRides(int page, int size, String status) {

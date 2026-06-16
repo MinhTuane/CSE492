@@ -309,6 +309,11 @@ export const getStoresAdmin = async () => {
   return response.data;
 };
 
+export const updateStore = async (storeId, data) => {
+  const response = await api.put(`/admin/stores/${storeId}`, data);
+  return response.data;
+};
+
 export const updateTestRideStore = async (id, storeId) => {
   const response = await api.patch(`/admin/test-rides/${id}/store`, null, { params: { storeId } });
   return response.data;
@@ -357,6 +362,7 @@ const adminService = {
   // Users
   getAllUsersAdmin,
   getAllStores: getStoresAdmin,
+  updateStore,
   getUserDetails,
   activateUser,
   deactivateUser,
