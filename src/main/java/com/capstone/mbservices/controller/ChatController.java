@@ -81,7 +81,20 @@ public class ChatController {
                 messagingTemplate.convertAndSend("/topic/chat/sessions", Map.of("action", "message", "customerId", customerId));
             } else {
                 // AI Bot Mode: Get chatbot reply
-                String botReply = chatbotService.getChatResponse(request.getContent());
+                List<ChatMessage> allMessages = chatMessageRepository.findByCustomerIdOrderByCreateAtAsc(customerId);
+                List<Map<String, String>> history = new ArrayList<>();
+                int start = Math.max(0, allMessages.size() - 11);
+                int end = Math.max(0, allMessages.size() - 1); // exclude current message
+                for (int i = start; i < end; i++) {
+                    ChatMessage m = allMessages.get(i);
+                    if ("SYSTEM".equals(m.getSenderRole())) continue;
+                    Map<String, String> msgMap = new HashMap<>();
+                    msgMap.put("role", "BOT".equals(m.getSenderRole()) ? "model" : "user");
+                    msgMap.put("content", m.getContent());
+                    history.add(msgMap);
+                }
+                
+                String botReply = chatbotService.getChatResponse(request.getContent(), history);
                 ChatMessage botMessage = ChatMessage.builder()
                         .customerId(customerId)
                         .senderRole("BOT")

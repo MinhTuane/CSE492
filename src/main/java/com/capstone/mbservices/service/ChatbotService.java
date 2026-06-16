@@ -17,9 +17,12 @@ public class ChatbotService {
         this.webClient = webClientBuilder.baseUrl(chatbotApiUrl).build();
     }
 
-    public String getChatResponse(String userMessage) {
+    public String getChatResponse(String userMessage, java.util.List<Map<String, String>> history) {
         try {
-            Map<String, String> requestBody = Map.of("message", userMessage);
+            Map<String, Object> requestBody = Map.of(
+                "message", userMessage,
+                "history", history != null ? history : java.util.Collections.emptyList()
+            );
 
             Map<String, Object> response = webClient.post()
                     .bodyValue(requestBody)

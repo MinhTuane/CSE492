@@ -147,6 +147,22 @@ def chat():
     try:
         data = request.json
         user_message = data.get('message', '')
+        history = data.get('history', [])
+        
+        # Build contents for Gemini
+        gemini_contents = []
+        for msg in history:
+            role = msg.get('role', 'user')
+            content = msg.get('content', '')
+            gemini_contents.append({"role": role, "parts": [{"text": content}]})
+        gemini_contents.append({"role": "user", "parts": [{"text": user_message}]})
+        
+        # Build messages for OpenAI
+        openai_messages = [{"role": "system", "content": get_system_prompt()}]
+        for msg in history:
+            role = 'assistant' if msg.get('role') == 'model' else 'user'
+            openai_messages.append({"role": role, "content": msg.get('content', '')})
+        openai_messages.append({"role": "user", "content": user_message})
         
         # 1. Check if Gemini is configured (Preferred)
         gemini_key = os.getenv("GEMINI_API_KEY")
@@ -159,7 +175,7 @@ def chat():
                 
                 response_obj = client.models.generate_content(
                     model=gemini_model_name,
-                    contents=user_message,
+                    contents=gemini_contents,
                     config=types.GenerateContentConfig(
                         system_instruction=get_system_prompt()
                     )
@@ -184,10 +200,7 @@ def chat():
                 client = OpenAI(api_key=openai_key)
                 completion = client.chat.completions.create(
                     model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-                    messages=[
-                        {"role": "system", "content": get_system_prompt()},
-                        {"role": "user", "content": user_message}
-                    ],
+                    messages=openai_messages,
                     max_tokens=500,
                     temperature=0.7
                 )
