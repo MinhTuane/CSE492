@@ -104,71 +104,65 @@ public class OrderController {
     @GetMapping("/vnpay/verify")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Order> verifyVNPayCallback(@RequestParam Map<String, String> params) {
-        try {
-            String secureHash = params.get("vnp_SecureHash");
-            if (secureHash == null || secureHash.isBlank()) {
-                log.warn("[VNPAY-VERIFY] Missing vnp_SecureHash in params={}", params);
-                return ResponseEntity.badRequest().build();
-            }
-            String responseCode = params.get("vnp_ResponseCode");
-            String txnRef = params.get("vnp_TxnRef");
-            if (txnRef == null || txnRef.isBlank()) {
-                log.warn("[VNPAY-VERIFY] Missing vnp_TxnRef in params={}", params);
-                return ResponseEntity.badRequest().build();
-            }
-            // txnRef format is "orderId_timestamp" (UUID has no underscores).
-            String orderId = txnRef.contains("_") ? txnRef.split("_")[0] : txnRef;
-
-            // Verify order exists and is in correct state
-            Order order = orderService.getOrderById(orderId);
-            if (order.getStatus() == OrderStatus.PAID) {
-                // Already paid, prevent duplicate processing
-                return ResponseEntity.ok(order);
-            }
-
-            Map<String, String> filtered = params.entrySet().stream()
-                    .filter(e -> e.getKey() != null && e.getKey().startsWith("vnp_"))
-                    .filter(e -> !"vnp_SecureHash".equals(e.getKey()))
-                    .filter(e -> !"vnp_SecureHashType".equals(e.getKey()))
-                    .filter(e -> e.getValue() != null && !e.getValue().isBlank())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-
-            String hashData = filtered.entrySet().stream()
-                    .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8))
-                    .collect(Collectors.joining("&"));
-
-            String expectedHash = com.capstone.mbservices.config.VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
-
-            if (!expectedHash.equalsIgnoreCase(secureHash)) {
-                log.warn("[VNPAY-VERIFY] Signature mismatch. expected={}, got={}, hashData={}, key={}", 
-                        expectedHash, secureHash, hashData, 
-                        vnPayService.getSecretKey() != null && vnPayService.getSecretKey().length() > 4 
-                                ? vnPayService.getSecretKey().substring(0, 4) + "..." 
-                                : "null");
-                return ResponseEntity.status(400).build();
-            }
-
-            if (!"00".equals(responseCode)) {
-                log.warn("[VNPAY-VERIFY] ResponseCode is not 00, responseCode={}, params={}", responseCode, params);
-                return ResponseEntity.status(400).build();
-            }
-
-            String vnpAmount = params.get("vnp_Amount");
-            double amountToPay = Boolean.TRUE.equals(order.getIsDeposit()) ? order.getDepositAmount() : order.getTotalAmount();
-            long expectedAmount = Math.round(amountToPay * 100);
-            if (vnpAmount == null || !String.valueOf(expectedAmount).equals(vnpAmount)) {
-                log.warn("[VNPAY-VERIFY] Amount mismatch. expectedAmount={} (long value of {} * 100), got vnp_Amount={}", 
-                        expectedAmount, amountToPay, vnpAmount);
-                return ResponseEntity.status(400).build();
-            }
-
-            String txn = params.getOrDefault("vnp_TransactionNo", String.valueOf(System.currentTimeMillis()));
-            return ResponseEntity.ok(orderService.processPayment(orderId, "VNPAY-" + txn));
-        } catch (Exception e) {
-            log.error("[VNPAY-VERIFY-ERROR] Exception occurred during VNPay callback verification. params={}, error={}", 
-                    params, e.getMessage(), e);
-            return ResponseEntity.status(500).build();
+        String secureHash = params.get("vnp_SecureHash");
+        if (secureHash == null || secureHash.isBlank()) {
+            log.warn("[VNPAY-VERIFY] Missing vnp_SecureHash in params={}", params);
+            return ResponseEntity.badRequest().build();
         }
+        String responseCode = params.get("vnp_ResponseCode");
+        String txnRef = params.get("vnp_TxnRef");
+        if (txnRef == null || txnRef.isBlank()) {
+            log.warn("[VNPAY-VERIFY] Missing vnp_TxnRef in params={}", params);
+            return ResponseEntity.badRequest().build();
+        }
+        // txnRef format is "orderId_timestamp" (UUID has no underscores).
+        String orderId = txnRef.contains("_") ? txnRef.split("_")[0] : txnRef;
+
+        // Verify order exists and is in correct state
+        Order order = orderService.getOrderById(orderId);
+        if (order.getStatus() == OrderStatus.PAID) {
+            // Already paid, prevent duplicate processing
+            return ResponseEntity.ok(order);
+        }
+
+        Map<String, String> filtered = params.entrySet().stream()
+                .filter(e -> e.getKey() != null && e.getKey().startsWith("vnp_"))
+                .filter(e -> !"vnp_SecureHash".equals(e.getKey()))
+                .filter(e -> !"vnp_SecureHashType".equals(e.getKey()))
+                .filter(e -> e.getValue() != null && !e.getValue().isBlank())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+
+        String hashData = filtered.entrySet().stream()
+                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8))
+                .collect(Collectors.joining("&"));
+
+        String expectedHash = com.capstone.mbservices.config.VNPayConfig.hmacSHA512(vnPayService.getSecretKey(), hashData);
+
+        if (!expectedHash.equalsIgnoreCase(secureHash)) {
+            log.warn("[VNPAY-VERIFY] Signature mismatch. expected={}, got={}, hashData={}, key={}", 
+                    expectedHash, secureHash, hashData, 
+                    vnPayService.getSecretKey() != null && vnPayService.getSecretKey().length() > 4 
+                            ? vnPayService.getSecretKey().substring(0, 4) + "..." 
+                            : "null");
+            return ResponseEntity.status(400).build();
+        }
+
+        if (!"00".equals(responseCode)) {
+            log.warn("[VNPAY-VERIFY] ResponseCode is not 00, responseCode={}, params={}", responseCode, params);
+            return ResponseEntity.status(400).build();
+        }
+
+        String vnpAmount = params.get("vnp_Amount");
+        double amountToPay = Boolean.TRUE.equals(order.getIsDeposit()) ? order.getDepositAmount() : order.getTotalAmount();
+        long expectedAmount = Math.round(amountToPay * 100);
+        if (vnpAmount == null || !String.valueOf(expectedAmount).equals(vnpAmount)) {
+            log.warn("[VNPAY-VERIFY] Amount mismatch. expectedAmount={} (long value of {} * 100), got vnp_Amount={}", 
+                    expectedAmount, amountToPay, vnpAmount);
+            return ResponseEntity.status(400).build();
+        }
+
+        String txn = params.getOrDefault("vnp_TransactionNo", String.valueOf(System.currentTimeMillis()));
+        return ResponseEntity.ok(orderService.processPayment(orderId, "VNPAY-" + txn));
     }
 
     /**
