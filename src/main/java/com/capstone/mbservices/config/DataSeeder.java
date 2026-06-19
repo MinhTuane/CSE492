@@ -42,13 +42,30 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            log.info("Migrating legacy database roles to the new 4-role model...");
-            jdbcTemplate.update("UPDATE users SET role = 'STAFF_SERVICE' WHERE role IN ('STAFF', 'SERVICE_ADVISOR')");
-            jdbcTemplate.update("UPDATE users SET role = 'STAFF_CS' WHERE role IN ('STAFF_CSKH', 'SALES_STAFF')");
-            jdbcTemplate.update("UPDATE users SET role = 'ADMIN' WHERE role IN ('SUPER_ADMIN', 'BRANCH_MANAGER')");
-            log.info("Database roles migration completed successfully.");
+            log.info("Checking and dropping CHECK constraints on users.role...");
+            List<String> constraints = jdbcTemplate.queryForList(
+                "SELECT DISTINCT tc.constraint_name " +
+                "FROM information_schema.table_constraints tc " +
+                "JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name " +
+                "WHERE tc.table_name = 'users' AND ccu.column_name = 'role' AND tc.constraint_type = 'CHECK'",
+                String.class
+            );
+            for (String constraint : constraints) {
+                log.info("Dropping constraint: {}", constraint);
+                jdbcTemplate.execute("ALTER TABLE users DROP CONSTRAINT " + constraint);
+            }
         } catch (Exception e) {
-            log.warn("Failed to migrate database roles: {}", e.getMessage());
+            log.error("Failed to drop constraints: {}", e.getMessage(), e);
+        }
+
+        try {
+            log.info("Migrating legacy database roles to the new 4-role model...");
+            int count1 = jdbcTemplate.update("UPDATE users SET role = 'STAFF_SERVICE' WHERE role IN ('STAFF', 'SERVICE_ADVISOR')");
+            int count2 = jdbcTemplate.update("UPDATE users SET role = 'STAFF_CS' WHERE role IN ('STAFF_CSKH', 'SALES_STAFF')");
+            int count3 = jdbcTemplate.update("UPDATE users SET role = 'ADMIN' WHERE role IN ('SUPER_ADMIN', 'BRANCH_MANAGER')");
+            log.info("Database roles migration completed successfully. Updated STAFF->STAFF_SERVICE: {}, STAFF_CSKH->STAFF_CS: {}, legacy->ADMIN: {}", count1, count2, count3);
+        } catch (Exception e) {
+            log.error("Failed to migrate database roles: {}", e.getMessage(), e);
         }
 
         ensureAdminExists();
