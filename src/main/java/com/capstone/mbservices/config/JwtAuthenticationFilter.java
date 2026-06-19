@@ -96,8 +96,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             path.startsWith("/ws") ||
             path.startsWith("/api/reviews/motorcycle/") ||
             path.equals("/api/reviews/approved") ||
-            path.equals("/api/bookings/services/stats") ||
-            path.startsWith("/api/bookings/services/recent") ||
             path.startsWith("/api/bookings/services/catalog") ||
             path.equals("/api/bookings/stores") ||
             path.startsWith("/api/bookings/stores/nearest") ||
@@ -105,8 +103,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             path.startsWith("/auth/") ||
             path.startsWith("/reviews/motorcycle/") ||
             path.equals("/reviews/approved") ||
-            path.equals("/bookings/services/stats") ||
-            path.startsWith("/bookings/services/recent") ||
             path.startsWith("/bookings/services/catalog") ||
             path.equals("/bookings/stores") ||
             path.startsWith("/discount-codes/validate/") ||

@@ -48,8 +48,6 @@ api.interceptors.response.use(
         starts('/auth/') ||
         starts('/reviews/motorcycle/') ||
         u === '/reviews/approved' ||
-        u === '/bookings/services/stats' ||
-        starts('/bookings/services/recent') ||
         starts('/bookings/services/catalog') ||
         u === '/bookings/stores' ||
         starts('/bookings/stores/nearest') ||
