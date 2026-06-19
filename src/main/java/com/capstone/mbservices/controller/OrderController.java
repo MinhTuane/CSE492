@@ -31,13 +31,13 @@ public class OrderController {
     private final com.capstone.mbservices.service.MomoService momoService;
     
     @PostMapping
-    @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Order> create(@Valid @RequestBody OrderRequest request) {
         return ResponseEntity.ok(orderService.createOrder(request));
     }
     
     @PostMapping("/{id}/vnpay-url")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or @orderRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or @orderRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
     public ResponseEntity<VNPayResponse> createVNPayUrl(@PathVariable String id, HttpServletRequest request) {
         Order order = orderService.getOrderById(id);
         String orderInfo = "Thanh toan don hang " + id;
@@ -47,7 +47,7 @@ public class OrderController {
     }
     
     @PostMapping("/{id}/zalopay-url")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or @orderRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or @orderRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
     public ResponseEntity<VNPayResponse> createZaloPayUrl(@PathVariable String id) {
         Order order = orderService.getOrderById(id);
         String orderInfo = "Thanh toan don hang " + id;
@@ -57,7 +57,7 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/momo-url")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or @orderRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or @orderRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
     public ResponseEntity<VNPayResponse> createMomoUrl(@PathVariable String id) {
         Order order = orderService.getOrderById(id);
         String orderInfo = "Thanh toan don hang " + id;
@@ -67,19 +67,19 @@ public class OrderController {
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR') or @orderRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS') or @orderRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
     public ResponseEntity<Order> getById(@PathVariable String id) {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
     
     @GetMapping("/user/{userId}")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<List<Order>> getUserOrders(@PathVariable String userId) {
         return ResponseEntity.ok(orderService.getUserOrders(userId));
     }
     
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Order> updateStatus(@PathVariable String id, @RequestParam OrderStatus status) {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
     }
@@ -90,7 +90,7 @@ public class OrderController {
      * Requires a non-blank reason for audit purposes.
      */
     @PostMapping("/{id}/payment")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Order> processPayment(
             @PathVariable String id,
             @RequestParam String transactionId,
@@ -313,7 +313,7 @@ public class OrderController {
     }
     
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Map<String, Object>> getAllOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

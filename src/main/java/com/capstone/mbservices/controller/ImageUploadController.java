@@ -18,7 +18,7 @@ public class ImageUploadController {
     private final CloudinaryService cloudinaryService;
     
     @PostMapping("/image")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS', 'CUSTOMER')")
     public ResponseEntity<Map<String, String>> uploadSingleImage(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "folder", defaultValue = "general") String folder) {
@@ -33,7 +33,7 @@ public class ImageUploadController {
     }
     
     @PostMapping("/images")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS', 'CUSTOMER')")
     public ResponseEntity<Map<String, Object>> uploadMultipleImages(
             @RequestParam("files") MultipartFile[] files,
             @RequestParam(value = "folder", defaultValue = "general") String folder) {
@@ -49,7 +49,7 @@ public class ImageUploadController {
     }
     
     @DeleteMapping("/image")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Map<String, String>> deleteImage(@RequestParam("url") String imageUrl) {
         cloudinaryService.deleteImage(imageUrl);
         

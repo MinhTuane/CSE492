@@ -20,13 +20,13 @@ public class UserBikeController {
     private final UserRepository userRepository;
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<List<UserBike>> getUserBikes(@PathVariable String userId) {
         return ResponseEntity.ok(userBikeRepository.findByUserIdOrderByCreateAtDesc(userId));
     }
 
     @PostMapping
-    @PreAuthorize("#payload.get('userId') == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("#payload.get('userId') == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<?> addBike(@RequestBody Map<String, Object> payload) {
         String userId = (String) payload.get("userId");
         User user = userRepository.findById(userId).orElseThrow();
@@ -46,7 +46,7 @@ public class UserBikeController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR') or @userBikeRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS') or @userBikeRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
     public ResponseEntity<?> removeBike(@PathVariable String id) {
         userBikeRepository.deleteById(id);
         return ResponseEntity.ok().build();

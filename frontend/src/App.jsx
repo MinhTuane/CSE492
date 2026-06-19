@@ -50,10 +50,10 @@ const AdminAccessories = React.lazy(() => import('./pages/admin/AdminAccessories
 const StaffOrders = React.lazy(() => import('./pages/staff/StaffOrders'));
 
 /** Roles allowed to call /api/admin/** (see SecurityConfig) */
-const ADMIN_PANEL_ROLES = ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'SERVICE_ADVISOR'];
+const ADMIN_PANEL_ROLES = ['ADMIN', 'STAFF_SERVICE', 'STAFF_CS'];
 
 /** Roles allowed for /api/staff/** style staff tools */
-const STAFF_PANEL_ROLES = ['STAFF', 'ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'SERVICE_ADVISOR'];
+const STAFF_PANEL_ROLES = ['ADMIN', 'STAFF_SERVICE', 'STAFF_CS'];
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requireAdmin = false, requireStaff = false }) => {

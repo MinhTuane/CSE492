@@ -19,17 +19,17 @@ const AdminLayout = () => {
   };
 
   const navigation = [
-    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER'] },
-    { name: 'Motorcycles', path: '/admin/motorcycles', icon: Bike, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER'] },
-    { name: 'Accessories', path: '/admin/accessories', icon: ShoppingBag, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER'] },
-    { name: 'Inventory', path: '/admin/inventory', icon: Package, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'STAFF'] },
-    { name: 'Orders', path: '/admin/orders', icon: Package, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'STAFF'] },
-    { name: 'Users', path: '/admin/users', icon: Users, roles: ['ADMIN', 'SUPER_ADMIN'] },
-    { name: 'Reviews', path: '/admin/reviews', icon: Star, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER'] },
-    { name: 'Bookings', path: '/admin/bookings', icon: Calendar, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'SERVICE_ADVISOR', 'STAFF'] },
-    { name: 'Services', path: '/admin/services', icon: Wrench, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SERVICE_ADVISOR', 'STAFF'] },
-    { name: 'Discounts', path: '/admin/discounts', icon: Tag, roles: ['ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER'] },
-    { name: 'Forum', path: '/admin/forum', icon: MessageSquare, roles: ['ADMIN', 'SUPER_ADMIN'] },
+    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, roles: ['ADMIN'] },
+    { name: 'Motorcycles', path: '/admin/motorcycles', icon: Bike, roles: ['ADMIN'] },
+    { name: 'Accessories', path: '/admin/accessories', icon: ShoppingBag, roles: ['ADMIN'] },
+    { name: 'Inventory', path: '/admin/inventory', icon: Package, roles: ['ADMIN', 'STAFF_CS', 'STAFF_SERVICE'] },
+    { name: 'Orders', path: '/admin/orders', icon: Package, roles: ['ADMIN', 'STAFF_CS', 'STAFF_SERVICE'] },
+    { name: 'Users', path: '/admin/users', icon: Users, roles: ['ADMIN'] },
+    { name: 'Reviews', path: '/admin/reviews', icon: Star, roles: ['ADMIN'] },
+    { name: 'Bookings', path: '/admin/bookings', icon: Calendar, roles: ['ADMIN', 'STAFF_SERVICE', 'STAFF_CS'] },
+    { name: 'Services', path: '/admin/services', icon: Wrench, roles: ['ADMIN', 'STAFF_SERVICE'] },
+    { name: 'Discounts', path: '/admin/discounts', icon: Tag, roles: ['ADMIN'] },
+    { name: 'Forum', path: '/admin/forum', icon: MessageSquare, roles: ['ADMIN'] },
   ];
 
   const isActive = (path) => {

@@ -21,7 +21,7 @@ public class UserController {
      * GET /api/users/profile/{userId}
      */
     @GetMapping("/profile/{userId}")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable String userId) {
         User user = userService.getUserProfile(userId);
         return ResponseEntity.ok(UserProfileResponse.from(user));
@@ -38,7 +38,7 @@ public class UserController {
      * }
      */
     @PutMapping("/profile/{userId}")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<UserProfileResponse> updateProfile(
             @PathVariable String userId,
             @RequestBody Map<String, String> updates) {
@@ -56,7 +56,7 @@ public class UserController {
      * }
      */
     @PostMapping("/{userId}/change-password")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> changePassword(
             @PathVariable String userId,
             @RequestBody Map<String, String> passwordData) {
@@ -80,7 +80,7 @@ public class UserController {
      * }
      */
     @PostMapping("/{userId}/update-email")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<UserProfileResponse> updateEmail(
             @PathVariable String userId,
             @RequestBody Map<String, String> emailData) {
@@ -93,7 +93,7 @@ public class UserController {
     }
     
     @PostMapping("/{userId}/username")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<UserProfileResponse> setUsername(
             @PathVariable String userId,
             @RequestBody Map<String, String> data) {
@@ -103,7 +103,7 @@ public class UserController {
     }
     
     @PostMapping("/{userId}/set-password")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> setPassword(
             @PathVariable String userId,
             @RequestBody Map<String, String> data) {
@@ -120,7 +120,7 @@ public class UserController {
      * Returns order count, booking count, review count, etc.
      */
     @GetMapping("/{userId}/stats")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getUserStats(@PathVariable String userId) {
         Map<String, Object> stats = userService.getUserStats(userId);
         return ResponseEntity.ok(stats);
@@ -134,7 +134,7 @@ public class UserController {
      * }
      */
     @PostMapping("/{userId}/deactivate")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> deactivateAccount(
             @PathVariable String userId,
             @RequestBody Map<String, String> data) {
@@ -152,7 +152,7 @@ public class UserController {
      * POST /api/users/{userId}/reactivate
      */
     @PostMapping("/{userId}/reactivate")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserProfileResponse> reactivateAccount(@PathVariable String userId) {
         User user = userService.reactivateAccount(userId);
         return ResponseEntity.ok(UserProfileResponse.from(user));

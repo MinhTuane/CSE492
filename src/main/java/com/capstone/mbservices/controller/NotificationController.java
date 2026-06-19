@@ -18,7 +18,7 @@ public class NotificationController {
 
     // --- Admin Endpoints ---
     @GetMapping("/admin")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Notification>> getAdminNotifications() {
         return ResponseEntity.ok(notificationService.getAdminNotifications());
     }
@@ -38,19 +38,19 @@ public class NotificationController {
 
     // --- User Endpoints ---
     @GetMapping("/user/{userId}")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<List<Notification>> getUserNotifications(@PathVariable String userId) {
         return ResponseEntity.ok(notificationService.getUserNotifications(userId));
     }
 
     @GetMapping("/user/{userId}/unread-count")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<Long> getUserUnreadCount(@PathVariable String userId) {
         return ResponseEntity.ok(notificationService.getUserUnreadCount(userId));
     }
 
     @PutMapping("/user/{userId}/mark-all-read")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<Void> markAllUserAsRead(@PathVariable String userId) {
         notificationService.markAllAsReadForUser(userId);
         return ResponseEntity.ok().build();
@@ -58,7 +58,7 @@ public class NotificationController {
 
     // --- Common Endpoints ---
     @PutMapping("/{id}/read")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or @notificationRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or @notificationRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
     public ResponseEntity<Void> markAsRead(@PathVariable String id) {
         notificationService.markAsRead(id);
         return ResponseEntity.ok().build();

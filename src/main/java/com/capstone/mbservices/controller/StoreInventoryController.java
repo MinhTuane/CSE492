@@ -31,7 +31,7 @@ public class StoreInventoryController {
     }
 
     @PostMapping("/update")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<StoreInventory> updateStock(
             @RequestParam String storeId,
             @RequestParam String motorcycleId,

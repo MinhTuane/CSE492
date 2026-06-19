@@ -197,18 +197,18 @@ export const downloadICS = (title, description, location, startDate, durationMin
 
 // 🔒 Check if User is Admin
 export const isAdmin = (user) => {
-  return user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  return user?.role === 'ADMIN';
 };
 
 // 🔒 Check if User is Staff (Includes any branch-level or system-level employee)
 export const isStaff = (user) => {
-  const staffRoles = ['STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR', 'BRANCH_MANAGER', 'ADMIN', 'SUPER_ADMIN'];
+  const staffRoles = ['STAFF_SERVICE', 'STAFF_CS', 'ADMIN'];
   return staffRoles.includes(user?.role);
 };
 
 // 🔒 Check if User is Branch Manager
 export const isBranchManager = (user) => {
-  return user?.role === 'BRANCH_MANAGER';
+  return user?.role === 'ADMIN';
 };
 
 // 🔒 Check if User is Customer

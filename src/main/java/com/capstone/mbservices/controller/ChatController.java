@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.capstone.mbservices.enums.UserRole;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -32,6 +34,9 @@ public class ChatController {
 
     // In-memory registry of sessions that are currently in Staff Mode
     private static final Map<String, Boolean> activeStaffSessions = new ConcurrentHashMap<>();
+
+    // In-memory registry of staff members allowed to participate in each customer session (for technical staff delegation)
+    private static final Map<String, Set<String>> allowedStaffForSession = new ConcurrentHashMap<>();
 
     @GetMapping("/history")
     public ResponseEntity<List<ChatMessage>> getChatHistory(@RequestParam String customerId) {
@@ -105,7 +110,21 @@ public class ChatController {
                 chatMessageRepository.save(botMessage);
                 result.add(botMessage);
             }
-        } else if ("STAFF".equalsIgnoreCase(senderRole) || "ADMIN".equalsIgnoreCase(senderRole)) {
+        } else if ("STAFF".equalsIgnoreCase(senderRole) || "ADMIN".equalsIgnoreCase(senderRole) || "STAFF_CS".equalsIgnoreCase(senderRole) || "STAFF_SERVICE".equalsIgnoreCase(senderRole)) {
+            // STAFF_SERVICE role can only send messages if invited/delegated to the session
+            if ("STAFF_SERVICE".equalsIgnoreCase(senderRole)) {
+                Set<String> allowedIds = allowedStaffForSession.get(customerId);
+                if (allowedIds == null || !allowedIds.contains(request.getSenderId())) {
+                    ChatMessage errorMsg = ChatMessage.builder()
+                            .customerId(customerId)
+                            .senderRole("SYSTEM")
+                            .senderName("System")
+                            .content("You must be invited by Customer Service to join this conversation.")
+                            .createAt(LocalDateTime.now())
+                            .build();
+                    return ResponseEntity.status(403).body(List.of(errorMsg));
+                }
+            }
             // Staff replied: automatically ensure session is marked as in Staff Mode
             activeStaffSessions.put(customerId, true);
             messagingTemplate.convertAndSend("/topic/chat/" + customerId, userMessage);
@@ -176,7 +195,7 @@ public class ChatController {
                 .customerId(customerId)
                 .senderRole("SYSTEM")
                 .senderName("System")
-                .content(enable ? "🔄 Transferring your conversation to CSKH Support Staff..." : "🤖 Switched back to Virtual Assistant mode.")
+                .content(enable ? "🔄 Transferring your conversation to Customer Service Support Staff..." : "🤖 Switched back to Virtual Assistant mode.")
                 .createAt(LocalDateTime.now())
                 .build();
         chatMessageRepository.save(systemMsg);
@@ -202,6 +221,55 @@ public class ChatController {
         }
 
         return ResponseEntity.ok(Map.of("success", true, "customerId", customerId, "isStaffMode", enable));
+    }
+
+    @PostMapping("/delegate")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_CS')")
+    public ResponseEntity<Map<String, Object>> delegateSession(@RequestBody Map<String, String> payload) {
+        String customerId = payload.get("customerId");
+        String targetStaffId = payload.get("targetStaffId");
+        
+        if (customerId == null || customerId.isBlank() || targetStaffId == null || targetStaffId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "customerId and targetStaffId are required"));
+        }
+        
+        User staffUser = userRepository.findById(targetStaffId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Staff user not found"));
+        
+        if (staffUser.getRole() != UserRole.STAFF_SERVICE) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Only staff members with STAFF_SERVICE role can be delegated to"));
+        }
+        
+        // Register the staff member in the allowed session set
+        allowedStaffForSession.computeIfAbsent(customerId, k -> ConcurrentHashMap.newKeySet()).add(targetStaffId);
+        
+        // Build staff name
+        String staffName = (staffUser.getFirstname() + " " + staffUser.getLastname()).trim();
+        if (staffName.isEmpty()) {
+            staffName = staffUser.getUsername();
+        }
+        
+        // Send in-app WebSocket notification to target staff
+        String title = "🚨 Chat Session Delegated";
+        String message = "You have been invited by Customer Service to join chat session for customer: " + customerId;
+        notificationService.sendToUser(staffUser, title, message, "SUPPORT", customerId);
+        
+        // Log SYSTEM message in history
+        ChatMessage systemMsg = ChatMessage.builder()
+                .customerId(customerId)
+                .senderRole("SYSTEM")
+                .senderName("System")
+                .content("Customer Service has invited Technical Support " + staffName + " to join this conversation.")
+                .createAt(LocalDateTime.now())
+                .build();
+        chatMessageRepository.save(systemMsg);
+        
+        // Broadcast updates
+        messagingTemplate.convertAndSend("/topic/chat/" + customerId, systemMsg);
+        messagingTemplate.convertAndSend("/topic/chat/sessions", Map.of("action", "message", "customerId", customerId));
+        
+        return ResponseEntity.ok(Map.of("success", true, "customerId", customerId, "delegatedTo", targetStaffId));
     }
 
     @Data

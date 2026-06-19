@@ -53,13 +53,13 @@ public class SosController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE')")
     public ResponseEntity<List<SosRequest>> getPendingRequests() {
         return ResponseEntity.ok(sosRequestRepository.findByStatusOrderByCreateAtDesc("PENDING"));
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE')")
     public ResponseEntity<SosRequest> updateStatus(@PathVariable String id, @RequestParam String status) {
         if (status == null || !ALLOWED_STATUSES.contains(status.toUpperCase())) {
             throw new BadRequestException("Invalid status. Allowed: " + ALLOWED_STATUSES);

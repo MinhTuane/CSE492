@@ -28,31 +28,31 @@ public class BookingController {
     private final BookingService bookingService;
     private final VNPayService vnPayService;
     @PostMapping("/test-rides")
-    @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<TestRide> scheduleTestRide(@Valid @RequestBody TestRideRequest request) {
         return ResponseEntity.ok(bookingService.scheduleTestRide(request));
     }
     
     @PostMapping("/services")
-    @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<MaintenanceService> scheduleService(@Valid @RequestBody ServiceScheduleRequest request) {
         return ResponseEntity.ok(bookingService.scheduleService(request));
     }
     
     @GetMapping("/test-rides/user/{userId}")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<List<TestRide>> getUserTestRides(@PathVariable String userId) {
         return ResponseEntity.ok(bookingService.getUserTestRides(userId));
     }
     
     @GetMapping("/services/user/{userId}")
-    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<List<MaintenanceService>> getUserServices(@PathVariable String userId) {
         return ResponseEntity.ok(bookingService.getUserServices(userId));
     }
     
     @PutMapping("/test-rides/{id}/confirm")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<TestRide> confirmTestRide(@PathVariable String id) {
         return ResponseEntity.ok(bookingService.confirmTestRide(id));
     }
@@ -74,7 +74,7 @@ public class BookingController {
     }
     
     @DeleteMapping("/test-rides/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR') or @testRideRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS') or @testRideRepository.findById(#id).orElse(null)?.user?.id == authentication.principal.id")
     public ResponseEntity<Void> cancelTestRide(@PathVariable String id) {
         bookingService.cancelTestRide(id);
         return ResponseEntity.noContent().build();
@@ -93,13 +93,13 @@ public class BookingController {
     }
     
     @GetMapping("/services/stats")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Map<String, Object>> getServiceStats() {
         return ResponseEntity.ok(bookingService.getServiceStats());
     }
     
     @GetMapping("/services/recent")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<List<MaintenanceService>> getRecentServices(
             @RequestParam(defaultValue = "5") int limit) {
         return ResponseEntity.ok(bookingService.getRecentServices(limit));

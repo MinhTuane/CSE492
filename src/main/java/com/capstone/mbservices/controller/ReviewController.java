@@ -17,7 +17,7 @@ public class ReviewController {
     private final ReviewService reviewService;
     
     @PostMapping
-    @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER')")
+    @PreAuthorize("#request.userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<Review> create(@Valid @RequestBody ReviewRequest request) {
         return ResponseEntity.ok(reviewService.createReview(request));
     }
@@ -33,13 +33,13 @@ public class ReviewController {
     }
     
     @PutMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Review> approve(@PathVariable String id) {
         return ResponseEntity.ok(reviewService.approveReview(id));
     }
     
     @PutMapping("/{id}/flag")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Review> flag(@PathVariable String id) {
         return ResponseEntity.ok(reviewService.flagReview(id));
     }

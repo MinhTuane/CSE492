@@ -34,13 +34,13 @@ public class ForumController {
     }
 
     @PostMapping("/posts")
-    @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#request.userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<ForumPost> createPost(@Valid @RequestBody ForumPostRequest request) {
         return ResponseEntity.ok(forumService.createPost(request));
     }
 
     @PostMapping("/posts/{id}/comments")
-    @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#request.userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<ForumComment> addComment(
             @PathVariable String id,
             @Valid @RequestBody ForumCommentRequest request) {
@@ -48,7 +48,7 @@ public class ForumController {
     }
     
     @PutMapping("/comments/{id}")
-    @PreAuthorize("#data.get('userId') == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("#data.get('userId') == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<ForumComment> updateComment(
             @PathVariable String id,
             @RequestBody Map<String, String> data) {

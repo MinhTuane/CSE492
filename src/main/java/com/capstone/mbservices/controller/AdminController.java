@@ -19,7 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
 public class AdminController {
     private final AdminService adminService;
 
@@ -77,13 +77,13 @@ public class AdminController {
     }
 
     @PostMapping("/motorcycles")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Motorcycle> addMotorcycle(@RequestBody MotorcycleRequest request) {
         return ResponseEntity.ok(adminService.addMotorcycle(request));
     }
 
     @PutMapping("/motorcycles/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Motorcycle> updateMotorcycle(
             @PathVariable String id,
             @RequestBody MotorcycleRequest request) {
@@ -154,9 +154,10 @@ public class AdminController {
     public ResponseEntity<List<Staff>> getAvailableStaff(
             @RequestParam String storeId,
             @RequestParam String start,
-            @RequestParam int durationMinutes) {
+            @RequestParam int durationMinutes,
+            @RequestParam(required = false) String role) {
         LocalDateTime startDt = LocalDateTime.parse(start);
-        return ResponseEntity.ok(adminService.getAvailableStaff(storeId, startDt, durationMinutes));
+        return ResponseEntity.ok(adminService.getAvailableStaff(storeId, startDt, durationMinutes, role));
     }
 
     @PatchMapping("/test-rides/{id}/assign-staff")
@@ -183,7 +184,7 @@ public class AdminController {
     // ==================== USER MANAGEMENT ====================
 
     @GetMapping("/users")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -202,14 +203,14 @@ public class AdminController {
     }
 
     @GetMapping("/users/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> getUserDetails(@PathVariable String userId) {
         return ResponseEntity.ok(adminService.getUserDetails(userId));
     }
 
     // ==================== STORE / FRANCHISE ====================
     @PatchMapping("/stores/{storeId}/approve")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Store> approveStore(
             @PathVariable String storeId,
             @RequestParam String brand) {
@@ -217,7 +218,7 @@ public class AdminController {
     }
     
     @PatchMapping("/stores/{storeId}/contract")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Store> setStoreContract(
             @PathVariable String storeId,
             @RequestParam(defaultValue = "3") int years) {
@@ -225,7 +226,7 @@ public class AdminController {
     }
 
     @PutMapping("/stores/{storeId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Store> updateStore(
             @PathVariable String storeId,
             @RequestBody Map<String, Object> body) {
@@ -233,7 +234,7 @@ public class AdminController {
     }
 
     @PatchMapping("/users/{userId}/role")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> updateUserRole(
             @PathVariable String userId,
             @RequestParam UserRole role) {
@@ -241,13 +242,13 @@ public class AdminController {
     }
 
     @PatchMapping("/users/{userId}/toggle-status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> toggleUserStatus(@PathVariable String userId) {
         return ResponseEntity.ok(adminService.toggleUserStatus(userId));
     }
 
     @PostMapping("/users/{userId}/assign-store")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Staff> assignStaffToStore(
             @PathVariable String userId,
             @RequestParam String storeId) {
@@ -255,7 +256,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
         adminService.deleteUser(userId);
         return ResponseEntity.ok().build();

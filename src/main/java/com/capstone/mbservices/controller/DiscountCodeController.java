@@ -18,7 +18,7 @@ public class DiscountCodeController {
     private final DiscountCodeService discountCodeService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<DiscountCode>> getAll() {
         return ResponseEntity.ok(discountCodeService.getAllDiscountCodes());
     }

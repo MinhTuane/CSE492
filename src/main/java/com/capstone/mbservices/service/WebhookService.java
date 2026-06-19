@@ -44,9 +44,10 @@ public class WebhookService {
                     .bodyValue(payload)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .doOnSuccess(response -> log.info("Successfully sent webhook for Order {}: {}", order.getOrderNumber(), response))
-                    .doOnError(error -> log.error("Failed to send webhook for Order {}: {}", order.getOrderNumber(), error.getMessage()))
-                    .subscribe();
+                    .subscribe(
+                            response -> log.info("Successfully sent webhook for Order {}: {}", order.getOrderNumber(), response),
+                            error -> log.error("Failed to send webhook for Order {}: {}", order.getOrderNumber(), error.getMessage())
+                    );
 
         } catch (Exception e) {
             log.error("Error preparing webhook for Order {}", order.getOrderNumber(), e);

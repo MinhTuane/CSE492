@@ -42,19 +42,19 @@ public class AccessoryController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Accessory> create(@RequestBody Accessory accessory) {
         return ResponseEntity.ok(accessoryService.createAccessory(accessory));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Accessory> update(@PathVariable String id, @RequestBody Accessory accessory) {
         return ResponseEntity.ok(accessoryService.updateAccessory(id, accessory));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         accessoryService.deleteAccessory(id);
         return ResponseEntity.ok().build();

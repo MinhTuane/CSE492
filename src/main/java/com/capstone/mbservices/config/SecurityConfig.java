@@ -67,8 +67,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/accessories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/forum/**").permitAll()
                 
-                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER", "SALES_STAFF", "SERVICE_ADVISOR")
-                .requestMatchers("/staff/**").hasAnyRole("STAFF", "ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER", "SALES_STAFF", "SERVICE_ADVISOR")
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF_SERVICE", "STAFF_CS")
+                .requestMatchers("/staff/**").hasAnyRole("ADMIN", "STAFF_SERVICE", "STAFF_CS")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

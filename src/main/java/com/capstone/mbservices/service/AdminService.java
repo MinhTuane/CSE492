@@ -92,7 +92,7 @@ public class AdminService {
         }
         String email = auth.getName();
         User user = userRepository.findByEmail(email).orElse(null);
-        if (user != null && (user.getRole() == UserRole.BRANCH_MANAGER || user.getRole() == UserRole.STAFF || user.getRole() == UserRole.SALES_STAFF || user.getRole() == UserRole.SERVICE_ADVISOR)) {
+        if (user != null && (user.getRole() == UserRole.STAFF_SERVICE || user.getRole() == UserRole.STAFF_CS)) {
             Staff staff = staffRepository.findByUserId(user.getId()).orElse(null);
             if (staff != null && staff.getStore() != null) {
                 return staff.getStore().getId();
@@ -727,8 +727,8 @@ public class AdminService {
     public Staff assignStaffToStore(String userId, String storeId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        if (user.getRole() != UserRole.STAFF && user.getRole() != UserRole.ADMIN) {
-            throw new RuntimeException("Only STAFF or ADMIN can be assigned to a store");
+        if (user.getRole() == UserRole.CUSTOMER) {
+            throw new RuntimeException("Customers cannot be assigned to a store");
         }
         
         Store store = storeRepository.findById(storeId)
@@ -1020,6 +1020,10 @@ public class AdminService {
         Staff staff = staffRepository.findById(staffId)
             .orElseThrow(() -> new ResourceNotFoundException("Staff not found"));
         
+        if (staff.getUser() == null || staff.getUser().getRole() != UserRole.STAFF_SERVICE) {
+            throw new BadRequestException("Only staff members with STAFF_SERVICE role can be assigned to repair services");
+        }
+        
         service.setTechnician(staff);
         MaintenanceService saved = maintenanceServiceRepository.save(service);
         notificationService.sendToUser(
@@ -1045,6 +1049,10 @@ public class AdminService {
     }
 
     public List<Staff> getAvailableStaff(String storeId, LocalDateTime start, int durationMinutes) {
+        return getAvailableStaff(storeId, start, durationMinutes, null);
+    }
+
+    public List<Staff> getAvailableStaff(String storeId, LocalDateTime start, int durationMinutes, String roleFilter) {
         Store store = storeRepository.findById(storeId)
             .orElseThrow(() -> new ResourceNotFoundException("Store not found"));
         if (start == null) {
@@ -1061,6 +1069,7 @@ public class AdminService {
             }
         }
         return unique.values().stream()
+            .filter(s -> s.getUser() != null && (roleFilter == null || roleFilter.isBlank() || s.getUser().getRole().name().equalsIgnoreCase(roleFilter)))
             .filter(s -> {
                 List<TestRide> conflicts = new ArrayList<>();
                 List<TestRide> c1 = testRideRepository.findByAssignedStaffIdAndScheduleDateTimeBetween(

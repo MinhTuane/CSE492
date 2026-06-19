@@ -1,0 +1,272 @@
+﻿================================================================================
+CSE493 FULL TEXT (first 500 paragraphs):
+================================================================================
+[2][Normal] EASTERN INTERNATIONAL UNIVERSITY
+[3][Normal] SCHOOL OF COMPUTING AND INFORMATION TECHNOLOGY
+[10][Normal] MOTOMARKET û Motorcycle Marketplace and Service Hub
+[13][Normal] Pham Minh Tuan - 1831200043
+[18][Normal] Software Engineering
+[23][Normal] June, 2026
+[25][Normal] EASTERN INTERNATIONAL UNIVERSITY
+[26][Normal] SCHOOL OF COMPUTING AND INFORMATION TECHNOLOGY
+[49][Heading 1] CAPSTONE PROJECTS
+[53][h1] ABSTRACT
+[54][h4] The motorcycle retail and after-sales services industry demands platforms capable of delivering seamless, end-to-end digital experiences spanning commerce, service booking, community interaction, and 
+[55][h4] Phase 1 established the system's conceptual foundation through requirements analysis, system modeling, and high-fidelity UI prototyping, selecting a technology stack of React, Java Spring Boot, SQL Se
+[56][h4] Phase 3 addresses these deferred capabilities and significantly expands the platform's scope to achieve production readiness.áGoogle OAuth 2.0áwas integrated to streamline user onboarding, with a mand
+[57][h4] On the infrastructure side, the application was containerized usingáDocker, deployed to a Virtual Private Server (VPS) hosted on AzVPS (IP: 160.187.229.53), and exposed under the custom domainámbservi
+[59][h4] Keywords: MotoMarket, Motorcycle Marketplace, Java Spring Boot, React, VNPay, Google OAuth 2.0, Gmail SMTP, Gemini AI Chatbot, Docker, NGINX, HTTPS, Accessories Marketplace, Google Maps, PostgreSQL, P
+[61][h1] ACKNOWLEDGEMENT
+[63][h4] I express my deepest gratitude to Mr. Dang Pham Huu Thao, my supervisor, for his invaluable guidance, constructive criticism, and steadfast support throughout Capstone Project Phase 2. His expertise a
+[64][h4] I am sincerely thankful to my peers and classmates for their moral support, insightful critiques, and engaging discussions. Their perspectives helped strengthen the design rationale, improve the usabi
+[65][h4] Finally, I extend heartfelt thanks to my family and friends for their constant encouragement, patience, and confidence in my abilities. Their support provided the motivation and resilience required to
+[66][h1] TABLE OF CONTENTS
+[67][toc 2] ABSTRACT	i
+[68][toc 2] ACKNOWLEDGEMENT	iii
+[69][toc 2] TABLE OF CONTENTS	iv
+[70][toc 2] LIST OF FIGURES	vi
+[71][toc 2] LIST OF ABBREVIATIONS	vii
+[72][toc 2] Chapter 1. Introduction	1
+[73][toc 3] 1.1. Motivation	1
+[74][toc 3] 1.2. Project Overview	2
+[75][toc 2] Chapter 2. Related Work	5
+[76][toc 3] 2.1. Community Forums & Enthusiast Platforms	5
+[77][toc 3] 2.2. Existing Motorcycle Trading Platforms	5
+[78][toc 3] 2.3. Technology Stack Service Booking and Management Platforms	6
+[79][toc 3] 2.4. Technology Framework Implementations in Similar Projects	6
+[80][toc 3] 2.5. Gap Analysis and Research Contribution	7
+[81][toc 2] Chapter 3. Proposed Approach, Analysis, Design, Implementation	9
+[82][toc 3] 3.1. Analysis Phase	9
+[83][toc 3] 3.2. Design Phase	9
+[84][toc 3] 3.3. Framework and Technology Selection	10
+[85][toc 2] Chapter 4. Results And Discussion	15
+[86][toc 3] 4.1. Architectural Overview	15
+[87][toc 3] 4.2. Backend Design	15
+[88][toc 3] 4.3. Data Model Design	16
+[89][toc 3] 4.4. Frontend and User Interface Design	25
+[90][toc 3] 4.5 Limitations and Future Considerations	26
+[91][toc 3] 4.6. User Interface Implementation	27
+[92][toc 3] 4.7. Discussion	39
+[93][toc 2] Chapter 5. Conclusion and Future Works	44
+[94][toc 3] 5.1. Conclusion	44
+[95][toc 3] 5.2. Future Work	45
+[96][toc 2] References	50
+[97][h1] LIST OF FIGURES
+[98][table of figures] Figure 1: React logo	13
+[99][table of figures] Figure 2: Spring boot logo	14
+[100][table of figures] Figure 3: Sql server logo	15
+[101][table of figures] Figure 4:Cloudinary logo	16
+[102][table of figures] Figure 5: Book test ride sequence diagram	20
+[103][table of figures] Figure 6: Purchase motorbike sequence diagram	21
+[104][table of figures] Figure 7: Post in forum sequence diagram	22
+[105][table of figures] Figure 8: Admin upload motorcycle sequence diagran	23
+[106][table of figures] Figure 9: Usecase diagram	25
+[107][table of figures] Figure 10: Class diagram	26
+[108][table of figures] Figure 11: Home page	33
+[109][table of figures] Figure 12: Motorcycle page	35
+[110][table of figures] Figure 13: Service page	38
+[111][table of figures] Figure 14: Forum page	38
+[112][table of figures] Figure 15: Post page	39
+[113][table of figures] Figure 16: Contact page	40
+[114][table of figures] Figure 17: Admin dashboard	41
+[115][table of figures] Figure 18: Admin manage motorcycles	42
+[116][table of figures] Figure 19: Admin order	43
+[117][table of figures] Figure 20: Admin user	43
+[118][table of figures] Figure 21: Admin review	44
+[119][table of figures] Figure 22: Admin booking	45
+[120][table of figures] Figure 23: Admin service	45
+[121][table of figures] Figure 24: Admin forum	46
+[124][h1] LIST OF ABBREVIATIONS
+[127][Normal] UI	User Interface
+[128][Normal] URL	Uniform Resource Locator
+[129][Normal] IT 	Information Technology
+[130][Normal] API	Application Programming Interface
+[131][Normal] HTTP	Hypertext Transfer Protocol
+[132][Normal] UX	User Experience
+[133][Normal] DOM	Document Object Model
+[134][Normal] HTML	Hypertext Markup Language
+[135][Normal] JSX	JavaScript XML
+[136][Normal] CSS	Cascading Style Sheets
+[137][Normal] CDN	Content Delivery Network
+[138][Normal] JWT	JSON Web Token
+[139][Normal] JPA	Java Persistence API
+[140][Normal] CRUD	Create, Read, Update, Delete
+[141][Normal] REST/RESTful	Representational State Transfer
+[142][Normal] SQL	Structured Query Language
+[143][Normal] CORS	Cross-Origin Resource Sharing
+[144][Normal] RDBMS	Relational Database Management System
+[145][Normal] MFA	Multi-Factor Authentication
+PSP	Payment Service Provider
+CAGR	Compound Annual Growth Rate
+USD	United States Dollar
+CSV	Comma-Separated Values
+SPA	Single-Page Application
+[146][Normal] BCrypt	Blowfish Crypt
+[147][Normal] SMTP	Simple Mail Transfer Protocol
+[148][Normal] PCI	Payment Card Industry
+SMS	Short Message Service
+[149][Normal] CDN	Content Delivery Network
+[150][Normal] HSTS	HTTP Strict Transport Security
+[151][Normal] CSP	Content Security Policy
+[152][h1] Chapter 1. Introduction
+[153][h2] 1.1. Motivation
+[154][h4] The motorcycle industry faces significant digital fragmentation that creates inefficiencies for both consumers and service providers. Research indicates that 81% of motorcycle parts consumers favor sp
+[155][h4] Community-driven discussion plays a central role in purchasing decisions within the motorcycle market. Word-of-mouth and peer recommendations, facilitated through forums and social platforms, signific
+[156][h4] The market opportunity is substantial. The U.S. motorcycle market alone was valued at USD 10.48 billion in 2024 and is projected to grow at a CAGR of 4.1% from 2025 to 2030 [23]. Yet traditional busin
+[157][h4] Consumer sentiment data further confirms market readiness: 67% of potential powersports buyers believe the economy will remain stable or improve, and 65% anticipate purchasing a new vehicle within the
+[158][h4] From a software engineering perspective, the challenge is not simply building a website to list motorcycles ù it is designing aámulti-stakeholder platformáthat simultaneously serves customers (discove
+[159][h4] MotoMarket was conceived to address this gap: a unified, web-based platform consolidating multi-brand motorcycle commerce, test ride and maintenance service booking, an accessories marketplace, a comm
+[162][h2] 1.2. Project Overview
+[163][h4] Phase 3 represents the final stage of the MotoMarket Capstone project. This phase builds directly upon the architecture and modules established in Phase 2 and focuses on three primary dimensions of wo
+[164][h4] Feature Completion:áThe following capabilities deferred from Phase 2 were fully implemented in Phase 3:
+[165][h4] Google OAuth 2.0 Authentication: Users may sign in using their existing Google account, bypassing manual registration. First-time OAuth users are guided through a mandatory profile completion workflow
+[166][h4] VNPay Payment Gateway: End-to-end payment processing was integrated using the VNPay sandbox and production API, enabling real monetary transactions within the order pipeline.
+[167][h4] Automated Email Notifications: Transactional emails are dispatched via Gmail SMTP across key user lifecycle events ù order placement confirmations, test ride and maintenance booking acknowledgements, 
+[168][h4] Google Maps Integration: An embedded interactive map guides users to the nearest store branch, resolving the deferred map functionality from Phase 2.
+[169][h4] Accessories Marketplace: A dedicated storefront for motorcycle accessories was introduced, complete with catalog browsing, cart integration, and a full administrative CRUD management panel.
+[170][h4] License Plate Registration Service: The order workflow was enhanced to allow customers to optionally request a license plate registration service bundled with their motorcycle purchase.
+[171][h4] User Experience Refinement:áSeveral existing modules were redesigned to meet a higher standard of visual quality and usability:
+[172][h4] TheáHomeálanding page was rebuilt with a modern hero section, animated image slideshow, and curated product highlights.
+[173][h4] TheáForumáwas redesigned with a structured, professional layout to support deeper community engagement.
+[174][h4] TheáAboutápage was reconstructed to convey brand credibility and institutional trust.
+[175][h4] TheáAdmin Dashboardáwas substantially overhauled, adding branch-specific performance charts with a dynamic store-branch selector, enabling franchise managers to monitor their own branch's metrics in i
+[176][h4] An AI-poweredáchatbotábacked by the Google Gemini API was integrated, providing real-time automated customer support with staff escalation for unresolved queries.
+[177][h4] Production Deployment:áThe platform was containerized usingáDockeráand deployed to an Ubuntu-basedáVirtual Private Server (VPS).áNGINXáwas configured as a reverse proxy to route traffic, enforceáHTTPS
+[178][h4] Scope Boundaries and Future Work:áPhase 3 acknowledges that certain capabilities remain outside its implementation scope and are deferred for future iterations. Facebook OAuth login was not implemente
+[179][h4] Academic Objectives:áThis phase demonstrates competency in full-stack production engineering, including secure third-party service integration (OAuth, payment gateways, AI APIs), operational infrastru
+[181][h1] Chapter 2. Related Work
+[182][h2] 2.1. Community Forums & Enthusiast Platforms
+[183][h4] Online motorcycle forums have historically served as primary venues for technical knowledge exchange, peer recommendations, and community building. [3] Platforms such as The Motorcycle Forum and Devit
+[184][h4] [8] Zenith Motorcycles identifies the top motorcycle forums as communities where owners seek advice before making purchase or service decisions, reinforcing the role of community content in shaping co
+[185][h4] [6] Research into platform health trends reveals that traditional motorcycle forums are in decline as users migrate toward social media and integrated marketplace platforms. This fragmentation and mig
+[186][h2] 2.2. Existing Motorcycle Trading Platforms
+[187][h4] [1] Cycle Trader is the dominant specialized motorcycle marketplace in the United States, offering motorcycle listings across sport, cruiser, touring, and off-road categories from both dealers and pri
+[188][h4] [5] Market trend data shows that used motorcycle registrations consistently outpaced new models throughout 2023 and 2024, with used motorcycle sales growing 14% year-over-year by February 2024. This t
+[189][h4] [7] Customer reviews of Cycle Trader reveal recurring complaints: outdated listings, difficulty contacting real sellers, and lack of trust verification. These documented user experience failures repre
+[190][h2] 2.3. Technology Stack Service Booking and Management Platforms
+[191][h4] React & Spring Boot Integration:á[9, 10] The combination of React and Spring Boot has been extensively validated as a reliable foundation for CRUD-driven web applications requiring role-based access c
+[192][h4] Database Integration:á[15] Spring Boot's integration with Microsoft SQL Server via JPA/Hibernate has been thoroughly documented for enterprise CRUD applications, providing the relational persistence l
+[193][h4] Media Management:á[17] Cloudinary has been adopted by major e-commerce brands globally as a foundational media delivery technology, providing image optimization, CDN distribution, and programmatic upl
+[194][h4] Payment Gateway:á[27] VNPay is the leading domestic payment gateway in Vietnam, supporting ATM card transactions, QR code payments, and internet banking across all major Vietnamese banks. Its sandbox 
+[195][h4] OAuth 2.0 Authentication:á[28] Google's Sign In with Google SDK provides a standards-compliant OAuth 2.0 authentication flow that eliminates the need for users to create and manage separate credential
+[196][h4] AI-Powered Customer Support:á[29] Google's Gemini API provides access to large language model capabilities via a simple REST interface. For MotoMarket's chatbot, Gemini 2.5 Flash was selected for its 
+[197][h4] Containerization & Deployment:á[30] Docker Compose enables multi-service orchestration with consistent environment configuration across development and production. [31] NGINX as a reverse proxy provid
+[198][h2] 2.4. Gap Analysis
+[200][h1] Chapter 3. Proposed Approach, Analysis, Design, Implementation
+[201][h2] 3.1. Analysis Phase
+[202][h4] Phase 3 began with a systematic gap analysis of Phase 2's delivered prototype, translating unresolved requirements into a prioritized implementation backlog. The analysis examined three categories of 
+[203][h4] Deferred Feature Analysis:
+[204][h4] Six deferred capabilities required full implementation in Phase 3:
+[205][h4] Google OAuth 2.0áù A frictionless authentication alternative requiring server-side token validation and a mandatory profile completion workflow for first-time OAuth users (to capture phone, address, d
+[206][h4] VNPay Payment Gatewayáù Replacement of Phase 2's placeholder payment recording with a fully integrated gateway. Analysis of VNPay's API documentation identified HMAC-SHA512 signature verification, sec
+[207][h4] Gmail SMTP Email Notificationsáù Transactional email required for five event types: order placement, test ride booking, maintenance booking, staff assignment, and password reset.áJavaMailSenderávia Sp
+[208][h4] Google Maps Integrationáù Embedded interactive map with custom branch markers and Haversine-based nearest-store calculation using the browser Geolocation API.
+[209][h4] Accessories Marketplaceáù A new commercial vertical requiring a newáAccessoryáentity, catalog browsing frontend, cart integration, and a complete admin CRUD management panel.
+[210][h4] License Plate Registrationáù An optional service checkbox bundled with the motorcycle purchase checkout flow.
+[211][h4] UX Refinement Analysis:
+[212][h4] User experience evaluation of Phase 2 identified five modules requiring significant redesign:
+[213][h4] TheáHome pageálacked visual hierarchy; a hero section with animated slideshow and brand-filtered product sections was specified.
+[214][h4] TheáForumáhad an informal layout; a structured category-based layout with activity indicators was designed.
+[215][h4] TheáAbout pageáwas minimal; a full brand narrative with value proposition sections was planned.
+[216][h4] TheáCompare Motorcyclesápage presented basic table comparison; a redesigned side-by-side view with grouped specification categories, color-coded superiority highlighting, and improved motorcycle selec
+[217][h4] TheáAdmin Dashboardáprovided only global statistics; a dynamic branch selector with per-branch chart filtering was designed.
+[218][h4] AI Chatbot Analysis:
+[219][h4] The analysis identified the need for a customer support channel that could handle queries automatically without requiring dedicated staff availability. The Gemini API was selected for its REST interfa
+[220][h4] Production Readiness Analysis:
+[221][h4] Phase 2 ran exclusively in local development environments. Phase 3 required: Docker containerization for environment reproducibility; a VPS with a public IP for internet accessibility; a registered do
+[222][h2] 3.2. Design Phase
+[223][n] Production Architecture Design:
+[224][h4] The system is designed as a containerized multi-service application managed by Docker Compose, comprising four containers: theáSpring Boot backendá(port 8091), theáReact/Vite frontendá(served as stati
+[225][n] Accessories Module Design:
+[226][h4] TheáAccessoryáentity introduces attributes for name, brand, category (helmets, tires, exhaust, suspension, brakes, chains, frame sliders), price, stock, description, image URL (Cloudinary), compatible
+[227][n] VNPay Payment Design:
+[228][h4] The VNPay integration follows the gateway's redirect-based payment flow. The backend generates a signed payment URL using HMAC-SHA512 over a parameter string including transaction reference, amount, t
+[229][n] Email Notification Design:
+[230][h4] JavaMailSenderáis configured with Gmail SMTP on port 587 with STARTTLS. HTML email templates are constructed per event type with dynamic content injection. Email dispatch is performed asynchronously u
+[231][n] OAuth 2.0 Profile Completion Design:
+[232][h4] The Google OAuth flow issues a Googleáid_tokenáfrom the frontend (via Google's JavaScript SDK), which is sent to a dedicated backend endpoint for server-side validation against Google's public key inf
+[233][n] Chatbot Microservice Design:
+[234][h4] The chatbot is implemented as a separate Python FastAPI microservice to isolate Gemini API dependency management from the main Spring Boot application. The Spring Boot backend acts as a proxy, forward
+[236][h2] 3.3. Framework and Technology Selection
+[237][h4] The goal of technology selection is to create a scalable, reliable architecture that can manage a variety of functions including e-commerce, service management, payment processing, AI integration, and
+[238][h3] 3.3.1. Frontend Technology: React
+[239][n] 1. What is React?
+[240][h4] React is an open-source JavaScript library for building user interfaces through a component-based architecture [9]. Vite serves as the build tool, providing fast hot module replacement during developm
+[241][h4] Component reusability:áMotorcycle cards, accessory product cards, booking forms, and admin tables are implemented as reusable components shared across pages.
+[242][h4] Virtual DOM:áEfficient rendering for dynamic content such as real-time chatbot message streams, the accessory catalog, and live dashboard charts.
+[243][h4] Ecosystem:áGoogle Maps embedding, Google Sign-In SDK, and charting libraries (Recharts) are supported through React component wrappers.
+[244][h4] State management:áReact Context API and hooks manage authentication sessions, shopping cart contents, and chatbot conversation history.
+[247][Caption] Figure 1: React
+[248][h3] 3.3.2. Java Spring Boot
+[249][n] 1. What is Spring Boot?
+[250][h4] Spring Boot is an extension of the Spring framework that simplifies enterprise Java application development through auto-configuration and embedded server support [15]. Spring Boot was selected becaus
+[251][h4] Spring Security:áProvides JWT validation, role-based access control (CUSTOMER,áSTAFF,áBRANCH_MANAGER,áADMIN), and OAuth 2.0 token verification viaáspring-security-oauth2-jose.
+[252][h4] JavaMailSender:áNative SMTP integration for Gmail email notifications without external dependencies.
+[253][h4] @Async:áNon-blocking email dispatch to prevent API latency from email delivery.
+[254][h4] Spring Data JPA:áORM persistence for all entities with Hibernate'sáddl-auto=updateáfor schema management.
+[255][h4] WebFlux WebClient:áReactive HTTP client used for proxying requests to the Gemini API and chatbot microservice.
+[258][Caption] Figure 2: Spring boot
+[259][h3] 3.3.3. PostgreSQL
+[260][h4] PostgreSQL is a powerful open-source relational database management system. It was selected for production deployment (replacing SQL Server development configuration) because:
+[261][h4] Docker availability:áOfficial PostgreSQL Docker images are lightweight and production-proven.
+[262][h4] Open-source licensing:áNo licensing costs on the VPS.
+[263][h4] JPA compatibility:áHibernate's PostgreSQL dialect is fully compatible with the existing JPA entity model, requiring only a datasource URL change via Docker environment variables.
+[265][Caption] Figure 3: PostgreSQL server
+[266][h3] 3.3.4. Cloudinary
+[267][h4] Cloudinary is a cloud-based media management platform providing CDN distribution, image optimization, and programmatic upload APIs [20]. MotoMarket uses Cloudinary for all product imagery ù motorcycle
+[269][Caption] Figure 4:Cloudinary logo
+[270][h3] 3.3.5 VNPay Payment Gateway
+[271][h4] VNPay is the leading domestic payment gateway in Vietnam, supporting ATM card transactions, QR code payments, and internet banking [27]. It was selected because:
+[272][h4] Domestic market fit:áVietnamese customers overwhelmingly use VNPay-supported local banks.
+[273][h4] Security:áHMAC-SHA512 signature verification on all transactions.
+[274][h4] Sandbox environment:áComplete end-to-end testing including successful payments, cancellations, and IPN callbacks before production activation.
+[276][h3] 3.3.6. Google OAuth 2.0
+[277][h4] Google's Sign In with Google SDK provides a standards-compliant OAuth 2.0 authentication flow [28]. Selected because:
+[278][h4] Reduced friction:áEliminates manual registration for users with a Google account.
+[279][h4] Security:áServer-sideáid_tokenávalidation against Google's public keys prevents token forgery. No passwords are stored for OAuth accounts.
+[280][h4] First-login workflow:áMandatory profile completion step captures required user attributes while preserving a frictionless experience for returning users.
+[282][h3] 3.3.7. Google Gemini API
+[283][h4] Google's Gemini API provides REST-based access to large language model capabilities [29]. Gemini 2.5 Flash was selected for the chatbot because:
+[284][h4] Vietnamese language:áStrong multilingual comprehension and response generation.
+[285][h4] System prompt control:áDetailed system prompts effectively constrain the model to MotoMarket-relevant topics.
+[286][h4] Simple REST interface:áIntegrates cleanly with the Python FastAPI chatbot microservice.
+[287][h4] Auto-escalation boundary:áThe model is prompted to acknowledge its limitations and defer to human agents when users explicitly request staff assistance.
+[289][h3] 3.3.8. Gmail SMTP
+[290][h4] Spring Boot'sáspring-boot-starter-mailáconfiguresáJavaMailSenderáwith Gmail SMTP on port 587 with STARTTLS. Selected because:
+[291][h4] Zero infrastructure cost:áNo mail server provisioning required.
+[292][h4] Reliable deliverability:áGmail's sender reputation ensures transactional emails reach user inboxes.
+[293][h4] HTML support:áMimeMessageáenables richly formatted HTML emails with order details and action links.
+[295][h3] 3.3.9. Google Maps (React Leaflet)
+[296][h4] The store locator usesáReact LeafletáwitháOpenStreetMapátiles rather than the Google Maps JavaScript API directly, avoiding per-request billing while providing equivalent interactive map functionality
+[298][h3] 3.3.10. Docker and Docker Compose
+[299][h4] Docker packages application containers for consistent deployment across environments [30]. Docker Compose orchestrates all four MotoMarket services (backend, frontend, chatbot, database) with networki
+[300][h4] Environment consistency:áEliminates development-to-production configuration drift.
+[301][h4] Single-command deployment:ádocker compose up --buildárebuilds and starts all services.
+[302][h4] Service isolation:áEach service runs in its own container with controlled inter-service communication.
+[304][h3] 3.3.11. NGINX
+[305][h4] NGINX is a high-performance web server and reverse proxy [31]. Selected for MotoMarket's production infrastructure because:
+[306][h4] TLS termination:áHandles HTTPS encryption at the proxy layer, offloading SSL processing from application containers.
+[307][h4] HTTP-to-HTTPS redirection:áAll port 80 traffic is automatically redirected to port 443.
+[308][h4] Request routing:áAPI requests (/api/**) are proxied to the Spring Boot backend; all other paths serve the React SPA.
+[309][h4] Static file serving:áThe compiled React build is served directly by NGINX with optimal performance.
+[311][h3] 3.3.12. Let's Encrypt / Certbot
+[312][h4] Let's Encrypt is a free, automated Certificate Authority issuing Domain Validation SSL/TLS certificates [32]. Certbot automates certificate issuance and 90-day renewal. Selected because:
+[313][h4] Zero cost:áSSL certificates at no charge.
+[314][h4] Automated renewal:áPrevents certificate expiry without manual intervention.
+[315][h4] Browser trust:áAll major browsers trust Let's Encrypt certificates without user warnings.
+[318][h1] Chapter 4. Results And Discussion
+[319][h2] 4.1. Architectural Overview
+python : Traceback (most recent call last):
+At line:1 char:1
++ python scratch\extract_493.py 2>&1 | Out-File -FilePath scratch\cse49 ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\cmyli\OneDrive - eiu.edu.vn\Desktop\CSE492-main\scratch\extract_493.py", line 31, in <module>
+    print(t)
+    ~~~~~^^^
+  File "C:\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2011' in position 82: character maps to <undefined>

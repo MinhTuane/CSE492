@@ -22,7 +22,7 @@ public class AnalyticsController {
     private final UserRepository userRepository;
 
     @GetMapping("/revenue-summary")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getRevenueSummary() {
         long totalSales = orderRepository.countByStatus(OrderStatus.PAID);
         Double totalRevenue = orderRepository.calculateTotalRevenue();

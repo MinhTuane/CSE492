@@ -78,13 +78,13 @@ public class MotorcycleController {
     }
     
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Motorcycle> create(@Valid @RequestBody MotorcycleRequest request) {
         return ResponseEntity.ok(motorcycleService.createMotorcycle(request));
     }
     
     @PostMapping("/with-images")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Motorcycle> createWithImages(
             @RequestPart("motorcycle") @Valid MotorcycleRequest request,
             @RequestPart(value = "images", required = false) MultipartFile[] images) {
@@ -94,7 +94,7 @@ public class MotorcycleController {
     }
     
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Motorcycle> update(
             @PathVariable String id, 
             @Valid @RequestBody MotorcycleRequest request) {
@@ -102,7 +102,7 @@ public class MotorcycleController {
     }
     
     @PutMapping("/{id}/with-images")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Motorcycle> updateWithImages(
             @PathVariable String id,
             @RequestPart("motorcycle") @Valid MotorcycleRequest request,
@@ -116,7 +116,7 @@ public class MotorcycleController {
     }
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         motorcycleService.deleteMotorcycle(id);
         return ResponseEntity.noContent().build();
@@ -130,7 +130,7 @@ public class MotorcycleController {
     }
     
     @PostMapping("/{id}/images")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF', 'SALES_STAFF', 'SERVICE_ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Motorcycle> addImages(
             @PathVariable String id,
             @RequestPart("images") MultipartFile[] images) {
@@ -138,7 +138,7 @@ public class MotorcycleController {
     }
     
     @DeleteMapping("/{id}/images")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Motorcycle> removeImage(
             @PathVariable String id,
             @RequestParam("url") String imageUrl) {
@@ -146,7 +146,7 @@ public class MotorcycleController {
     }
     
     @PutMapping("/{id}/images/replace")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
     public ResponseEntity<Motorcycle> replaceAllImages(
             @PathVariable String id,
             @RequestPart("images") MultipartFile[] images) {

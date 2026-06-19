@@ -45,9 +45,11 @@ public class DataSeeder implements CommandLineRunner {
         User customer = createOrGetUser("customer@test.com", "John", "Doe", "CUSTOMER");
         User customer1 = createOrGetUser("customer1@gmail.com", "Minh", "Nguyen", "CUSTOMER");
         User admin = createOrGetUser("admin@test.com", "Admin", "User", "ADMIN");
-        User staff = createOrGetUser("staff@test.com", "Staff", "Member", "STAFF");
+        User staff = createOrGetUser("staff@test.com", "Staff", "Member", "STAFF_SERVICE");
+        User staffCS = createOrGetUser("staff_cs@test.com", "CS", "Staff", "STAFF_CS");
 
         ensureEncodedPassword(staff, "password123");
+        ensureEncodedPassword(staffCS, "password123");
 
         if (storeRepository.count() == 0) {
             Store store1 = storeRepository.save(Store.builder()
@@ -104,6 +106,16 @@ public class DataSeeder implements CommandLineRunner {
                     .build();
             staffRepository.save(staffMember);
             log.info("Created staff member for: {}", staff.getEmail());
+        }
+
+        if (!staffRepository.existsByUser(staffCS)) {
+            Staff staffMember = Staff.builder()
+                    .user(staffCS)
+                    .permissions(Arrays.asList("MANAGE_ORDERS", "MANAGE_SERVICES"))
+                    .store(storeRepository.findAll().stream().findFirst().orElse(null))
+                    .build();
+            staffRepository.save(staffMember);
+            log.info("Created staff member for: {}", staffCS.getEmail());
         }
 
         List<Motorcycle> motorcycles = new ArrayList<>();
