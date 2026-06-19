@@ -99,4 +99,8 @@ const useAuthStore = create(
 // Initialize auth state when store is created
 useAuthStore.getState().initializeAuth();
 
+if (typeof window !== 'undefined') {
+  window.useAuthStore = useAuthStore;
+}
+
 export default useAuthStore;
