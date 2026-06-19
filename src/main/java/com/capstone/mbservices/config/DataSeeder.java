@@ -41,6 +41,16 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        try {
+            log.info("Migrating legacy database roles to the new 4-role model...");
+            jdbcTemplate.update("UPDATE users SET role = 'STAFF_SERVICE' WHERE role IN ('STAFF', 'SERVICE_ADVISOR')");
+            jdbcTemplate.update("UPDATE users SET role = 'STAFF_CS' WHERE role IN ('STAFF_CSKH', 'SALES_STAFF')");
+            jdbcTemplate.update("UPDATE users SET role = 'ADMIN' WHERE role IN ('SUPER_ADMIN', 'BRANCH_MANAGER')");
+            log.info("Database roles migration completed successfully.");
+        } catch (Exception e) {
+            log.warn("Failed to migrate database roles: {}", e.getMessage());
+        }
+
         ensureAdminExists();
         User customer = createOrGetUser("customer@test.com", "John", "Doe", "CUSTOMER");
         User customer1 = createOrGetUser("customer1@gmail.com", "Minh", "Nguyen", "CUSTOMER");
