@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, Clock, MapPin, Bike, Wrench, CheckCircle, XCircle, Download, FileText, Info } from 'lucide-react';
 import { bookingService } from '../../services/booking.service';
 import { useLocation } from 'react-router-dom';
@@ -633,8 +634,8 @@ const MyBookings = () => {
             )}
           </div>
         )}
-        {showBookingForm && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setShowBookingForm(false)}>
+        {showBookingForm && createPortal(
+          <div className="fixed inset-0 z-[100] bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setShowBookingForm(false)}>
             <div className="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
               <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl z-10">
                 <h2 className="text-xl font-bold">New Booking</h2>
@@ -838,7 +839,8 @@ const MyBookings = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Garage Tab */}
