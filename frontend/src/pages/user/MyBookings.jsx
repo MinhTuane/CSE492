@@ -634,8 +634,8 @@ const MyBookings = () => {
           </div>
         )}
         {showBookingForm && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setShowBookingForm(false)}>
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-start overflow-y-auto p-4" onClick={() => setShowBookingForm(false)}>
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-xl my-8" onClick={(e) => e.stopPropagation()}>
               <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
                 <h2 className="text-xl font-bold">New Booking</h2>
                 <button
