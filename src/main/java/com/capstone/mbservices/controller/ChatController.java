@@ -1,8 +1,10 @@
 package com.capstone.mbservices.controller;
 
 import com.capstone.mbservices.entity.ChatMessage;
+import com.capstone.mbservices.entity.ChatRating;
 import com.capstone.mbservices.entity.User;
 import com.capstone.mbservices.repository.ChatMessageRepository;
+import com.capstone.mbservices.repository.ChatRatingRepository;
 import com.capstone.mbservices.repository.UserRepository;
 import com.capstone.mbservices.service.ChatbotService;
 import com.capstone.mbservices.service.NotificationService;
@@ -31,12 +33,18 @@ public class ChatController {
     private final ChatbotService chatbotService;
     private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatRatingRepository chatRatingRepository;
 
     // In-memory registry of sessions that are currently in Staff Mode
     private static final Map<String, Boolean> activeStaffSessions = new ConcurrentHashMap<>();
 
     // In-memory registry of staff members allowed to participate in each customer session (for technical staff delegation)
     private static final Map<String, Set<String>> allowedStaffForSession = new ConcurrentHashMap<>();
+
+    // In-memory registry of assigned staff IDs and names
+    private static final Map<String, String> assignedStaffId = new ConcurrentHashMap<>();
+    private static final Map<String, String> assignedStaffName = new ConcurrentHashMap<>();
+    private static final Map<String, String[]> lastAssignedStaff = new ConcurrentHashMap<>();
 
     @GetMapping("/history")
     public ResponseEntity<List<ChatMessage>> getChatHistory(@RequestParam String customerId) {
@@ -111,6 +119,28 @@ public class ChatController {
                 result.add(botMessage);
             }
         } else if ("STAFF".equalsIgnoreCase(senderRole) || "ADMIN".equalsIgnoreCase(senderRole) || "STAFF_CS".equalsIgnoreCase(senderRole) || "STAFF_SERVICE".equalsIgnoreCase(senderRole)) {
+            // Check if chat is already accepted by someone else
+            String currentAssignedId = assignedStaffId.get(customerId);
+            if (currentAssignedId != null && !currentAssignedId.equals(request.getSenderId())) {
+                Set<String> allowedIds = allowedStaffForSession.get(customerId);
+                if (allowedIds == null || !allowedIds.contains(request.getSenderId())) {
+                    ChatMessage errorMsg = ChatMessage.builder()
+                            .customerId(customerId)
+                            .senderRole("SYSTEM")
+                            .senderName("System")
+                            .content("Phiên chat này đã được nhân viên khác nhận.")
+                            .createAt(LocalDateTime.now())
+                            .build();
+                    return ResponseEntity.status(403).body(List.of(errorMsg));
+                }
+            }
+            // If not assigned yet, automatically assign it to the staff who sent the message
+            if (currentAssignedId == null) {
+                assignedStaffId.put(customerId, request.getSenderId());
+                assignedStaffName.put(customerId, request.getSenderName());
+                lastAssignedStaff.put(customerId, new String[]{request.getSenderId(), request.getSenderName()});
+            }
+
             // STAFF_SERVICE role can only send messages if invited/delegated to the session
             if ("STAFF_SERVICE".equalsIgnoreCase(senderRole)) {
                 Set<String> allowedIds = allowedStaffForSession.get(customerId);
@@ -128,7 +158,12 @@ public class ChatController {
             // Staff replied: automatically ensure session is marked as in Staff Mode
             activeStaffSessions.put(customerId, true);
             messagingTemplate.convertAndSend("/topic/chat/" + customerId, userMessage);
-            messagingTemplate.convertAndSend("/topic/chat/sessions", Map.of("action", "message", "customerId", customerId));
+            messagingTemplate.convertAndSend("/topic/chat/sessions", Map.of(
+                    "action", "message",
+                    "customerId", customerId,
+                    "assignedStaffId", request.getSenderId(),
+                    "assignedStaffName", request.getSenderName()
+            ));
         }
 
         return ResponseEntity.ok(result);
@@ -170,6 +205,9 @@ public class ChatController {
                     .lastMessage(lastMsg.getContent())
                     .lastMessageTime(lastMsg.getCreateAt())
                     .isWaitingForStaff(activeStaffSessions.getOrDefault(customerId, false))
+                    .assignedStaffId(assignedStaffId.get(customerId))
+                    .assignedStaffName(assignedStaffName.get(customerId))
+                    .allowedStaffIds(allowedStaffForSession.get(customerId))
                     .build());
         }
         
@@ -272,6 +310,114 @@ public class ChatController {
         return ResponseEntity.ok(Map.of("success", true, "customerId", customerId, "delegatedTo", targetStaffId));
     }
 
+    @PostMapping("/accept")
+    public ResponseEntity<Map<String, Object>> acceptSession(@RequestBody ChatAcceptRequest request) {
+        String customerId = request.getCustomerId();
+        String staffId = request.getStaffId();
+        String staffName = request.getStaffName();
+
+        activeStaffSessions.put(customerId, true);
+        assignedStaffId.put(customerId, staffId);
+        assignedStaffName.put(customerId, staffName);
+        lastAssignedStaff.put(customerId, new String[]{staffId, staffName});
+
+        String greeting = "Xin chào, tôi là " + staffName + ". Tôi ở đây để hỗ trợ giải đáp các thắc mắc của bạn.";
+        ChatMessage welcomeMsg = ChatMessage.builder()
+                .customerId(customerId)
+                .senderId(staffId)
+                .senderName(staffName)
+                .senderRole("STAFF")
+                .content(greeting)
+                .createAt(LocalDateTime.now())
+                .build();
+        chatMessageRepository.save(welcomeMsg);
+
+        messagingTemplate.convertAndSend("/topic/chat/" + customerId, welcomeMsg);
+        messagingTemplate.convertAndSend("/topic/chat/sessions", Map.of(
+                "action", "accept",
+                "customerId", customerId,
+                "staffId", staffId,
+                "staffName", staffName
+        ));
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "customerId", customerId,
+                "staffId", staffId,
+                "staffName", staffName
+        ));
+    }
+
+    @PostMapping("/close")
+    public ResponseEntity<Map<String, Object>> closeSession(@RequestBody Map<String, String> body) {
+        String customerId = body.get("customerId");
+
+        assignedStaffId.remove(customerId);
+        assignedStaffName.remove(customerId);
+        activeStaffSessions.put(customerId, false);
+        allowedStaffForSession.remove(customerId);
+
+        ChatMessage systemMsg = ChatMessage.builder()
+                .customerId(customerId)
+                .senderRole("SYSTEM")
+                .senderName("System")
+                .content("🔄 Phiên hỗ trợ trực tuyến đã kết thúc. Bạn vui lòng đánh giá chất lượng phục vụ.")
+                .createAt(LocalDateTime.now())
+                .build();
+        chatMessageRepository.save(systemMsg);
+
+        messagingTemplate.convertAndSend("/topic/chat/" + customerId, systemMsg);
+        messagingTemplate.convertAndSend("/topic/chat/sessions", Map.of(
+                "action", "close",
+                "customerId", customerId
+        ));
+
+        return ResponseEntity.ok(Map.of("success", true, "customerId", customerId));
+    }
+
+    @PostMapping("/rate")
+    public ResponseEntity<Map<String, Object>> rateSession(@RequestBody ChatRateRequest request) {
+        String customerId = request.getCustomerId();
+        Integer rating = request.getRating();
+        String feedback = request.getFeedback();
+
+        String staffId = null;
+        String staffName = null;
+        String[] staffInfo = lastAssignedStaff.get(customerId);
+        if (staffInfo != null && staffInfo.length >= 2) {
+            staffId = staffInfo[0];
+            staffName = staffInfo[1];
+        }
+
+        if (rating != null && rating > 0) {
+            ChatRating chatRating = ChatRating.builder()
+                    .customerId(customerId)
+                    .staffId(staffId)
+                    .staffName(staffName)
+                    .rating(rating)
+                    .feedback(feedback)
+                    .build();
+            chatRatingRepository.save(chatRating);
+        }
+
+        String systemMessageContent = (rating != null && rating > 0)
+                ? "🤖 Đã quay lại chế độ Trợ lý ảo. Cảm ơn bạn đã đánh giá!"
+                : "🤖 Đã quay lại chế độ Trợ lý ảo.";
+
+        ChatMessage systemMsg = ChatMessage.builder()
+                .customerId(customerId)
+                .senderRole("SYSTEM")
+                .senderName("System")
+                .content(systemMessageContent)
+                .createAt(LocalDateTime.now())
+                .build();
+        chatMessageRepository.save(systemMsg);
+
+        messagingTemplate.convertAndSend("/topic/chat/" + customerId, systemMsg);
+
+        return ResponseEntity.ok(Map.of("success", true, "customerId", customerId));
+    }
+
     @Data
     public static class ChatMessageRequest {
         private String customerId;
@@ -279,6 +425,20 @@ public class ChatController {
         private String senderName;
         private String senderRole;
         private String content;
+    }
+
+    @Data
+    public static class ChatAcceptRequest {
+        private String customerId;
+        private String staffId;
+        private String staffName;
+    }
+
+    @Data
+    public static class ChatRateRequest {
+        private String customerId;
+        private Integer rating;
+        private String feedback;
     }
 
     @Data
@@ -290,5 +450,8 @@ public class ChatController {
         private String lastMessage;
         private LocalDateTime lastMessageTime;
         private boolean isWaitingForStaff;
+        private String assignedStaffId;
+        private String assignedStaffName;
+        private Set<String> allowedStaffIds;
     }
 }

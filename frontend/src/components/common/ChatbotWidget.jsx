@@ -13,12 +13,17 @@ const ChatbotWidget = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isStaffMode, setIsStaffMode] = useState(false);
-  const [failedCount, setFailedCount] = useState(0);
 
   // Staff Dashboard States
   const [sessions, setSessions] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [selectedCustomerName, setSelectedCustomerName] = useState('');
+
+  // Rating States
+  const [showRating, setShowRating] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [feedback, setFeedback] = useState('');
+  const [hoveredRating, setHoveredRating] = useState(0);
 
   const { user } = useAuthStore();
   const messagesEndRef = useRef(null);
@@ -51,17 +56,28 @@ const ChatbotWidget = () => {
       const res = await api.get(`/chat/history?customerId=${cid}`);
       setMessages(res.data);
 
-      // Determine current staff mode based on last SYSTEM message
+      // Determine current staff mode and rating prompt visibility based on last messages
       let inStaffMode = false;
+      let needsRating = false;
       for (let i = res.data.length - 1; i >= 0; i--) {
-        if (res.data[i].senderRole === 'SYSTEM') {
-          if (res.data[i].content.includes("Transferring")) {
+        const msg = res.data[i];
+        if (msg.senderRole === 'SYSTEM') {
+          if (msg.content.includes("Transferring")) {
             inStaffMode = true;
+          }
+          if (msg.content.includes("đã kết thúc")) {
+            needsRating = true;
+          }
+          if (msg.content.includes("đã quay lại") || msg.content.includes("Đã quay lại")) {
+            needsRating = false;
           }
           break;
         }
       }
       setIsStaffMode(inStaffMode);
+      if (!isStaff(user)) {
+        setShowRating(needsRating);
+      }
     } catch (err) {
       console.error("Failed to load chat history:", err);
     } finally {
@@ -119,6 +135,13 @@ const ChatbotWidget = () => {
           if (newMsg.senderRole === 'SYSTEM') {
             if (newMsg.content.includes("Transferring")) setIsStaffMode(true);
             if (newMsg.content.includes("Switched back")) setIsStaffMode(false);
+            if (newMsg.content.includes("đã kết thúc")) {
+              setShowRating(true);
+              setIsStaffMode(false);
+            }
+            if (newMsg.content.includes("đã quay lại") || newMsg.content.includes("Đã quay lại")) {
+              setShowRating(false);
+            }
           }
           return [...prev, newMsg];
         });
@@ -183,6 +206,81 @@ const ChatbotWidget = () => {
     }
   };
 
+  // Accept a chat session by a staff member
+  const handleAcceptChat = async () => {
+    if (!selectedCustomerId) return;
+    try {
+      setIsLoading(true);
+      await api.post('/chat/accept', {
+        customerId: selectedCustomerId,
+        staffId: user.id,
+        staffName: `${user.firstname || ''} ${user.lastname || ''}`.trim() || user.username
+      });
+      await loadActiveSessions();
+      await loadChatHistory(selectedCustomerId);
+    } catch (err) {
+      console.error("Failed to accept chat:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Leave / close a chat session by a staff member
+  const handleLeaveChat = async () => {
+    const targetCid = isStaff(user) ? selectedCustomerId : customerId;
+    if (!targetCid) return;
+    try {
+      setIsLoading(true);
+      await api.post('/chat/close', { customerId: targetCid });
+      if (isStaff(user)) {
+        handleBackToSessions();
+      }
+    } catch (err) {
+      console.error("Failed to leave chat:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Send rating for support
+  const handleSendRating = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      setIsLoading(true);
+      await api.post('/chat/rate', {
+        customerId,
+        rating,
+        feedback
+      });
+      setShowRating(false);
+      setFeedback('');
+      setRating(5);
+    } catch (err) {
+      console.error("Failed to submit rating:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Skip rating for support
+  const handleSkipRating = async () => {
+    try {
+      setIsLoading(true);
+      await api.post('/chat/rate', {
+        customerId,
+        rating: 0,
+        feedback: ''
+      });
+      setShowRating(false);
+      setFeedback('');
+      setRating(5);
+    } catch (err) {
+      console.error("Failed to skip rating:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Staff Dashboard handlers
   const handleSelectSession = (session) => {
     setSelectedCustomerId(session.customerId);
@@ -236,17 +334,16 @@ const ChatbotWidget = () => {
         return [...filtered, ...newMsgs];
       });
 
-      // Handle AI fallback prompts locally
+      // Handle AI fallback prompts locally: automatically connect to staff if AI fails
       if (!isStaff(user)) {
         const botReply = res.data.find(m => m.senderRole === 'BOT')?.content || '';
         if (botReply) {
           const isFallback = botReply.includes("didn't quite catch") || 
                               botReply.includes("experiencing connection issues") ||
-                              botReply.includes("Sorry, I am having trouble");
+                              botReply.includes("Sorry, I am having trouble") ||
+                              botReply.includes("receiving too many requests");
           if (isFallback) {
-            setFailedCount(prev => prev + 1);
-          } else {
-            setFailedCount(0);
+            handleConnectToStaff();
           }
         }
       }
@@ -364,20 +461,83 @@ const ChatbotWidget = () => {
           </div>
         )}
 
-        {failedCount >= 1 && !isStaffMode && !isStaff(user) && (
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-sm text-gray-800 space-y-3 shadow-sm">
-            <p className="leading-relaxed">💡 It looks like the virtual assistant couldn't fully answer your question. Would you like to connect with our online support staff for direct assistance?</p>
-            <div className="flex flex-col gap-2">
-              <button 
-                onClick={handleConnectToStaff}
-                className="w-full bg-blue-600 text-white font-semibold py-2 px-3 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-xs"
-              >
-                <Headphones className="w-4 h-4" /> Connect with CSKH Staff (Online)
-              </button>
-            </div>
-          </div>
-        )}
+
         <div ref={messagesEndRef} />
+      </div>
+    );
+  };
+
+  const renderRatingView = () => {
+    return (
+      <div className="flex-1 flex flex-col justify-center items-center p-6 bg-gray-50 text-center space-y-5">
+        <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shadow-inner">
+          <MessageSquare className="w-6 h-6" />
+        </div>
+        <div>
+          <h4 className="text-base font-bold text-gray-800">Đánh giá dịch vụ hỗ trợ</h4>
+          <p className="text-xs text-gray-500 mt-1.5 leading-relaxed px-2">
+            Phiên hỗ trợ trực tuyến đã kết thúc. Bạn vui lòng dành chút thời gian đánh giá chất lượng phục vụ của nhân viên tư vấn.
+          </p>
+        </div>
+        
+        {/* Star Rating Selection */}
+        <div className="flex items-center gap-2 py-2">
+          {[1, 2, 3, 4, 5].map((starVal) => {
+            const isHighlighted = starVal <= (hoveredRating || rating);
+            return (
+              <button
+                type="button"
+                key={starVal}
+                onMouseEnter={() => setHoveredRating(starVal)}
+                onMouseLeave={() => setHoveredRating(0)}
+                onClick={() => setRating(starVal)}
+                className="focus:outline-none transition-transform hover:scale-125"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill={isHighlighted ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`w-8 h-8 transition-colors ${isHighlighted ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                >
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Feedback Comment Input */}
+        <div className="w-full px-2">
+          <textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            placeholder="Để lại lời nhắn đóng góp ý kiến (không bắt buộc)..."
+            rows={3}
+            className="w-full p-3 border border-gray-200 rounded-xl text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-none transition-all bg-white"
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="w-full flex gap-3 px-2 pt-2">
+          <button
+            onClick={handleSkipRating}
+            disabled={isLoading}
+            className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors text-xs disabled:opacity-50"
+          >
+            Bỏ qua
+          </button>
+          <button
+            onClick={handleSendRating}
+            disabled={isLoading}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl transition-colors text-xs shadow-md disabled:opacity-50"
+          >
+            Gửi đánh giá
+          </button>
+        </div>
       </div>
     );
   };
@@ -392,32 +552,48 @@ const ChatbotWidget = () => {
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {sessions.map(s => (
-              <div 
-                key={s.customerId}
-                onClick={() => handleSelectSession(s)}
-                className="p-4 hover:bg-white cursor-pointer transition flex items-center justify-between border-b border-gray-100"
-              >
-                <div className="flex-1 min-w-0 pr-4">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="font-semibold text-sm text-gray-800 truncate">{s.customerName}</h4>
-                    {s.waitingForStaff && (
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" title="Needs staff assistance"></span>
-                    )}
+            {sessions.map(s => {
+              const isAssignedToMe = s.assignedStaffId === user?.id;
+              return (
+                <div 
+                  key={s.customerId}
+                  onClick={() => handleSelectSession(s)}
+                  className="p-4 hover:bg-white cursor-pointer transition flex items-center justify-between border-b border-gray-100"
+                >
+                  <div className="flex-1 min-w-0 pr-4">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="font-semibold text-sm text-gray-800 truncate">{s.customerName}</h4>
+                      {s.waitingForStaff && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" title="Needs staff assistance"></span>
+                      )}
+                      {s.assignedStaffId ? (
+                        isAssignedToMe ? (
+                          <span className="text-[9px] bg-green-100 text-green-700 font-bold px-1.5 py-0.5 rounded">Tôi</span>
+                        ) : (
+                          <span className="text-[9px] bg-gray-100 text-gray-500 font-medium px-1.5 py-0.5 rounded truncate max-w-[80px]" title={s.assignedStaffName}>
+                            {s.assignedStaffName}
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-[9px] bg-blue-50 text-blue-600 font-medium px-1.5 py-0.5 rounded">Chưa nhận</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 truncate">{s.customerEmail || 'Guest session'}</p>
+                    <p className="text-xs text-gray-600 truncate mt-1.5">{s.lastMessage}</p>
                   </div>
-                  <p className="text-xs text-gray-400 truncate">{s.customerEmail || 'Guest session'}</p>
-                  <p className="text-xs text-gray-600 truncate mt-1.5">{s.lastMessage}</p>
+                  <span className="text-[10px] text-gray-400 shrink-0">
+                    {new Date(s.lastMessageTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
-                <span className="text-[10px] text-gray-400 shrink-0">
-                  {new Date(s.lastMessageTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
     );
   };
+
+  const selectedSession = sessions.find(s => s.customerId === selectedCustomerId);
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -435,12 +611,22 @@ const ChatbotWidget = () => {
                     <h3 className="font-bold text-sm truncate">{selectedCustomerName}</h3>
                     <p className="text-xs text-blue-100">Live Support Chat</p>
                   </div>
-                  <button 
-                    onClick={() => handleToggleStaffMode(false)} 
-                    className="text-[10px] bg-white/20 px-2 py-1 rounded hover:bg-white/35 transition shrink-0"
-                  >
-                    Bot Mode
-                  </button>
+                  {selectedSession?.assignedStaffId === user?.id && (
+                    <button 
+                      onClick={handleLeaveChat} 
+                      className="text-[10px] bg-red-500 px-2 py-1 rounded hover:bg-red-600 transition shrink-0 font-semibold shadow-sm mr-1"
+                    >
+                      Rời Chat
+                    </button>
+                  )}
+                  {!selectedSession?.assignedStaffId && (
+                    <button 
+                      onClick={() => handleToggleStaffMode(false)} 
+                      className="text-[10px] bg-white/20 px-2 py-1 rounded hover:bg-white/35 transition shrink-0"
+                    >
+                      Bot Mode
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -460,7 +646,7 @@ const ChatbotWidget = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-sm truncate">
-                    {isStaffMode ? 'CSKH Staff (Tuan Minh)' : 'MBServices Assistant'}
+                    {isStaffMode ? 'CSKH Staff' : 'MBServices Assistant'}
                   </h3>
                   <p className="text-xs text-blue-100">Online - Ready to help</p>
                 </div>
@@ -483,28 +669,74 @@ const ChatbotWidget = () => {
           </div>
 
           {/* Body */}
-          {isStaff(user) && !selectedCustomerId ? renderStaffSessions() : renderMessageList()}
+          {isStaff(user) && !selectedCustomerId ? renderStaffSessions() : (showRating ? renderRatingView() : renderMessageList())}
 
           {/* Input Panel */}
-          {(!isStaff(user) || selectedCustomerId) && (
-            <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-gray-100">
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder={isStaff(user) ? "Type a reply as Staff..." : isStaffMode ? "Type a message to CSKH..." : "Ask the virtual assistant..."}
-                  className="w-full bg-gray-100 border-transparent rounded-full pl-4 pr-12 py-2.5 text-sm focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all outline-none"
-                />
-                <button 
-                  type="submit" 
-                  disabled={!input.trim() || isLoading}
-                  className={`absolute right-1.5 w-8 h-8 flex items-center justify-center ${(isStaff(user) || isStaffMode) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
-                >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                </button>
-              </div>
-            </form>
+          {(!isStaff(user) || selectedCustomerId) && !showRating && (
+            isStaff(user) && selectedCustomerId ? (
+              (() => {
+                if (!selectedSession?.assignedStaffId) {
+                  return (
+                    <div className="p-3 bg-white border-t border-gray-100 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={handleAcceptChat}
+                        disabled={isLoading}
+                        className="w-full bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-full hover:bg-blue-700 transition-all flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-50 hover:scale-[1.02] active:scale-95"
+                      >
+                        <Headphones className="w-4 h-4" /> Nhận hỗ trợ cuộc trò chuyện
+                      </button>
+                    </div>
+                  );
+                } else if (selectedSession.assignedStaffId !== user?.id && !selectedSession.allowedStaffIds?.includes(user?.id)) {
+                  return (
+                    <div className="p-3.5 bg-gray-100 border-t border-gray-200 text-center text-xs text-gray-500 font-medium flex items-center justify-center gap-1.5">
+                      <span>🔒 Cuộc trò chuyện đang được hỗ trợ bởi <b>{selectedSession.assignedStaffName || 'nhân viên khác'}</b>.</span>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-gray-100">
+                      <div className="relative flex items-center">
+                        <input
+                          type="text"
+                          value={input}
+                          onChange={(e) => setInput(e.target.value)}
+                          placeholder="Nhập nội dung phản hồi..."
+                          className="w-full bg-gray-100 border-transparent rounded-full pl-4 pr-12 py-2.5 text-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none"
+                        />
+                        <button 
+                          type="submit" 
+                          disabled={!input.trim() || isLoading}
+                          className="absolute right-1.5 w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </form>
+                  );
+                }
+              })()
+            ) : (
+              <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-gray-100">
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder={isStaffMode ? "Nhập nội dung gửi CSKH..." : "Hỏi trợ lý ảo..."}
+                    className="w-full bg-gray-100 border-transparent rounded-full pl-4 pr-12 py-2.5 text-sm focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all outline-none"
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={!input.trim() || isLoading}
+                    className={`absolute right-1.5 w-8 h-8 flex items-center justify-center ${isStaffMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
+                  >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  </button>
+                </div>
+              </form>
+            )
           )}
         </div>
       )}
