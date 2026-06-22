@@ -634,9 +634,9 @@ const MyBookings = () => {
           </div>
         )}
         {showBookingForm && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-start overflow-y-auto p-4" onClick={() => setShowBookingForm(false)}>
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-xl my-8" onClick={(e) => e.stopPropagation()}>
-              <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setShowBookingForm(false)}>
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl z-10">
                 <h2 className="text-xl font-bold">New Booking</h2>
                 <button
                   onClick={() => setShowBookingForm(false)}
@@ -645,7 +645,7 @@ const MyBookings = () => {
                   <XCircle className="w-5 h-5" />
                 </button>
               </div>
-              <div className="px-6 py-4 space-y-4">
+              <div className="px-6 py-4 space-y-4 overflow-y-auto flex-grow">
                 <div className="flex gap-2">
                   <button
                     onClick={() => { setBookingType('testride'); setSelectedDate(''); setAvailableSlots([]); setFormData(prev => ({...prev, scheduleDate: ''})); }}
@@ -821,7 +821,7 @@ const MyBookings = () => {
                   />
                 </div>
               </div>
-              <div className="border-t px-6 py-4 flex justify-end gap-3">
+              <div className="border-t px-6 py-4 flex justify-end gap-3 bg-white rounded-b-xl z-10">
                 <button
                   onClick={() => setShowBookingForm(false)}
                   className="btn btn-secondary"
