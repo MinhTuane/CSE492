@@ -29,6 +29,8 @@ public class OrderController {
     private final VNPayService vnPayService;
     private final com.capstone.mbservices.service.ZaloPayService zaloPayService;
     private final com.capstone.mbservices.service.MomoService momoService;
+    private final com.capstone.mbservices.repository.TestRideRepository testRideRepository;
+    private final com.capstone.mbservices.service.BookingService bookingService;
     
     @PostMapping
     @PreAuthorize("#request.userId == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF_SERVICE', 'STAFF_CS')")
@@ -202,12 +204,49 @@ public class OrderController {
             }
             String orderId = txnRef.contains("_") ? txnRef.split("_")[0] : txnRef;
 
-            Order order;
+            Order order = null;
+            boolean isTestRide = false;
             try {
                 order = orderService.getOrderById(orderId);
             } catch (Exception e) {
-                log.error("[VNPAY-IPN] Order not found: {}", orderId);
-                return ResponseEntity.ok(Map.of("RspCode", "01", "Message", "Order Not Found"));
+                if (testRideRepository.existsById(orderId)) {
+                    isTestRide = true;
+                } else {
+                    log.error("[VNPAY-IPN] Order not found: {}", orderId);
+                    return ResponseEntity.ok(Map.of("RspCode", "01", "Message", "Order Not Found"));
+                }
+            }
+
+            if (isTestRide) {
+                com.capstone.mbservices.entity.TestRide testRide = testRideRepository.findById(orderId).orElse(null);
+                if (testRide == null) {
+                    log.error("[VNPAY-IPN] TestRide not found after exists check: {}", orderId);
+                    return ResponseEntity.ok(Map.of("RspCode", "01", "Message", "Order Not Found"));
+                }
+
+                if (testRide.getDepositStatus() == com.capstone.mbservices.enums.DepositStatus.PAID) {
+                    log.info("[VNPAY-IPN] TestRide {} deposit already PAID, ignoring duplicate.", orderId);
+                    return ResponseEntity.ok(Map.of("RspCode", "02", "Message", "Order Already Confirmed"));
+                }
+
+                String responseCode = params.get("vnp_ResponseCode");
+                if (!"00".equals(responseCode)) {
+                    log.info("[VNPAY-IPN] Payment not successful for TestRide={}, responseCode={}", orderId, responseCode);
+                    return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
+                }
+
+                String vnpAmount = params.get("vnp_Amount");
+                double amountToPay = testRide.getDepositAmount() != null ? testRide.getDepositAmount() : 200_000.0;
+                long expectedAmount = Math.round(amountToPay * 100);
+                if (vnpAmount == null || !String.valueOf(expectedAmount).equals(vnpAmount)) {
+                    log.error("[VNPAY-IPN] Amount mismatch for TestRide={}: expected={} got={}", orderId, expectedAmount, vnpAmount);
+                    return ResponseEntity.ok(Map.of("RspCode", "04", "Message", "Invalid Amount"));
+                }
+
+                String txn = params.getOrDefault("vnp_TransactionNo", txnRef);
+                bookingService.processTestRideDeposit(orderId, "VNPAY-" + txn);
+                log.info("[VNPAY-IPN] Payment processed for TestRide={} txn={}", orderId, txn);
+                return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
             }
 
             if (order.getStatus() == OrderStatus.PAID) {

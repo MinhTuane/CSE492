@@ -55,6 +55,9 @@ public class BookingService {
                     || tr.getStatus() == TestRideStatus.NO_SHOW || tr.getStatus() == TestRideStatus.EXPIRED) {
                 continue;
             }
+            if (tr.getStore() != null && !tr.getStore().getId().equals(store.getId())) {
+                continue;
+            }
             LocalDateTime trStart = tr.getScheduleDateTime() != null ? tr.getScheduleDateTime() : tr.getScheduleDate();
             if (trStart == null) continue;
             LocalDateTime trEnd = trStart.plusMinutes(tr.getDuration() != null ? tr.getDuration() : 30);
@@ -109,6 +112,9 @@ public class BookingService {
         for (MaintenanceService ms : existingServices) {
             if (ms.getStatus() == ServiceStatus.CANCELLED || ms.getStatus() == ServiceStatus.COMPLETED
                     || ms.getStatus() == ServiceStatus.EXPIRED) {
+                continue;
+            }
+            if (ms.getStore() != null && !ms.getStore().getId().equals(store.getId())) {
                 continue;
             }
             LocalDateTime msStart = ms.getScheduleDate();

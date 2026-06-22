@@ -152,7 +152,7 @@ const MyBookings = () => {
           const offerings = await bookingService.getServiceCatalog();
           const details = {};
           for (const o of offerings || []) {
-            details[o.name] = { price: o.price, features: o.features || [] };
+            details[o.name] = { id: o.id, price: o.price, features: o.features || [] };
           }
           setPlanDetails(details);
           setServiceOptions([...baseServiceOptions, ...Object.keys(details)]);
@@ -763,6 +763,7 @@ const MyBookings = () => {
                         value={formData.serviceType}
                         onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
                       >
+                        <option value="">Select package</option>
                         {serviceOptions.map((opt) => (
                           <option key={opt} value={opt}>{opt}</option>
                         ))}
